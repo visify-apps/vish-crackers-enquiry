@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Combos | Vish Fireworks Store</title>
+  <meta name="description" content="Ready-made Sivakasi cracker combos from Vish Fireworks Store. Add a Day Combo in one tap." />
+  <meta name="theme-color" content="#140c0a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="page-packs">
+  <div class="festive-bg" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="back-link" href="index.html" aria-label="Back to catalogue">
+        <span data-icon="arrowLeft"></span>
+        <span>Back</span>
+      </a>
+      <div class="brand-block brand-compact">
+        <span class="brand-mark" aria-hidden="true">V</span>
+        <div class="brand-copy">
+          <h1 class="brand-name">Combos</h1>
+          <p class="brand-tag">Ready sets · Sivakasi</p>
+        </div>
+      </div>
+      <nav class="header-actions">
+        <button type="button" class="nav-cta cart-badge-wrap is-idle" id="cart-badge-btn" aria-label="Open enquiry list">
+          <span data-icon="cart"></span>
+          <span id="enquiry-btn-label">Enquiry</span>
+          <span class="cart-badge" id="cart-badge" hidden>0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero shell">
+    <p class="legal-chip">Ready-made sets · Edit anytime</p>
+    <p class="eyebrow">Skip the long browse</p>
+    <h2 class="hero-title">Combos for quicker enquiries.</h2>
+    <p class="hero-sub">One tap adds a curated mix. You can still change quantities before sending.</p>
+  </section>
+
+  <main class="shell packs-page">
+    <div id="packs-list" class="packs-list"></div>
+    <p class="catalog-note">Need something custom? <a href="index.html#catalog">Browse the full catalogue</a>.</p>
+  </main>
+
+  <footer class="sivakasi-seal">
+    <div class="seal-border" aria-hidden="true"></div>
+    <div class="shell seal-inner">
+      <p class="seal-line">Made with sparks in <strong>Sivakasi</strong></p>
+    </div>
+    <div class="seal-border bottom" aria-hidden="true"></div>
+  </footer>
+
+  <div class="cart-bar is-empty" id="cart-bar">
+    <div class="cart-bar-text">
+      <div class="cart-bar-meta" id="cart-bar-meta">Add a combo to start</div>
+      <div class="cart-bar-saved" id="cart-bar-saved" hidden></div>
+    </div>
+    <button type="button" class="btn-primary" id="review-btn" disabled>Review</button>
+  </div>
+
+  <div class="float-dock" aria-label="Quick contact">
+    <a class="float-btn call-float" id="call-btn" href="tel:9994376845" aria-label="Call">
+      <span data-icon="phone"></span>
+      <span class="float-label">Call</span>
+    </a>
+    <a class="float-btn wa-float" id="wa-float" href="#" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
+      <span class="wa-float-icon" id="wa-float-icon"></span>
+      <span class="float-label">Chat</span>
+    </a>
+  </div>
+
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheet-backdrop" id="sheet-backdrop"></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-head">
+        <h2 id="sheet-title">Your enquiry</h2>
+        <button type="button" class="nav-icon-btn" id="close-sheet" aria-label="Close"><span data-icon="close"></span></button>
+      </div>
+      <div id="sheet-items" class="sheet-items"></div>
+      <div class="sheet-summary">
+        <div>
+          <div class="sheet-summary-label">Estimated total</div>
+          <strong id="sheet-total">₹0</strong>
+        </div>
+        <div class="saved-note" id="sheet-saved" hidden></div>
+      </div>
+      <form id="enquiry-form" class="enquiry-form">
+        <h3>Send your enquiry</h3>
+        <p class="form-help">
+          We deliver to your <strong>preferred parcel / courier office</strong> — not doorstep.
+          Door delivery of fireworks is generally not accepted in India for safety / transport rules.
+          After dispatch, tracking and the exact office location will be shared on WhatsApp.
+        </p>
+        <div class="field">
+          <label for="customer-name">Full name *</label>
+          <input id="customer-name" name="name" required autocomplete="name" />
+        </div>
+        <div class="hp-field" aria-hidden="true">
+          <label for="customer-website">Website</label>
+          <input id="customer-website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="customer-phone">Mobile number *</label>
+          <input id="customer-phone" name="phone" type="tel" inputmode="numeric" required autocomplete="tel" placeholder="10-digit number" />
+        </div>
+        <div class="field">
+          <label for="customer-pincode">Pincode *</label>
+          <input id="customer-pincode" name="pincode" inputmode="numeric" required autocomplete="postal-code" pattern="\d{6}" maxlength="6" />
+          <p class="pin-meta" id="pin-meta" hidden></p>
+        </div>
+        <div class="field" id="pin-office-field" hidden>
+          <label for="pin-office">Preferred post office / hub *</label>
+          <select id="pin-office" name="office"></select>
+        </div>
+        <p class="form-msg" id="form-msg" role="status"></p>
+        <button type="submit" class="btn-submit" id="submit-enquiry">Send enquiry</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="product-list" hidden></div>
+  <div id="category-chips" hidden></div>
+  <input id="search-input" type="hidden" />
+  <div id="urgency-banner" hidden>
+    <span id="urgency-kicker"></span><span id="urgency-title"></span><span id="urgency-text"></span>
+    <span id="cd-days"></span><span id="cd-hours"></span><span id="cd-mins"></span><span id="urgency-progress"></span>
+  </div>
+  <div id="success" hidden><p id="success-detail"></p></div>
+  <span id="biz-address" hidden></span><span id="biz-phone" hidden></span>
+  <span id="biz-deadline" hidden></span><span id="biz-delivery" hidden></span>
+  <button id="download-pricelist" hidden></button>
+  <button id="download-pricelist-visit" hidden></button>
+  <button id="download-pricelist-teaser" hidden></button>
+  <button id="download-pricelist-footer" hidden></button>
+  <a id="wa-header-btn" hidden></a>
+  <div id="lightbox" hidden><button id="lightbox-close"></button><img id="lightbox-img" alt=""/><p id="lightbox-caption"></p></div>
+  <div id="category-picker" hidden>
+    <div id="category-picker-backdrop"></div>
+    <button id="category-picker-close"></button>
+    <input id="category-search" type="hidden" />
+    <div id="category-picker-grid"></div>
+  </div>
+  <button id="category-trigger" hidden></button>
+  <span id="category-current-label" hidden></span>
+  <span id="catalog-status" hidden></span>
+
+  <script src="js/vendor/jspdf.umd.min.js" defer></script>
+  <script src="js/config.js"></script>
+  <script src="data/products.js"></script>
+  <script src="data/packs.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/pdf.js"></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

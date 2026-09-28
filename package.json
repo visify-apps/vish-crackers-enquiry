@@ -1,0 +1,13 @@
+{
+  "name": "vish-fireworks-store",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Vish Fireworks Store enquiry website",
+  "scripts": {
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "start": "npx --yes serve . -l 5173"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4"
+  }
+}

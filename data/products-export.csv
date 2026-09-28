@@ -1,0 +1,187 @@
+id,category,name,originalPrice,price,unit,image,active
+1,Single Sound,"2 ¾"" Kuruvi",30,10,1 Packet,assets/optimized/1.jpg,true
+2,Single Sound,"3 ½"" Lakshmi",50,15,1 Packet,assets/optimized/2.jpg,true
+3,Single Sound,"4"" Lakshmi",70,23,1 Packet,assets/optimized/2.jpg,true
+4,Single Sound,"4"" Lakshmi Deluxe / Gold",80,32,1 Packet,assets/optimized/3.jpg,true
+5,Single Sound,"5"" Tiger",90,44,1 Packet,assets/optimized/4.jpg,true
+6,Single Sound,"6"" Mega Jallikattu Machine Fuse",100,70,1 Packet,assets/optimized/5.jpg,true
+7,Single Sound,2 Sound,60,35,1 Packet,assets/optimized/6.jpg,true
+8,Bijili/Twin Star,Red Bijili Premium 100 Pcs,110,40,1 Packet,assets/optimized/7.jpg,true
+9,Bijili/Twin Star,Stripped Bijili Extra Power 100 Pcs,120,45,1 Packet,assets/optimized/8.jpg,true
+10,Bijili/Twin Star,"1.5"" Twin Star 10 pcs",100,38,1 Box,assets/optimized/9.jpg,true
+11,Bijili/Twin Star,"4"" Deluxe Twin Stars 10 pcs",300,85,1 Box,assets/optimized/10.jpg,true
+12,Pencil Varieties,Amazing Pencil R&G (3 Piece Pack),150,85,1 Box,assets/optimized/11.jpg,true
+13,Pencil Varieties,Red Flare (5 Piece Pack) - Red colour,250,175,1 Box,assets/optimized/13.jpg,true
+14,Pencil Varieties,50 Seconds Torch (5 Piece Pack) - limited!!,220,150,1 Box,assets/optimized/14.jpg,true
+15,Pencil Varieties,Wolverine - Golden Falls (5 Piece Pack),300,150,1 Box,assets/optimized/15.jpg,true
+16,Pencil Varieties,Thor Hammer (2pcs) New arrival Limited!!,400,285,1 Box,assets/optimized/15.jpg,true
+17,Sound Bomb,Hydro Bomb,160,75,1 Box,assets/optimized/16.jpg,true
+18,Sound Bomb,King Bomb,180,95,1 Box,assets/optimized/17.jpg,true
+19,Sound Bomb,Classic Bomb,300,145,1 Box,assets/optimized/18.jpg,true
+20,Sound Bomb,Agni Bomb,350,200,1 Box,assets/optimized/19.jpg,true
+21,Sound Bomb,Red Digital / 7G Boys Bomb,400,240,1 Box,assets/optimized/20.jpg,true
+22,Florals Crackers,28 Chorsa,320,165,10 Packets,assets/optimized/21.jpg,true
+23,Florals Crackers,28 Giant,300,160,5 Packets,assets/optimized/22.jpg,true
+24,Florals Crackers,56 Giant,160,55,1 Packet,assets/optimized/23.jpg,true
+25,Florals Crackers,24 Deluxe Powerful,160,65,1 Packet,assets/optimized/24.jpg,true
+26,Florals Crackers,50 Deluxe Ultra Power,310,150,1 Packet,assets/optimized/25.jpg,true
+27,Florals Crackers,100 Deluxe Extreme Power,500,285,1 Packet,assets/optimized/26.jpg,true
+28,Florals Crackers,100 Wala,170,49,1 Packet,assets/optimized/27.jpg,true
+29,Florals Crackers,1000 Wala Super,590,280,1 Box,assets/optimized/28.jpg,true
+30,Florals Crackers,1000 Wala Premium (Extra Power),700,399,1 Box,assets/optimized/300.jpg,true
+31,Florals Crackers,2000 Wala Super,790,565,1 Box,assets/optimized/31.jpg,true
+32,Florals Crackers,2000 Wala Premium (Extra Power),1100,790,1 Box,assets/optimized/placeholder.jpg,true
+33,Florals Crackers,5000 Wala Super,2200,1400,1 Box,assets/optimized/placeholder.jpg,true
+34,Florals Crackers,5000 Wala Premium (Extra Power),2800,1999,1 Box,assets/optimized/34.jpg,true
+35,Florals Crackers,10000 Wala Super,5800,2950,1 Box,assets/optimized/placeholder.jpg,true
+36,Florals Crackers,10000 Wala Premium (Extra Power),7200,3999,1 Box,assets/optimized/placeholder.jpg,true
+37,Rocket,Rocket Bomb,250,75,1 Box,assets/optimized/37.jpg,true
+38,Rocket,Predator or Mission to Mars (New Arrival) Limited,530,245,1 Box,assets/optimized/38.jpg,true
+39,Rocket,Sky Whistling Rocket,450,185,1 Box,assets/optimized/39.jpg,true
+40,Adiyal and Money Bomb,l/4KGBomb,150,65,1 Box,assets/optimized/29.jpg,true
+41,Adiyal and Money Bomb,1/2 KG Bomb,250,130,1 Box,assets/optimized/30.jpg,true
+42,Adiyal and Money Bomb,1 KG Bomb,350,250,1 Box,assets/optimized/31.jpg,true
+43,Adiyal and Money Bomb,Candy Crush (25pcs) -New Arrival,250,115,1 Box,assets/optimized/placeholder.jpg,true
+44,Adiyal and Money Bomb,Supreme's Magic thunder Show - 5 pieces,280,150,1 Box,assets/optimized/placeholder.jpg,true
+45,Adiyal and Money Bomb,Magic Show or Money Heist - 2 pieces,500,245,1 Box,assets/optimized/45.jpg,true
+46,Ground Chakkars Varieties,Ground Chakkars Big,90,42,1 Box,assets/optimized/placeholder.jpg,true
+47,Ground Chakkars Varieties,Ground Chakkars Special,210,85,1 Box,assets/optimized/47.jpg,true
+48,Ground Chakkars Varieties,Ground Chakkars Deluxe,280,170,1 Box,assets/optimized/48.jpg,true
+49,Ground Chakkars Varieties,Tinto 50-50 (Red and Green) Wheel,340,225,1 Box,assets/optimized/49.jpg,true
+50,Ground Chakkars Varieties,Krishna's Mega Chakkar Deluxe,380,270,1 Box,assets/optimized/placeholder.jpg,true
+51,Flower Pots Varieties,Flower Pot Big,260,70,1 Box,assets/optimized/51.jpg,true
+52,Flower Pots Varieties,Flower Pot Special,300,85,1 Box,assets/optimized/52.jpg,true
+53,Flower Pots Varieties,Flower Pot Ashoka,320,120,1 Box,assets/optimized/53.jpg,true
+54,Flower Pots Varieties,Colour Koti,530,199,1 Box,assets/optimized/54.jpg,true
+55,Flower Pots Varieties,Colour Koti Deluxe,640,299,1 Box,assets/optimized/55.jpg,true
+56,Flower Pots Varieties,Monster Deluxe Colour Koti or Super Koti,890,525,1 Box,assets/optimized/56.jpg,true
+57,Tri Colour Varieties,Kids Tri Colour,320,199,1 Box,assets/optimized/57.jpg,true
+58,Tri Colour Varieties,Yo-Yo Tri Colour Dlx,385,265,1 Box,assets/optimized/58.jpg,true
+59,Tri Colour Varieties,HI-HI Bus (limited) New Arrival!! Continuous Shower,410,285,1 Box,assets/optimized/59.jpg,true
+60,Night Splendid Items,Web coin & Golden Chain,120,65,1 Box,assets/optimized/placeholder.jpg,true
+61,Night Splendid Items,starlight/moonlight/peacock feathers,170,95,1 Box,assets/optimized/61.jpg,true
+62,Night Splendid Items,Snow Fall (new arrival),350,95,1 Box,assets/optimized/placeholder.jpg,true
+63,Night Splendid Items,Tin Shower (5 Varieties),380,99,1 Box,assets/optimized/placeholder.jpg,true
+64,Night Splendid Items,Dallas Shower R&G - 5pcs,370,99,1 Box,assets/optimized/placeholder.jpg,true
+65,Night Splendid Items,Bambaram with smoke (New Arrival),250,120,1 Box,assets/optimized/placeholder.jpg,true
+66,Night Splendid Items,Rang Lava R&G (20 secs),270,120,1 Box,assets/optimized/66.jpg,true
+67,Night Splendid Items,Colour Smoke - 3 Colours - Superb Timing,410,200,1 Box,assets/optimized/67.jpg,true
+68,Night Splendid Items,Butterfly,190,95,1 Box,assets/optimized/placeholder.jpg,true
+69,Night Splendid Items,Kit Kat / Little Hearts,90,35,1 Box,assets/optimized/69.jpg,true
+70,Night Splendid Items,SS Colour Flash - 3 Colours - 5 pieces,390,115,1 Box,assets/optimized/70.jpg,true
+71,Night Splendid Items,Krishna's Assorted Cartoon,120,60,1 box,assets/optimized/71.jpg,true
+72,Night Splendid Items,Drone,230,115,1 box,assets/optimized/placeholder.jpg,true
+73,Night Splendid Items,Ayyan's Helicopter,220,99,1 box,assets/optimized/73.jpg,true
+74,Night Splendid Items,Mini Siren - 5 pieces,440,155,1 box,assets/optimized/74.jpg,true
+75,Night Splendid Items,Mega Siren - 3 pieces,460,165,1 box,assets/optimized/placeholder.jpg,true
+76,Night Splendid Items,Colour Pots- 5 colours,260,99,1 box,assets/optimized/placeholder.jpg,true
+77,Splendid Chakkar Varieties,Merry go round R&G (New Arrival) Limited !!,400,199,1 box,assets/optimized/placeholder.jpg,true
+78,Splendid Chakkar Varieties,Sri Krsihna Whistling Wheel,420,165,1 box,assets/optimized/78.jpg,true
+79,Splendid Chakkar Varieties,Moon or Honda Wheel (Triple Spin),410,165,1 box,assets/optimized/79.jpg,true
+80,Splendid Chakkar Varieties,Kalis Wire Chakkar Spl - 10 pieces (Hand held),520,185,1 box,assets/optimized/80.jpg,true
+81,Splendid Chakkar Varieties,Hot Wheels / Circus - 5 pieces,480,220,1 box,assets/optimized/placeholder.jpg,true
+82,Splendid Chakkar Varieties,Jio Wheel (Pink colour wheel) - Limited,460,199,1 box,assets/optimized/82.jpg,true
+83,Splendid Chakkar Varieties,Classic Wheel - Silver wheel,380,115,1 box,assets/optimized/placeholder.jpg,true
+84,Kids Special,Robo Kids - 5 Varieties,90,40,1 box,assets/optimized/placeholder.jpg,true
+85,Kids Special,Kung Fu mix - 5 Varieties,150,70,1 box,assets/optimized/85.jpg,true
+86,Kids Special,Cannon (Hot Sale Product) New arrival Limited!!,410,200,1 box,assets/optimized/86.jpg,true
+87,Kids Special,Lion King - New Arrival - Limited!! 4 steps,520,315,1 box,assets/optimized/87.jpg,true
+88,Kids Special,Star Wars,210,115,1 box,assets/optimized/88.jpg,true
+89,Kids Special,24 Carat Gold - New Arrival,380,215,1 box,assets/optimized/89.jpg,true
+90,Kids Special,Toy Fountain 4 varieties - New Arrival - Limited!! (2pcs),530,265,1 box,assets/optimized/placeholder.jpg,true
+91,Kids Special,Purple Dove - purple colour New Arrival,210,99,1 box,assets/optimized/91.jpg,true
+92,Kids Special,Alice I Cindrella,210,115,1 box,assets/optimized/92.jpg,true
+93,Kids Special,Pink Panther (Limited),380,185,1 box,assets/optimized/93.jpg,true
+94,Kids Special,Lemon Tree 4 Varieties 2 step function New Arrival!!,310,150,1 box,assets/optimized/94.jpg,true
+95,Kids Special,Smoke Gun (Crackling function with smoke) - 5 Pieces,529,240,1 box,assets/optimized/placeholder.jpg,true
+96,Kids Special,Raavan / Naragasura - Limited,490,285,1 box,assets/optimized/96.jpg,true
+97,Kids Special,Tropical Mushroom,380,210,1 box,assets/optimized/97.jpg,true
+98,Kids Special,Trixx - area full of red (New Arrival),380,210,1 box,assets/optimized/98.jpg,true
+99,Kids Special,Cocomelons (5 in 1) New Arrival - Limited!!,520,399,1 box,assets/optimized/placeholder.jpg,true
+100,Kids Special,Spike - Area full of green (new Arrival),250,199,1 box,assets/optimized/100.jpg,true
+101,Kids Special,Oscar butterfly - (Limited) 3 in 1,780,495,1 box,assets/optimized/placeholder.jpg,true
+102,Kids Special,SS Android - 4 pieces,560,245,1 box,assets/optimized/102.jpg,true
+103,Touchable Items (Limited Edition),Frozen - Touchable,350,150,1 box,assets/optimized/103.jpg,true
+104,Touchable Items (Limited Edition),Ice Cream Cone - Touchable Limited!!,540,240,1 box,assets/optimized/104.jpg,true
+105,Touchable Items (Limited Edition),Feel The Fire Gun - Touchable,620,380,1 box,assets/optimized/105.jpg,true
+106,Peacock Varieties,Belly Dance Peacock - 4 varieties,540,195,1 box,assets/optimized/106.jpg,true
+107,Peacock Varieties,Ping Pong - Pink colour,760,399,1 box,assets/optimized/107.jpg,true
+108,Peacock Varieties,Bada Peacock Tricolour,800,460,1 box,assets/optimized/placeholder.jpg,true
+109,Peacock Varieties,Bada Peacock 2in1 (Limited),850,485,1 box,assets/optimized/109.jpg,true
+110,Muti Sky Shot Varieties,7 Shots - 5 piece,450,115,1 box,assets/optimized/placeholder.jpg,true
+111,Muti Sky Shot Varieties,Penta Magic - 5 colors in 1,480,150,1 box,assets/optimized/111.jpg,true
+112,Muti Sky Shot Varieties,Yellow Robo - 5 piece,470,135,1 box,assets/optimized/112.jpg,true
+113,Muti Sky Shot Varieties,Red Robo - 5 piece,470,135,1 box,assets/optimized/113.jpg,true
+114,Muti Sky Shot Varieties,Sky Shot- 10 piece,490,170,1 box,assets/optimized/placeholder.jpg,true
+115,Fancy Sky Shots Pipes,Chotta Fancy (5 Varieities),120,45,1 piece,assets/optimized/115.jpg,true
+116,Fancy Sky Shots Pipes,"2"" Fancy (5 Varieties)",210,115,1 piece,assets/optimized/116.jpg,true
+117,Fancy Sky Shots Pipes,3 in 1 Fancy - 3 piece pack (6 Varieties) premium,580,285,1 piece,assets/optimized/117.jpg,true
+118,Fancy Sky Shots Pipes,"3.5"" Fancy Premium (7 Varieties)",880,299,1 piece,assets/optimized/118.jpg,true
+119,Fancy Sky Shots Pipes,"3.5"" Sp! colour Blue Perals or Pink Bingo Boom-Limited",880,299,1 piece,assets/optimized/placeholder.jpg,true
+120,Fancy Sky Shots Pipes,"3.5"" Niagra Falls Bluestar Fancy - Limited",880,299,1 piece,assets/optimized/120.jpg,true
+121,Fancy Sky Shots Pipes,"4"" Fancy Elite (4 Varieties) Tin Model",1100,460,1 piece,assets/optimized/121.jpg,true
+122,Fancy Sky Shots Pipes,"5"" Fancy Elite (6 Varieties)",1300,650,1 piece,assets/optimized/122.jpg,true
+123,Fancy Sky Shots Pipes,"4"" Fancy Premium - 2 piece pack (5 Varieties)",1750,799,1 piece,assets/optimized/placeholder.jpg,true
+124,Fancy Sky Shots Pipes,"Krishna's 4"" Fancy - 2 piece pack (5 Varieties) - Limited",2300,875,1 piece,assets/optimized/124.jpg,true
+125,Special Edition Mega Pipes - New Arrival (Limited!!),"Anadhas 6"" 3 Varities Awesome Display",2150,1450,1 piece,assets/optimized/placeholder.jpg,true
+126,Special Edition Mega Pipes - New Arrival (Limited!!),"Spnka 4"" Gambling series (3 in 1) - 4 Varities - 3 pcs pack",2250,1350,1 box,assets/optimized/126.jpg,true
+127,Special Edition Mega Pipes - New Arrival (Limited!!),"Bindu's spl 6"" 4 Varities wonderful display",2150,1450,1 box,assets/optimized/placeholder.jpg,true
+128,Special Edition Mega Pipes - New Arrival (Limited!!),"Sri Krishna 5"" Elite series (Pink Panther, Lone wolf)",2250,1350,1 piece,assets/optimized/128.jpg,true
+129,Dual and Triple Sky Attractions,Double Ball Premium (5 Varieties),1100,450,1 piece,assets/optimized/placeholder.jpg,true
+130,Dual and Triple Sky Attractions,8 Steps Premium (5 Varieties),980,380,1 piece,assets/optimized/placeholder.jpg,true
+131,Dual and Triple Sky Attractions,Triple Ball Premium (5 Varieties),1450,650,1 piece,assets/optimized/131.jpg,true
+132,Dual and Triple Sky Attractions,Dancing Shooters (Flying Mines with Sky shot),870,285,1 piece,assets/optimized/132.jpg,true
+133,Dual and Triple Sky Attractions,12 Steps Sky Shot (4 Varieties),720,399,1 piece,assets/optimized/133.jpg,true
+134,Repeating Sky Shots,Love dose - 6 shot (New Arrival),420,115,1 piece,assets/optimized/134.jpg,true
+135,Repeating Sky Shots,12 Shot R&G with Crackling,600,199,1 piece,assets/optimized/135.jpg,true
+136,Repeating Sky Shots,Krishna's 12 Sky Wheel,600,260,1 piece,assets/optimized/136.jpg,true
+137,Repeating Sky Shots,30 Shots Premium,980,425,1 piece,assets/optimized/137.jpg,true
+138,Repeating Sky Shots,30 Shots Elite,980,499,1 piece,assets/optimized/138.jpg,true
+139,30 Shots New Arrivals - Limited!!,30 Peacock Dance (30 Mines Attraction),990,450,1 piece,assets/optimized/139.jpg,true
+140,30 Shots New Arrivals - Limited!!,30 Flash Joker (30 Flash With Sky shots),990,499,1 piece,assets/optimized/140.jpg,true
+141,30 Shots New Arrivals - Limited!!,60 Shots Premium,1700,835,1 piece,assets/optimized/141.jpg,true
+142,30 Shots New Arrivals - Limited!!,60 Shots Elite,1800,999,1 piece,assets/optimized/142.jpg,true
+143,30 Shots New Arrivals - Limited!!,120 Shots Premium,3500,1750,1 piece,assets/optimized/143.jpg,true
+144,30 Shots New Arrivals - Limited!!,120 Shots Elite,3900,1999,1 piece,assets/optimized/144.jpg,true
+145,30 Shots New Arrivals - Limited!!,240 Shots Premium,7800,3300,1 piece,assets/optimized/placeholder.jpg,true
+146,30 Shots New Arrivals - Limited!!,240 Shots Elite,8300,3999,1 piece,assets/optimized/146.jpg,true
+147,30 Shots New Arrivals - Limited!!,510 Shots Elite (Exclusive for festivals),18000,8500,1 piece,assets/optimized/placeholder.jpg,true
+148,Whistling Sky Shots,Krishna's Singing Dolls (10 Whistles),680,240,1 box,assets/optimized/148.jpg,true
+149,Whistling Sky Shots,Sonny 25 cukatoo (Whistle with Boom),1650,750,1 box,assets/optimized/149.jpg,true
+150,Whistling Sky Shots,Krishna's Wedding Singer (50 Whistles),2300,1350,1 box,assets/optimized/150.jpg,true
+151,Sonny's Sky Series - Limited!!,Sky Traffic (blue & Violet) - 2pcs,2100,1450,1 box,assets/optimized/151.jpg,true
+152,Sonny's Sky Series - Limited!!,Magic Cystral (purple) - 2pcs,2100,1450,1 box,assets/optimized/152.jpg,true
+153,Sonny's Sky Series - Limited!!,Golden Octopusy (golden fall) - 2pcs,1990,1350,1 box,assets/optimized/153.jpg,true
+154,Sonny's Sky Series - Limited!!,"4"" Great wall series (10 varities) - 2pcs",1990,1350,1 box,assets/optimized/154.jpg,true
+155,Sonny's Sky Series - Limited!!,Neega Angels (blue) - 2pcs,1990,1350,1 box,assets/optimized/155.jpg,true
+156,Sonny's Sky Series - Limited!!,"5"" Happy Ring or Duos Series (dual function) - 2pcs",2900,1700,1 box,assets/optimized/156.jpg,true
+157,Setouts - Mega Continuous Sky Display,2 inch Setout - 30 shots,5200,3600,1 box,assets/optimized/placeholder.jpg,true
+158,Setouts - Mega Continuous Sky Display,2.75 inch setout - 9 shots (Power Pack),4900,2350,1 box,assets/optimized/placeholder.jpg,true
+159,Setouts - Mega Continuous Sky Display,3.5 inch setout - 20 shots (Champions night),11500,5999,1 box,assets/optimized/placeholder.jpg,true
+160,Setouts - Mega Continuous Sky Display,10x10 - Sizzling (100 Rider shots - New Arrival),8100,3600,1 box,assets/optimized/160.jpg,true
+161,Setouts - Mega Continuous Sky Display,10x10 - Thunder Lights (100 shots - New Arrival),9990,4800,1 box,assets/optimized/160.jpg,true
+162,Sparklers,10cm electric,52,23,1 box,assets/optimized/162.jpg,true
+163,Sparklers,10 cm Red,65,30,1 box,assets/optimized/163.jpg,true
+164,Sparklers,10 cm Green,65,30,1 box,assets/optimized/164.jpg,true
+165,Sparklers,15 cm Electric,120,55,1 box,assets/optimized/165.jpg,true
+166,Sparklers,15 cm Red,120,55,1 box,assets/optimized/166.jpg,true
+167,Sparklers,15 cm Green,120,55,1 box,assets/optimized/167.jpg,true
+168,Sparklers,30 cm Electric,110,50,1 box - 5 piece,assets/optimized/168.jpg,true
+169,Sparklers,30 cm Red,120,55,1 box - 5 piece,assets/optimized/169.jpg,true
+170,Sparklers,30 cm Green,120,55,1 box - 5 piece,assets/optimized/170.jpg,true
+171,Sparklers,50 cm Electric - Tube,450,175,1 box - 5 piece,assets/optimized/171.jpg,true
+172,Sparklers,50 cm Super Mix - Tube (4 in 1),520,245,1 box - 5 piece,assets/optimized/172.jpg,true
+173,Sparklers,15 cm Orange (New Arrival Limited),155,85,1 box - 10 piece,assets/optimized/173.jpg,true
+174,Sparklers,15 cm Pink (New Arrival Limited),155,85,1 box - 10 piece,assets/optimized/174.jpg,true
+175,Sparklers,Merry Go Go Rotating Sparkles (New Arrival Limited!!),540,235,1 box,assets/optimized/175.jpg,true
+176,Color Matches,5-Men Army - 5 in 1 or diamond,280,70,1 box,assets/optimized/176.jpg,true
+177,Color Matches,Carnival or Jothi - 5in1,530,135,1 box,assets/optimized/placeholder.jpg,true
+178,Color Matches,Dhasara - 10 in 1 (10 boxes),730,235,1 box,assets/optimized/178.jpg,true
+179,Roll Cap and Tablets,Roll Cap Box,120,72,1 box,assets/optimized/placeholder.jpg,true
+180,Roll Cap and Tablets,Sonny Big Snake Serpent,70,45,1 box,assets/optimized/180.jpg,true
+181,Roll Cap and Tablets,MIB (gun with ring cap) new arrival,300,145,1 box,assets/optimized/181.jpg,true
+182,Gift Boxes,19 items,330,330,1 box,assets/optimized/placeholder.jpg,true
+183,Gift Boxes,23 items,399,399,1 box,assets/optimized/placeholder.jpg,true
+184,Gift Boxes,27 items,460,460,1 box,assets/optimized/placeholder.jpg,true
+185,Gift Boxes,41 items,770,770,1 box,assets/optimized/placeholder.jpg,true
+186,Gift Boxes,52 items,990,990,1 box,assets/optimized/placeholder.jpg,true

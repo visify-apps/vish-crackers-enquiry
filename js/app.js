@@ -1,0 +1,1005 @@
+window.VishApp = (function () {
+  const cfg = () => window.SITE_CONFIG;
+  let productsData = [];
+  let activeCategory = 'all';
+  let searchQuery = '';
+  let categorySearch = '';
+  let submitting = false;
+  let pinLookupToken = 0;
+  let resolvedArea = { city: '', state: '', officeName: '', offices: [] };
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function isPacksPage() {
+    return document.body.classList.contains('page-packs');
+  }
+
+  function money(n) {
+    return '₹' + Number(n).toLocaleString('en-IN');
+  }
+
+  function percentOff(item) {
+    if (!item.originalPrice || item.originalPrice <= item.price) return 0;
+    return Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
+  }
+
+  function injectIcons(root) {
+    if (!window.VishIcons) return;
+    (root || document).querySelectorAll('[data-icon]').forEach((el) => {
+      const name = el.getAttribute('data-icon');
+      if (!name || el.dataset.iconReady === '1') return;
+      el.innerHTML = VishIcons.svg(name);
+      el.dataset.iconReady = '1';
+    });
+  }
+
+  function wireWhatsAppFloat() {
+    const waText = encodeURIComponent(
+      'Hi, I would like to enquire about fireworks from Vish Fireworks Store.'
+    );
+    const waUrl = 'https://wa.me/' + cfg().whatsapp + '?text=' + waText;
+    const waFloat = $('wa-float');
+    if (waFloat) {
+      waFloat.href = waUrl;
+      const icon = $('wa-float-icon');
+      if (icon && window.VishIcons) icon.innerHTML = VishIcons.whatsappLogo(22);
+    }
+    const callBtn = $('call-btn');
+    if (callBtn) callBtn.href = 'tel:' + cfg().phone;
+  }
+
+  function allProducts() {
+    return productsData.flatMap((cat) =>
+      cat.items
+        .filter((i) => i.active !== false)
+        .map((item) => ({ ...item, category: cat.category }))
+    );
+  }
+
+  function filteredProducts() {
+    const q = searchQuery.trim().toLowerCase();
+    return allProducts().filter((item) => {
+      const catOk = activeCategory === 'all' || item.category === activeCategory;
+      if (!catOk) return false;
+      if (!q) return true;
+      return (
+        item.name.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q)
+      );
+    });
+  }
+
+  function groupedFiltered() {
+    const items = filteredProducts();
+    const map = new Map();
+    items.forEach((item) => {
+      if (!map.has(item.category)) map.set(item.category, []);
+      map.get(item.category).push(item);
+    });
+    return map;
+  }
+
+  function productById(id) {
+    return (
+      allProducts().find((p) => String(p.id) === String(id)) ||
+      productsData.flatMap((c) => c.items).find((p) => String(p.id) === String(id))
+    );
+  }
+
+  function updateCategoryLabel() {
+    const label = $('category-current-label');
+    if (!label) return;
+    label.textContent = activeCategory === 'all' ? 'All products' : activeCategory;
+  }
+
+  function updateCartBar() {
+    const cart = VishCart.getCart();
+    const count = VishCart.cartCount(cart);
+    const { total, saved } = VishCart.cartTotals(cart);
+    const bar = $('cart-bar');
+    const badge = $('cart-badge');
+    const meta = $('cart-bar-meta');
+    const savedEl = $('cart-bar-saved');
+    const enquiryBtn = $('cart-badge-btn');
+
+    if (badge) {
+      badge.textContent = String(count);
+      badge.hidden = count === 0;
+    }
+    if (meta) {
+      meta.textContent =
+        count === 0
+          ? isPacksPage()
+            ? 'Add a combo to start'
+            : 'Add items to build your enquiry'
+          : count + (count === 1 ? ' item' : ' items') + ' · ' + money(total);
+    }
+
+    if (savedEl) {
+      if (saved > 0 && count > 0) {
+        savedEl.hidden = false;
+        savedEl.textContent = 'You save ' + money(saved) + ' vs MRP';
+      } else {
+        savedEl.hidden = true;
+        savedEl.textContent = '';
+      }
+    }
+
+    if (bar) bar.classList.toggle('is-empty', count === 0);
+    if ($('review-btn')) $('review-btn').disabled = count === 0;
+
+    if (enquiryBtn) {
+      enquiryBtn.classList.toggle('is-idle', count === 0);
+      enquiryBtn.classList.toggle('is-live', count > 0);
+      enquiryBtn.setAttribute('aria-disabled', count === 0 ? 'true' : 'false');
+    }
+  }
+
+  function renderCategoryPicker() {
+    const grid = $('category-picker-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const q = categorySearch.trim().toLowerCase();
+    const cats = [{ label: 'All products', value: 'all', count: allProducts().length }].concat(
+      productsData.map((cat) => ({
+        label: cat.category,
+        value: cat.category,
+        count: (cat.items || []).filter((i) => i.active !== false).length
+      }))
+    );
+
+    cats
+      .filter((c) => !q || c.label.toLowerCase().includes(q))
+      .forEach((c) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className =
+          'picker-option' + (activeCategory === c.value ? ' is-active' : '');
+        btn.innerHTML =
+          '<span class="picker-option-label">' +
+          c.label +
+          '</span><span class="picker-option-count">' +
+          c.count +
+          '</span>';
+        btn.addEventListener('click', () => {
+          activeCategory = c.value;
+          updateCategoryLabel();
+          renderCategoryPicker();
+          renderProducts();
+          closeCategoryPicker();
+          const catalog = $('catalog');
+          if (catalog) {
+            window.scrollTo({ top: catalog.offsetTop - 70, behavior: 'smooth' });
+          }
+        });
+        grid.appendChild(btn);
+      });
+  }
+
+  function openCategoryPicker() {
+    const picker = $('category-picker');
+    if (!picker) return;
+    categorySearch = '';
+    if ($('category-search')) $('category-search').value = '';
+    renderCategoryPicker();
+    picker.hidden = false;
+    document.body.classList.add('picker-open');
+    setTimeout(() => {
+      if ($('category-search')) $('category-search').focus();
+    }, 50);
+  }
+
+  function closeCategoryPicker() {
+    const picker = $('category-picker');
+    if (!picker) return;
+    picker.hidden = true;
+    document.body.classList.remove('picker-open');
+  }
+
+  function productCard(item) {
+    const cart = VishCart.getCart();
+    const inCart = cart[item.id];
+    const off = percentOff(item);
+    const unavailable = item.active === false;
+    const el = document.createElement('article');
+    el.className =
+      'product-row' +
+      (inCart ? ' is-in-cart' : '') +
+      (item.limited ? ' is-limited' : '') +
+      (unavailable ? ' is-unavailable' : '');
+    el.dataset.id = item.id;
+
+    const badges =
+      (item.limited ? '<span class="badge-limited">Limited</span>' : '') +
+      (off > 0 && !unavailable ? '<span class="badge-off">' + off + '% off</span>' : '');
+
+    el.innerHTML =
+      '<button type="button" class="thumb-btn" data-lightbox="1" aria-label="View larger image of ' +
+      item.name.replace(/"/g, '&quot;') +
+      '">' +
+      '<img class="product-thumb" src="' +
+      (item.image || 'assets/optimized/placeholder.jpg') +
+      '" alt="' +
+      item.name.replace(/"/g, '&quot;') +
+      '" loading="lazy" decoding="async" width="72" height="72">' +
+      '</button>' +
+      '<div class="product-main">' +
+      '<div class="product-top">' +
+      '<h3 class="product-name">' +
+      item.name +
+      '</h3>' +
+      badges +
+      '</div>' +
+      '<div class="product-meta">' +
+      '<span class="product-unit">' +
+      item.unit +
+      '</span>' +
+      (item.originalPrice > item.price
+        ? '<span class="mrp">' + money(item.originalPrice) + '</span>'
+        : '') +
+      '</div>' +
+      '</div>' +
+      '<div class="product-side">' +
+      '<div class="price">' +
+      money(item.price) +
+      '</div>' +
+      '<div class="product-actions"></div>' +
+      '</div>';
+
+    const thumbBtn = el.querySelector('[data-lightbox]');
+    thumbBtn.addEventListener('click', () => openLightbox(item));
+
+    const actions = el.querySelector('.product-actions');
+    if (unavailable) {
+      const sold = document.createElement('span');
+      sold.className = 'unavailable-label';
+      sold.textContent = 'Unavailable';
+      actions.appendChild(sold);
+      return el;
+    }
+
+    if (inCart) {
+      const controls = document.createElement('div');
+      controls.className = 'qty-controls';
+      controls.innerHTML =
+        '<button type="button" class="qty-btn" data-act="dec" aria-label="Decrease quantity">−</button>' +
+        '<span class="qty-value" aria-live="polite">' +
+        inCart.quantity +
+        '</span>' +
+        '<button type="button" class="qty-btn" data-act="inc" aria-label="Increase quantity">+</button>';
+      controls.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const q = inCart.quantity + (btn.dataset.act === 'inc' ? 1 : -1);
+        VishCart.setQuantity(item.id, q);
+        refreshAfterCartChange();
+      });
+      actions.appendChild(controls);
+    } else {
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'btn btn-add';
+      add.textContent = 'Add';
+      add.addEventListener('click', () => {
+        VishCart.addItem(item);
+        refreshAfterCartChange();
+      });
+      actions.appendChild(add);
+    }
+    return el;
+  }
+
+  function renderProducts() {
+    const root = $('product-list');
+    if (!root || isPacksPage()) return;
+    root.innerHTML = '';
+    const grouped = groupedFiltered();
+
+    if (grouped.size === 0) {
+      root.innerHTML =
+        '<p class="empty-state">No products match your search. Try another category or keyword.</p>';
+      return;
+    }
+
+    grouped.forEach((items, category) => {
+      const section = document.createElement('section');
+      section.className = 'category-section';
+      section.id = 'cat-' + category.replace(/\s+/g, '-').toLowerCase();
+      const title = document.createElement('h2');
+      title.className = 'category-title';
+      title.innerHTML =
+        '<span>' +
+        category +
+        '</span><span class="category-count">' +
+        items.length +
+        '</span>';
+      const list = document.createElement('div');
+      list.className = 'product-list';
+      items.forEach((item) => list.appendChild(productCard(item)));
+      section.appendChild(title);
+      section.appendChild(list);
+      root.appendChild(section);
+    });
+  }
+
+  function refreshAfterCartChange() {
+    renderProducts();
+    renderPacks();
+    updateCartBar();
+    if ($('sheet') && $('sheet').classList.contains('is-open')) renderSheet();
+  }
+
+  function openLightbox(item) {
+    const box = $('lightbox');
+    if (!box || !item) return;
+    $('lightbox-img').src = item.image || 'assets/optimized/placeholder.jpg';
+    $('lightbox-img').alt = item.name;
+    $('lightbox-caption').textContent = item.name + ' · ' + money(item.price);
+    box.hidden = false;
+    document.body.classList.add('lightbox-open');
+  }
+
+  function closeLightbox() {
+    const box = $('lightbox');
+    if (!box) return;
+    box.hidden = true;
+    document.body.classList.remove('lightbox-open');
+  }
+
+  function packTotals(pack) {
+    let total = 0;
+    let mrp = 0;
+    const lines = [];
+    (pack.items || []).forEach((row) => {
+      const product = productById(row.id);
+      if (!product || product.active === false) return;
+      const qty = row.qty || 1;
+      total += product.price * qty;
+      mrp += (product.originalPrice || product.price) * qty;
+      lines.push({ product, qty });
+    });
+    return { total, mrp, saved: Math.max(0, mrp - total), lines };
+  }
+
+  function addPack(pack) {
+    const { lines } = packTotals(pack);
+    if (!lines.length) {
+      alert('This combo has no available products right now.');
+      return;
+    }
+    lines.forEach(({ product, qty }) => VishCart.addItem(product, qty));
+    refreshAfterCartChange();
+    openSheet();
+  }
+
+  function renderPacks() {
+    const root = $('packs-list');
+    if (!root) return;
+    const packs = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
+    root.innerHTML = '';
+    if (!packs.length) {
+      root.innerHTML = '<p class="empty-state">No combos yet.</p>';
+      return;
+    }
+
+    packs.forEach((pack) => {
+      const { total, mrp, saved, lines } = packTotals(pack);
+      const card = document.createElement('article');
+      card.className = 'pack-card';
+      card.innerHTML =
+        '<div class="pack-top">' +
+        '<span class="pack-badge">' +
+        (pack.badge || 'Combo') +
+        '</span>' +
+        '<h3>' +
+        pack.name +
+        '</h3>' +
+        '<p>' +
+        (pack.tagline || '') +
+        '</p>' +
+        '</div>' +
+        '<ul class="pack-items">' +
+        lines
+          .map(
+            (l) =>
+              '<li><span>' +
+              l.product.name +
+              '</span><span>×' +
+              l.qty +
+              '</span></li>'
+          )
+          .join('') +
+        '</ul>' +
+        '<div class="pack-foot">' +
+        '<div class="pack-pricing">' +
+        '<strong class="price">' +
+        money(total) +
+        '</strong>' +
+        (saved > 0
+          ? '<span class="mrp">' +
+            money(mrp) +
+            '</span><span class="pack-save">Save ' +
+            money(saved) +
+            '</span>'
+          : '') +
+        '</div>' +
+        '<button type="button" class="btn-add-pack">Add combo</button>' +
+        '</div>';
+      card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
+      root.appendChild(card);
+    });
+  }
+
+  function deadlineDate() {
+    const iso = cfg().orderDeadlineISO || '2026-10-25';
+    return new Date(iso + 'T23:59:59');
+  }
+
+  function urgencyCopy(daysLeft) {
+    if (daysLeft < 0) {
+      return {
+        level: 'closed',
+        kicker: 'Season locked',
+        title: 'Enquiry window is closed',
+        text: 'We paused new lists after 25 Oct so remaining Sivakasi dispatches can still move at workable transport rates.'
+      };
+    }
+    if (daysLeft <= 2) {
+      return {
+        level: 'critical',
+        kicker: 'Peak rates ahead',
+        title: 'Last chance before festival transport spikes',
+        text: 'Near Diwali, Sivakasi often cannot find enough parcel vehicles — transporters charge much more. Send your list now to lock a better dispatch cost.'
+      };
+    }
+    if (daysLeft <= 7) {
+      return {
+        level: 'hot',
+        kicker: 'Rates climbing',
+        title: 'Later orders usually cost more to dispatch',
+        text: 'Festival demand makes parcel vehicles scarce from Sivakasi. Lists locked this week still have a stronger chance of lower delivery charges.'
+      };
+    }
+    if (daysLeft <= 14) {
+      return {
+        level: 'warn',
+        kicker: 'Transport rush building',
+        title: 'Two weeks to avoid peak delivery charges',
+        text: 'As Diwali nears, parcel services ask higher amounts because vehicles are limited. Earlier enquiries help us book transport at more reasonable rates.'
+      };
+    }
+    return {
+      level: 'open',
+      kicker: 'Dispatch clock · 25 Oct',
+      title: 'Earlier lists = lower delivery charges',
+      text: 'Near Diwali, Sivakasi parcel vehicles get scarce and transport rates climb. Lock your enquiry early for a smoother, more affordable dispatch.'
+    };
+  }
+
+  function updateUrgency() {
+    const banner = $('urgency-banner');
+    if (!banner || isPacksPage()) return;
+    const end = deadlineDate();
+    const now = new Date();
+    const diff = end - now;
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const copy = urgencyCopy(daysLeft);
+    banner.dataset.level = copy.level;
+    if ($('urgency-kicker')) $('urgency-kicker').textContent = copy.kicker;
+    if ($('urgency-title')) $('urgency-title').textContent = copy.title;
+    if ($('urgency-text')) $('urgency-text').textContent = copy.text;
+
+    if (diff <= 0) {
+      if ($('cd-days')) $('cd-days').textContent = '00';
+      if ($('cd-hours')) $('cd-hours').textContent = '00';
+      if ($('cd-mins')) $('cd-mins').textContent = '00';
+      if ($('urgency-progress')) $('urgency-progress').style.width = '100%';
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((diff / (1000 * 60)) % 60);
+    if ($('cd-days')) $('cd-days').textContent = String(days).padStart(2, '0');
+    if ($('cd-hours')) $('cd-hours').textContent = String(hours).padStart(2, '0');
+    if ($('cd-mins')) $('cd-mins').textContent = String(mins).padStart(2, '0');
+
+    const seasonStart = new Date('2026-09-01T00:00:00');
+    const total = Math.max(1, end - seasonStart);
+    const done = Math.min(1, Math.max(0, (now - seasonStart) / total));
+    if ($('urgency-progress')) $('urgency-progress').style.width = Math.round(done * 100) + '%';
+  }
+
+  function renderSheet() {
+    const cart = VishCart.getCart();
+    const list = $('sheet-items');
+    if (!list) return;
+    const { total, saved } = VishCart.cartTotals(cart);
+    list.innerHTML = '';
+
+    if (VishCart.cartCount(cart) === 0) {
+      list.innerHTML = '<p class="empty-state">Your enquiry list is empty.</p>';
+    } else {
+      Object.values(cart).forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'sheet-item';
+        row.innerHTML =
+          '<div class="sheet-item-main">' +
+          '<strong>' +
+          item.name +
+          '</strong>' +
+          '<span>' +
+          item.unit +
+          ' · ' +
+          money(item.price) +
+          '</span>' +
+          '</div>' +
+          '<div class="qty-controls compact">' +
+          '<button type="button" class="qty-btn" data-act="dec" aria-label="Decrease">−</button>' +
+          '<span class="qty-value">' +
+          item.quantity +
+          '</span>' +
+          '<button type="button" class="qty-btn" data-act="inc" aria-label="Increase">+</button>' +
+          '</div>' +
+          '<button type="button" class="link-remove" data-act="remove">Remove</button>' +
+          '<div class="sheet-item-total">' +
+          money(item.price * item.quantity) +
+          '</div>';
+
+        row.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-act]');
+          if (!btn) return;
+          if (btn.dataset.act === 'remove') VishCart.removeItem(item.id);
+          else {
+            const q = item.quantity + (btn.dataset.act === 'inc' ? 1 : -1);
+            VishCart.setQuantity(item.id, q);
+          }
+          refreshAfterCartChange();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    if ($('sheet-total')) $('sheet-total').textContent = money(total);
+    if ($('sheet-saved')) {
+      $('sheet-saved').textContent = saved > 0 ? 'You save ' + money(saved) : '';
+      $('sheet-saved').hidden = saved <= 0;
+    }
+  }
+
+  function openSheet() {
+    renderSheet();
+    $('sheet').classList.add('is-open');
+    $('sheet').setAttribute('aria-hidden', 'false');
+    document.body.classList.add('sheet-open');
+    if (VishCart.cartCount() > 0 && $('customer-name')) $('customer-name').focus();
+  }
+
+  function closeSheet() {
+    if (!$('sheet')) return;
+    $('sheet').classList.remove('is-open');
+    $('sheet').setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('sheet-open');
+  }
+
+  function setPinMeta(text, ok) {
+    const el = $('pin-meta');
+    if (!el) return;
+    if (!text) {
+      el.hidden = true;
+      el.textContent = '';
+      el.classList.remove('is-ok', 'is-warn');
+      return;
+    }
+    el.hidden = false;
+    el.textContent = text;
+    el.classList.toggle('is-ok', !!ok);
+    el.classList.toggle('is-warn', !ok);
+  }
+
+  function clearOfficeSelect() {
+    const field = $('pin-office-field');
+    const sel = $('pin-office');
+    if (field) field.hidden = true;
+    if (sel) {
+      sel.innerHTML = '';
+      sel.removeAttribute('required');
+    }
+  }
+
+  function applySelectedOffice() {
+    const sel = $('pin-office');
+    if (!sel || !sel.value) return;
+    const idx = Number(sel.value);
+    const po = resolvedArea.offices[idx];
+    if (!po) return;
+    resolvedArea.officeName = po.Name || '';
+    resolvedArea.city = po.District || po.Block || po.Name || '';
+    resolvedArea.state = po.State || '';
+    const label = [po.Name, po.Block, po.District, po.State].filter(Boolean).join(' · ');
+    setPinMeta('Selected hub: ' + label, true);
+  }
+
+  function fillOfficeSelect(offices) {
+    const field = $('pin-office-field');
+    const sel = $('pin-office');
+    if (!field || !sel) return;
+    sel.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent =
+      offices.length > 1 ? 'Select your preferred post office…' : 'Confirm this post office…';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    sel.appendChild(placeholder);
+
+    offices.forEach((po, idx) => {
+      const opt = document.createElement('option');
+      opt.value = String(idx);
+      const bits = [po.Name];
+      if (po.Block && po.Block !== po.Name) bits.push(po.Block);
+      if (po.District) bits.push(po.District);
+      opt.textContent = bits.filter(Boolean).join(' · ');
+      sel.appendChild(opt);
+    });
+
+    sel.setAttribute('required', 'required');
+    field.hidden = false;
+    resolvedArea.offices = offices;
+    resolvedArea.officeName = '';
+    resolvedArea.city = offices[0].District || '';
+    resolvedArea.state = offices[0].State || '';
+
+    if (offices.length === 1) {
+      sel.value = '0';
+      applySelectedOffice();
+    } else {
+      setPinMeta(offices.length + ' post offices found — please pick yours.', true);
+    }
+  }
+
+  async function lookupPincode(pin) {
+    const token = ++pinLookupToken;
+    resolvedArea = { city: '', state: '', officeName: '', offices: [] };
+    clearOfficeSelect();
+    if (!/^\d{6}$/.test(pin)) {
+      setPinMeta('');
+      return;
+    }
+    setPinMeta('Looking up post offices…', true);
+    try {
+      const res = await fetch('https://api.postalpincode.in/pincode/' + pin);
+      const data = await res.json();
+      if (token !== pinLookupToken) return;
+      const entry = Array.isArray(data) ? data[0] : null;
+      if (!entry || entry.Status !== 'Success' || !entry.PostOffice || !entry.PostOffice.length) {
+        setPinMeta('Pincode accepted. Choose office later on WhatsApp if needed.', false);
+        return;
+      }
+      fillOfficeSelect(entry.PostOffice);
+    } catch (err) {
+      if (token !== pinLookupToken) return;
+      setPinMeta('Pincode saved. Area lookup skipped — we will confirm on WhatsApp.', false);
+    }
+  }
+
+  function validateContact() {
+    const contact = {
+      name: ($('customer-name') && $('customer-name').value.trim()) || '',
+      phone: (($('customer-phone') && $('customer-phone').value.trim()) || '').replace(/\s+/g, ''),
+      pincode: (($('customer-pincode') && $('customer-pincode').value.trim()) || ''),
+      officeName: resolvedArea.officeName || '',
+      city: resolvedArea.city || '',
+      state: resolvedArea.state || '',
+      address: ''
+    };
+    const msg = $('form-msg');
+    const officeField = $('pin-office-field');
+    const officeSel = $('pin-office');
+
+    if (!contact.name || !contact.phone || !contact.pincode) {
+      if (msg) msg.textContent = 'Name, mobile and pincode are required.';
+      return null;
+    }
+    if (!/^[6-9]\d{9}$/.test(contact.phone)) {
+      if (msg) msg.textContent = 'Enter a valid 10-digit Indian mobile number.';
+      return null;
+    }
+    if (!/^\d{6}$/.test(contact.pincode)) {
+      if (msg) msg.textContent = 'Enter a valid 6-digit pincode.';
+      return null;
+    }
+    if (officeField && !officeField.hidden && officeSel && !officeSel.value) {
+      if (msg) msg.textContent = 'Please select your preferred post office / hub.';
+      return null;
+    }
+    if (officeSel && officeSel.value) applySelectedOffice();
+    contact.officeName = resolvedArea.officeName || '';
+    contact.city = resolvedArea.city || '';
+    contact.state = resolvedArea.state || '';
+    if (msg) msg.textContent = '';
+    return contact;
+  }
+
+  async function submitEnquiry(e) {
+    e.preventDefault();
+    if (submitting) return;
+
+    const cart = VishCart.getCart();
+    if (VishCart.cartCount(cart) === 0) {
+      if ($('form-msg')) $('form-msg').textContent = 'Add at least one product before submitting.';
+      return;
+    }
+
+    const contact = validateContact();
+    if (!contact) return;
+
+    submitting = true;
+    const btn = $('submit-enquiry');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+    }
+    if ($('form-msg')) $('form-msg').textContent = 'Saving your enquiry…';
+
+    const payload = {
+      name: contact.name,
+      phone: contact.phone,
+      address: contact.officeName
+        ? 'Preferred hub: ' + contact.officeName
+        : 'Nearest parcel / courier office',
+      city: contact.city || '',
+      state: contact.state || '',
+      pincode: contact.pincode,
+      officeName: contact.officeName || '',
+      deliveryMode: 'parcel-office',
+      cart: cart,
+      total: VishCart.cartTotals(cart).total,
+      saved: VishCart.cartTotals(cart).saved,
+      submittedAt: new Date().toISOString(),
+      website: ($('customer-website') && $('customer-website').value) || '',
+      ingestKey: cfg().enquiryIngestKey || '',
+      userAgent: navigator.userAgent || ''
+    };
+
+    let sheetOk = false;
+    const url = (cfg().appsScriptUrl || '').trim();
+
+    try {
+      if (url) {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        sheetOk = true;
+      }
+    } catch (err) {
+      console.warn('Sheet submit failed', err);
+    }
+
+    try {
+      VishPdf.downloadEnquiryPdf(contact, cart, cfg());
+    } catch (err) {
+      console.warn('PDF failed', err);
+    }
+
+    const waText = VishPdf.buildWhatsAppMessage(contact, cart, cfg());
+    VishPdf.openWhatsApp(cfg(), waText);
+
+    VishCart.clearCart();
+    updateCartBar();
+    renderProducts();
+    renderPacks();
+    closeSheet();
+    showSuccess(sheetOk || !url);
+    if ($('enquiry-form')) $('enquiry-form').reset();
+    resolvedArea = { city: '', state: '', officeName: '', offices: [] };
+    clearOfficeSelect();
+    setPinMeta('');
+    submitting = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Send enquiry';
+    }
+  }
+
+  function showSuccess(logged) {
+    const el = $('success');
+    if (!el || !$('success-detail')) return;
+    el.hidden = false;
+    $('success-detail').textContent = logged
+      ? 'Your enquiry PDF is open. WhatsApp should launch with the same list for confirmation.'
+      : 'WhatsApp should open with your enquiry. Add the Apps Script URL in js/config.js to also save stats in Google Sheets.';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function bindUi() {
+    const search = $('search-input');
+    if (search && search.type !== 'hidden') {
+      search.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderProducts();
+      });
+    }
+
+    if ($('review-btn')) $('review-btn').addEventListener('click', openSheet);
+    if ($('cart-badge-btn')) {
+      $('cart-badge-btn').addEventListener('click', () => {
+        if (VishCart.cartCount() === 0) return;
+        openSheet();
+      });
+    }
+    if ($('close-sheet')) $('close-sheet').addEventListener('click', closeSheet);
+    if ($('sheet-backdrop')) $('sheet-backdrop').addEventListener('click', closeSheet);
+    if ($('enquiry-form')) $('enquiry-form').addEventListener('submit', submitEnquiry);
+
+    const pinInput = $('customer-pincode');
+    if (pinInput) {
+      pinInput.addEventListener('input', (e) => {
+        const pin = e.target.value.replace(/\D/g, '').slice(0, 6);
+        e.target.value = pin;
+        if (pin.length === 6) lookupPincode(pin);
+        else {
+          clearOfficeSelect();
+          setPinMeta('');
+        }
+      });
+    }
+
+    const officeSel = $('pin-office');
+    if (officeSel) {
+      officeSel.addEventListener('change', applySelectedOffice);
+    }
+
+    const catTrigger = $('category-trigger');
+    if (catTrigger && !catTrigger.hidden) {
+      catTrigger.addEventListener('click', openCategoryPicker);
+    }
+    if ($('category-picker-close')) {
+      $('category-picker-close').addEventListener('click', closeCategoryPicker);
+    }
+    if ($('category-picker-backdrop')) {
+      $('category-picker-backdrop').addEventListener('click', closeCategoryPicker);
+    }
+    const catSearch = $('category-search');
+    if (catSearch && catSearch.type !== 'hidden') {
+      catSearch.addEventListener('input', (e) => {
+        categorySearch = e.target.value;
+        renderCategoryPicker();
+      });
+    }
+
+    function runPriceListDownload(btn) {
+      try {
+        if (!productsData.length) {
+          alert('Catalogue is still loading. Please try again in a moment.');
+          return;
+        }
+        if (btn) btn.disabled = true;
+        VishPdf.downloadPriceListPdf(productsData, cfg());
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Could not create PDF. Please refresh and try again.');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    const pdfBtn = $('download-pricelist');
+    if (pdfBtn) {
+      pdfBtn.addEventListener('click', () => runPriceListDownload(pdfBtn));
+    }
+    ['download-pricelist-visit', 'download-pricelist-teaser', 'download-pricelist-footer'].forEach((id) => {
+      const el = $(id);
+      if (el) el.addEventListener('click', () => runPriceListDownload(el));
+    });
+
+    wireWhatsAppFloat();
+
+    const lbClose = $('lightbox-close');
+    const lb = $('lightbox');
+    if (lbClose) lbClose.addEventListener('click', closeLightbox);
+    if (lb) {
+      lb.addEventListener('click', (e) => {
+        if (e.target === lb) closeLightbox();
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSheet();
+        closeLightbox();
+        closeCategoryPicker();
+      }
+    });
+  }
+
+  function hydrateHeader() {
+    if ($('brand-name')) $('brand-name').textContent = 'Vish Fireworks';
+    if ($('brand-tag') && !isPacksPage()) {
+      $('brand-tag').textContent = 'From Sivakasi · ' + cfg().brandShort;
+    }
+    if ($('biz-address')) $('biz-address').textContent = cfg().address;
+    if ($('biz-phone')) $('biz-phone').textContent = cfg().ownerName + ' – ' + cfg().phone;
+    if ($('biz-deadline')) {
+      $('biz-deadline').textContent =
+        'No new enquiries after ' +
+        cfg().orderDeadline +
+        '. We close early so festival transport demand does not push delivery charges too high.';
+    }
+    if ($('biz-delivery')) $('biz-delivery').textContent = cfg().deliveryNote;
+  }
+
+  function useLocalProducts() {
+    if (Array.isArray(window.PRODUCTS_DATA) && window.PRODUCTS_DATA.length) {
+      productsData = window.PRODUCTS_DATA;
+      return true;
+    }
+    return false;
+  }
+
+  function paintCatalog() {
+    updateCategoryLabel();
+    renderProducts();
+    renderPacks();
+    updateCartBar();
+    injectIcons(document);
+  }
+
+  async function refreshProductsFromSheet() {
+    const url = (cfg().appsScriptUrl || '').trim();
+    if (!url) return;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+
+    try {
+      const res = await fetch(url + '?action=products', { signal: controller.signal });
+      const data = await res.json();
+      if (data && Array.isArray(data.products) && data.products.length) {
+        productsData = data.products;
+        paintCatalog();
+      }
+    } catch (err) {
+      console.warn('Sheet catalog refresh skipped:', err);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function init() {
+    injectIcons(document);
+    hydrateHeader();
+    bindUi();
+    updateUrgency();
+    setInterval(updateUrgency, 30000);
+
+    if (!useLocalProducts()) {
+      if ($('product-list') && !isPacksPage()) {
+        $('product-list').innerHTML =
+          '<p class="empty-state">Could not load products. Please refresh.</p>';
+      }
+      throw new Error('Product data missing');
+    }
+
+    paintCatalog();
+    refreshProductsFromSheet();
+  }
+
+  return { init };
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+  VishApp.init().catch((err) => {
+    console.error(err);
+    const root = document.getElementById('product-list');
+    if (root && !document.body.classList.contains('page-packs')) {
+      root.innerHTML = '<p class="empty-state">Could not load products. Please refresh.</p>';
+    }
+  });
+});
