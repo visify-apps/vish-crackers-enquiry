@@ -4,6 +4,7 @@ window.VishApp = (function () {
   let activeCategory = 'all';
   let searchQuery = '';
   let categorySearch = '';
+  let openCategories = new Set();
   let submitting = false;
   let pinLookupToken = 0;
   let resolvedArea = { city: '', state: '', officeName: '', offices: [] };
@@ -166,6 +167,8 @@ window.VishApp = (function () {
           '</span>';
         btn.addEventListener('click', () => {
           activeCategory = c.value;
+          if (activeCategory === 'all') openCategories.clear();
+          else openCategories.add(activeCategory);
           updateCategoryLabel();
           renderCategoryPicker();
           renderProducts();
@@ -237,14 +240,16 @@ window.VishApp = (function () {
       '<span class="product-unit">' +
       item.unit +
       '</span>' +
-      (item.originalPrice > item.price
-        ? '<span class="mrp">' + money(item.originalPrice) + '</span>'
-        : '') +
       '</div>' +
       '</div>' +
       '<div class="product-side">' +
+      '<div class="price-stack">' +
+      (item.originalPrice > item.price
+        ? '<span class="mrp" aria-label="MRP">' + money(item.originalPrice) + '</span>'
+        : '') +
       '<div class="price">' +
       money(item.price) +
+      '</div>' +
       '</div>' +
       '<div class="product-actions"></div>' +
       '</div>';
@@ -292,6 +297,30 @@ window.VishApp = (function () {
     return el;
   }
 
+  function isCategoryOpen(category) {
+    if (searchQuery.trim()) return true;
+    return openCategories.has(category);
+  }
+
+  function fillCategoryPanel(panel, items) {
+    panel.innerHTML = '';
+    const list = document.createElement('div');
+    list.className = 'product-list';
+    items.forEach((item) => list.appendChild(productCard(item)));
+    panel.appendChild(list);
+  }
+
+  function closeCategorySection(section) {
+    if (!section) return;
+    const category = section.dataset.category;
+    const toggle = section.querySelector('.category-toggle');
+    const panel = section.querySelector('.category-panel');
+    section.classList.remove('is-open');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    if (panel) panel.innerHTML = '';
+    if (category) openCategories.delete(category);
+  }
+
   function renderProducts() {
     const root = $('product-list');
     if (!root || isPacksPage()) return;
@@ -304,23 +333,74 @@ window.VishApp = (function () {
       return;
     }
 
-    grouped.forEach((items, category) => {
-      const section = document.createElement('section');
-      section.className = 'category-section';
-      section.id = 'cat-' + category.replace(/\s+/g, '-').toLowerCase();
-      const title = document.createElement('h2');
-      title.className = 'category-title';
-      title.innerHTML =
-        '<span>' +
-        category +
-        '</span><span class="category-count">' +
-        items.length +
-        '</span>';
+    // Specific category: flat list, no accordion / chevron
+    if (activeCategory !== 'all') {
       const list = document.createElement('div');
       list.className = 'product-list';
-      items.forEach((item) => list.appendChild(productCard(item)));
-      section.appendChild(title);
-      section.appendChild(list);
+      grouped.forEach((items) => {
+        items.forEach((item) => list.appendChild(productCard(item)));
+      });
+      root.appendChild(list);
+      return;
+    }
+
+    const chevron =
+      '<svg class="category-chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+    grouped.forEach((items, category) => {
+      const open = isCategoryOpen(category);
+      const panelId = 'cat-panel-' + category.replace(/\s+/g, '-').toLowerCase();
+      const section = document.createElement('section');
+      section.className = 'category-section' + (open ? ' is-open' : '');
+      section.id = 'cat-' + category.replace(/\s+/g, '-').toLowerCase();
+      section.dataset.category = category;
+
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'category-toggle';
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-controls', panelId);
+      toggle.innerHTML =
+        '<span class="category-toggle-label">' +
+        '<span class="category-name">' +
+        category +
+        '</span>' +
+        '<span class="category-count">' +
+        items.length +
+        '</span>' +
+        '</span>' +
+        '<span class="category-chevron" aria-hidden="true">' +
+        chevron +
+        '</span>';
+
+      const panel = document.createElement('div');
+      panel.className = 'category-panel';
+      panel.id = panelId;
+
+      toggle.addEventListener('click', () => {
+        const willOpen = !section.classList.contains('is-open');
+
+        if (willOpen && !searchQuery.trim()) {
+          root.querySelectorAll('.category-section.is-open').forEach((other) => {
+            if (other !== section) closeCategorySection(other);
+          });
+        }
+
+        if (willOpen) {
+          section.classList.add('is-open');
+          toggle.setAttribute('aria-expanded', 'true');
+          openCategories.add(category);
+          fillCategoryPanel(panel, items);
+          section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          closeCategorySection(section);
+        }
+      });
+
+      if (open) fillCategoryPanel(panel, items);
+
+      section.appendChild(toggle);
+      section.appendChild(panel);
       root.appendChild(section);
     });
   }
