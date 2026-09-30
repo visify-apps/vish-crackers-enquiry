@@ -12,7 +12,7 @@ window.SITE_CONFIG = {
   orderDeadlineISO: '2026-10-25',
   responsePromise: 'We will contact you on WhatsApp within 24 hours to confirm delivery and payment.',
   appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyq9hJBdtdriXBL8YMxM75701MWh84VrP3zXJ6r2tBPeVEBtr7YhthaWsnyyENJlI5H/exec',
-  /* Optional: must match Apps Script property ENQUIRY_INGEST_KEY if you set one */
-  enquiryIngestKey: '',
+  /* Must match Apps Script → Project Settings → Script properties → ENQUIRY_INGEST_KEY */
+  enquiryIngestKey: 'vish_7LWxtlPM4jKG7Fx9RhCivAeF2z7NU88t',
   currency: '₹'
 };

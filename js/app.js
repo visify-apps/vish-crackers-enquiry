@@ -7,10 +7,39 @@ window.VishApp = (function () {
   let openCategories = new Set();
   let submitting = false;
   let pinLookupToken = 0;
+  let pinAbort = null;
   let resolvedArea = { city: '', state: '', officeName: '', offices: [] };
 
   function $(id) {
     return document.getElementById(id);
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeImageSrc(src) {
+    const s = String(src || 'assets/optimized/placeholder.jpg');
+    if (/^assets\/[a-zA-Z0-9_./-]+$/.test(s)) return s;
+    return 'assets/optimized/placeholder.jpg';
+  }
+
+  function liveProduct(id) {
+    return productById(id);
+  }
+
+  function liveCartTotals(cart) {
+    return VishCart.cartTotals(cart, liveProduct);
+  }
+
+  function newSubmissionId() {
+    if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
   }
 
   function isPacksPage() {
@@ -98,7 +127,7 @@ window.VishApp = (function () {
   function updateCartBar() {
     const cart = VishCart.getCart();
     const count = VishCart.cartCount(cart);
-    const { total, saved } = VishCart.cartTotals(cart);
+    const { total, saved } = liveCartTotals(cart);
     const bar = $('cart-bar');
     const badge = $('cart-badge');
     const meta = $('cart-bar-meta');
@@ -161,7 +190,7 @@ window.VishApp = (function () {
           'picker-option' + (activeCategory === c.value ? ' is-active' : '');
         btn.innerHTML =
           '<span class="picker-option-label">' +
-          c.label +
+          escapeHtml(c.label) +
           '</span><span class="picker-option-count">' +
           c.count +
           '</span>';
@@ -221,24 +250,24 @@ window.VishApp = (function () {
 
     el.innerHTML =
       '<button type="button" class="thumb-btn" data-lightbox="1" aria-label="View larger image of ' +
-      item.name.replace(/"/g, '&quot;') +
+      escapeHtml(item.name) +
       '">' +
       '<img class="product-thumb" src="' +
-      (item.image || 'assets/optimized/placeholder.jpg') +
+      safeImageSrc(item.image) +
       '" alt="' +
-      item.name.replace(/"/g, '&quot;') +
+      escapeHtml(item.name) +
       '" loading="lazy" decoding="async" width="72" height="72">' +
       '</button>' +
       '<div class="product-main">' +
       '<div class="product-top">' +
       '<h3 class="product-name">' +
-      item.name +
+      escapeHtml(item.name) +
       '</h3>' +
       badges +
       '</div>' +
       '<div class="product-meta">' +
       '<span class="product-unit">' +
-      item.unit +
+      escapeHtml(item.unit) +
       '</span>' +
       '</div>' +
       '</div>' +
@@ -363,7 +392,7 @@ window.VishApp = (function () {
       toggle.innerHTML =
         '<span class="category-toggle-label">' +
         '<span class="category-name">' +
-        category +
+        escapeHtml(category) +
         '</span>' +
         '<span class="category-count">' +
         items.length +
@@ -538,13 +567,13 @@ window.VishApp = (function () {
       card.innerHTML =
         '<div class="pack-top">' +
         '<span class="pack-badge">' +
-        (pack.badge || 'Combo') +
+        escapeHtml(pack.badge || 'Combo') +
         '</span>' +
         '<h3>' +
-        pack.name +
+        escapeHtml(pack.name) +
         '</h3>' +
         '<p>' +
-        (pack.tagline || '') +
+        escapeHtml(pack.tagline || '') +
         '</p>' +
         '</div>' +
         '<ul class="pack-items">' +
@@ -552,7 +581,7 @@ window.VishApp = (function () {
           .map(
             (l) =>
               '<li><span>' +
-              l.product.name +
+              escapeHtml(l.product.name) +
               '</span><span>×' +
               l.qty +
               '</span></li>'
@@ -663,24 +692,28 @@ window.VishApp = (function () {
     const cart = VishCart.getCart();
     const list = $('sheet-items');
     if (!list) return;
-    const { total, saved } = VishCart.cartTotals(cart);
+    const { total, saved } = liveCartTotals(cart);
     list.innerHTML = '';
 
     if (VishCart.cartCount(cart) === 0) {
       list.innerHTML = '<p class="empty-state">Your enquiry list is empty.</p>';
     } else {
       Object.values(cart).forEach((item) => {
+        const live = liveProduct(item.id);
+        const price = live && live.active !== false ? Number(live.price) || 0 : Number(item.price) || 0;
+        const name = live && live.name ? live.name : item.name;
+        const unit = live && live.unit ? live.unit : item.unit;
         const row = document.createElement('div');
         row.className = 'sheet-item';
         row.innerHTML =
           '<div class="sheet-item-main">' +
           '<strong>' +
-          item.name +
+          escapeHtml(name) +
           '</strong>' +
           '<span>' +
-          item.unit +
+          escapeHtml(unit) +
           ' · ' +
-          money(item.price) +
+          money(price) +
           '</span>' +
           '</div>' +
           '<div class="qty-controls compact">' +
@@ -692,7 +725,7 @@ window.VishApp = (function () {
           '</div>' +
           '<button type="button" class="link-remove" data-act="remove">Remove</button>' +
           '<div class="sheet-item-total">' +
-          money(item.price * item.quantity) +
+          money(price * item.quantity) +
           '</div>';
 
         row.addEventListener('click', (e) => {
@@ -810,26 +843,39 @@ window.VishApp = (function () {
 
   async function lookupPincode(pin) {
     const token = ++pinLookupToken;
+    if (pinAbort) {
+      try {
+        pinAbort.abort();
+      } catch (e) {}
+    }
+    pinAbort = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const abortTimer = pinAbort ? setTimeout(() => pinAbort.abort(), 8000) : null;
+
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();
     if (!/^\d{6}$/.test(pin)) {
       setPinMeta('');
+      if (abortTimer) clearTimeout(abortTimer);
       return;
     }
     setPinMeta('Looking up post offices…', true);
     try {
-      const res = await fetch('https://api.postalpincode.in/pincode/' + pin);
+      const res = await fetch('https://api.postalpincode.in/pincode/' + pin, {
+        signal: pinAbort ? pinAbort.signal : undefined
+      });
       const data = await res.json();
       if (token !== pinLookupToken) return;
       const entry = Array.isArray(data) ? data[0] : null;
       if (!entry || entry.Status !== 'Success' || !entry.PostOffice || !entry.PostOffice.length) {
-        setPinMeta('Pincode accepted. Choose office later on WhatsApp if needed.', false);
+        setPinMeta('Pincode accepted. Choose office later if needed.', false);
         return;
       }
       fillOfficeSelect(entry.PostOffice);
     } catch (err) {
       if (token !== pinLookupToken) return;
-      setPinMeta('Pincode saved. Area lookup skipped — we will confirm on WhatsApp.', false);
+      setPinMeta('Pincode saved. Area lookup skipped — we will confirm with you.', false);
+    } finally {
+      if (abortTimer) clearTimeout(abortTimer);
     }
   }
 
@@ -887,6 +933,42 @@ window.VishApp = (function () {
     showEnquiryConfirm();
   }
 
+  async function postEnquiry(payload) {
+    const url = (cfg().appsScriptUrl || '').trim();
+    if (!url) return { ok: false, reason: 'missing-url' };
+
+    // Prefer a readable response when CORS allows it
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      });
+      if (res.type !== 'opaque' && typeof res.json === 'function') {
+        const data = await res.json().catch(() => null);
+        if (data && data.status === 'ok') return { ok: true, data: data };
+        if (data && data.status === 'error') return { ok: false, data: data, reason: data.message };
+      }
+    } catch (err) {
+      console.warn('Readable enquiry POST failed, trying opaque', err);
+    }
+
+    // Fallback: best-effort opaque POST (cannot confirm)
+    try {
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return { ok: null, reason: 'opaque' };
+    } catch (err) {
+      console.warn('Opaque enquiry POST failed', err);
+      return { ok: false, reason: 'network' };
+    }
+  }
+
   async function finishEnquiry(wantPdf) {
     if (submitting) return;
 
@@ -908,6 +990,8 @@ window.VishApp = (function () {
     if (withPdfBtn) withPdfBtn.textContent = 'Submitting…';
     if (waOnlyBtn) waOnlyBtn.textContent = 'Submitting…';
 
+    const totals = liveCartTotals(cart);
+    const submissionId = newSubmissionId();
     const payload = {
       name: contact.name,
       phone: contact.phone,
@@ -920,40 +1004,66 @@ window.VishApp = (function () {
       officeName: contact.officeName || '',
       deliveryMode: 'parcel-office',
       cart: cart,
-      total: VishCart.cartTotals(cart).total,
-      saved: VishCart.cartTotals(cart).saved,
+      total: totals.total,
+      saved: totals.saved,
+      submissionId: submissionId,
       submittedAt: new Date().toISOString(),
       website: ($('customer-website') && $('customer-website').value) || '',
       ingestKey: cfg().enquiryIngestKey || '',
       userAgent: navigator.userAgent || ''
     };
 
-    let sheetOk = false;
-    const url = (cfg().appsScriptUrl || '').trim();
+    const result = await postEnquiry(payload);
 
-    try {
-      if (url) {
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-        sheetOk = true;
+    // Hard network failure before any opaque send — keep cart, show error
+    if (result.ok === false && result.reason === 'network') {
+      submitting = false;
+      if (withPdfBtn) {
+        withPdfBtn.disabled = false;
+        withPdfBtn.textContent = 'Yes, download PDF';
       }
-    } catch (err) {
-      console.warn('Sheet submit failed', err);
+      if (waOnlyBtn) {
+        waOnlyBtn.disabled = false;
+        waOnlyBtn.textContent = 'No, continue';
+      }
+      if (backBtn) backBtn.disabled = false;
+      hideEnquiryConfirm();
+      if ($('form-msg')) {
+        $('form-msg').textContent =
+          'Could not reach the server. Check your connection and try Submit again — your list is still here.';
+      }
+      return;
     }
+
+    const exportCart = (function enrich(cart) {
+      const out = {};
+      Object.values(cart).forEach((item) => {
+        const live = liveProduct(item.id);
+        out[item.id] = {
+          id: item.id,
+          quantity: item.quantity,
+          name: live && live.name ? live.name : item.name,
+          unit: live && live.unit ? live.unit : item.unit,
+          price: live && live.active !== false ? Number(live.price) || 0 : Number(item.price) || 0,
+          originalPrice:
+            live && live.active !== false
+              ? Number(live.originalPrice) || Number(live.price) || 0
+              : Number(item.originalPrice) || Number(item.price) || 0,
+          image: item.image
+        };
+      });
+      return out;
+    })(cart);
 
     if (wantPdf) {
       try {
-        VishPdf.downloadEnquiryPdf(contact, cart, cfg());
+        VishPdf.downloadEnquiryPdf(contact, exportCart, cfg());
       } catch (err) {
         console.warn('PDF failed', err);
       }
     }
 
-    const waText = VishPdf.buildWhatsAppMessage(contact, cart, cfg());
+    const waText = VishPdf.buildWhatsAppMessage(contact, exportCart, cfg());
     VishPdf.openWhatsApp(cfg(), waText);
 
     VishCart.clearCart();
@@ -962,7 +1072,7 @@ window.VishApp = (function () {
     renderPacks();
     hideEnquiryConfirm();
     closeSheet();
-    showSuccess(sheetOk || !url, wantPdf);
+    showSuccess(result.ok !== false, wantPdf, result.ok === null);
     if ($('enquiry-form')) $('enquiry-form').reset();
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();
@@ -979,14 +1089,20 @@ window.VishApp = (function () {
     if (backBtn) backBtn.disabled = false;
   }
 
-  function showSuccess(logged, wantPdf) {
+  function showSuccess(logged, wantPdf, opaque) {
     const el = $('success');
     if (!el || !$('success-detail')) return;
     el.hidden = false;
-    if (logged) {
+    if (!logged) {
+      $('success-detail').textContent =
+        'Could not confirm server save. WhatsApp should still open with your list — please send that message.';
+    } else if (opaque) {
       $('success-detail').textContent = wantPdf
-        ? 'Enquiry submitted. Your PDF is downloading — we will contact you shortly to confirm.'
-        : 'Enquiry submitted. We will contact you shortly to confirm.';
+        ? 'Enquiry sent. Your PDF is downloading — please send the WhatsApp message so we can confirm.'
+        : 'Enquiry sent. Please send the WhatsApp message so we can confirm.';
+    } else if (wantPdf) {
+      $('success-detail').textContent =
+        'Enquiry submitted. Your PDF is downloading — we will contact you shortly to confirm.';
     } else {
       $('success-detail').textContent =
         'Enquiry submitted. We will contact you shortly to confirm.';

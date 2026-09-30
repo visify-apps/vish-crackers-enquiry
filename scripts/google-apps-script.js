@@ -1,20 +1,13 @@
 /**
- * Vish Fireworks Store — Google Apps Script (hardened)
+ * Vish Fireworks Store — Google Apps Script (hardened v2)
  *
- * SECURITY (must follow):
- * 1. Google Sheet sharing = Restricted (only your Google account). NEVER "Anyone with the link".
- * 2. Deploy → Web app:
- *    - Execute as: Me
- *    - Who has access: Anyone   ← this is ONLY the web app URL, NOT the Sheet
- * 3. This script NEVER returns rows from the Enquiries sheet.
- * 4. Optional: set Script property ENQUIRY_INGEST_KEY and put the same value in js/config.js
- *    enquiryIngestKey. This blocks casual scrapers (not a secret once the site is public).
+ * SECURITY:
+ * 1. Sheet sharing = Restricted (only you). NEVER "Anyone with the link".
+ * 2. Deploy → Web app: Execute as Me, Who has access: Anyone.
+ * 3. Set Script property ENQUIRY_INGEST_KEY to the same value as js/config.js enquiryIngestKey.
+ * 4. Never returns Enquiries rows.
  *
- * SETUP:
- * 1. Paste this file into Apps Script bound to your Sheet.
- * 2. Run setupSheet() once (authorize).
- * 3. Deploy as Web app (settings above).
- * 4. Put the Web App URL in js/config.js → appsScriptUrl
+ * After pasting: Run setupSheet() once, set ENQUIRY_INGEST_KEY, Redeploy web app.
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -23,6 +16,7 @@ var MAX_CART_ITEMS = 120;
 var MAX_BODY_CHARS = 80000;
 var RATE_LIMIT_PER_PHONE = 5;
 var RATE_WINDOW_SECONDS = 3600;
+var SUBMISSION_TTL_SECONDS = 86400;
 
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -56,7 +50,8 @@ function setupSheet() {
       'total',
       'saved',
       'itemsJson',
-      'userAgent'
+      'userAgent',
+      'submissionId'
     ]);
   }
 
@@ -71,7 +66,6 @@ function doGet(e) {
   if (action === 'products') {
     return jsonOutput({ status: 'ok', products: readProducts() });
   }
-  // Intentionally minimal — do not expose sheet names, counts, or enquiries
   return jsonOutput({ status: 'ok' });
 }
 
@@ -86,7 +80,6 @@ function doPost(e) {
 
     var data = JSON.parse(e.postData.contents);
 
-    // Honeypot — bots often fill hidden "website" fields
     if (data.website || data.company || data.url) {
       return jsonOutput({ status: 'ok' });
     }
@@ -100,33 +93,60 @@ function doPost(e) {
       return jsonOutput({ status: 'error', message: contact.error });
     }
 
-    if (!rateLimitOk(contact.phone)) {
-      return jsonOutput({ status: 'error', message: 'Too many requests. Try again later.' });
+    var submissionId = String(data.submissionId || '').trim().slice(0, 80);
+
+    var lock = LockService.getScriptLock();
+    if (!lock.tryLock(30000)) {
+      return jsonOutput({ status: 'error', message: 'Busy. Please retry.' });
     }
 
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
-    if (!sheet) {
-      setupSheet();
-      sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+    try {
+      if (submissionId && isDuplicateSubmission(submissionId)) {
+        return jsonOutput({ status: 'ok', duplicate: true });
+      }
+
+      if (!rateLimitOk(contact.phone)) {
+        return jsonOutput({ status: 'error', message: 'Too many requests. Try again later.' });
+      }
+
+      var priced = priceCartFromCatalog(data.cart || {});
+      if (priced.error) {
+        return jsonOutput({ status: 'error', message: priced.error });
+      }
+
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+      if (!sheet) {
+        setupSheet();
+        sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+      }
+
+      sheet.appendRow([
+        data.submittedAt || new Date().toISOString(),
+        contact.name,
+        contact.phone,
+        contact.address,
+        contact.city,
+        contact.state,
+        contact.pincode,
+        contact.officeName,
+        priced.total,
+        priced.saved,
+        JSON.stringify(priced.cart),
+        String(data.userAgent || '').slice(0, 180),
+        submissionId
+      ]);
+
+      if (submissionId) markSubmission(submissionId);
+      SpreadsheetApp.flush();
+
+      return jsonOutput({
+        status: 'ok',
+        total: priced.total,
+        saved: priced.saved
+      });
+    } finally {
+      lock.releaseLock();
     }
-
-    var cartJson = JSON.stringify(sanitizeCart(data.cart || {}));
-    sheet.appendRow([
-      data.submittedAt || new Date().toISOString(),
-      contact.name,
-      contact.phone,
-      contact.address,
-      contact.city,
-      contact.state,
-      contact.pincode,
-      contact.officeName,
-      Number(data.total) || 0,
-      Number(data.saved) || 0,
-      cartJson,
-      String(data.userAgent || '').slice(0, 180)
-    ]);
-
-    return jsonOutput({ status: 'ok' });
   } catch (err) {
     return jsonOutput({ status: 'error', message: 'Rejected' });
   }
@@ -134,8 +154,17 @@ function doPost(e) {
 
 function ingestKeyOk(data) {
   var expected = PropertiesService.getScriptProperties().getProperty('ENQUIRY_INGEST_KEY');
-  if (!expected) return true; // key not configured — open ingest with validation only
+  if (!expected) return true;
   return data && data.ingestKey && String(data.ingestKey) === String(expected);
+}
+
+function isDuplicateSubmission(submissionId) {
+  var cache = CacheService.getScriptCache();
+  return !!cache.get('sub_' + submissionId);
+}
+
+function markSubmission(submissionId) {
+  CacheService.getScriptCache().put('sub_' + submissionId, '1', SUBMISSION_TTL_SECONDS);
 }
 
 function rateLimitOk(phone) {
@@ -177,21 +206,80 @@ function validateEnquiry(data) {
   };
 }
 
-function sanitizeCart(cart) {
-  var out = {};
-  var keys = Object.keys(cart || {}).slice(0, MAX_CART_ITEMS);
-  keys.forEach(function (id) {
-    var item = cart[id] || {};
-    out[String(id).slice(0, 24)] = {
-      id: item.id,
-      name: String(item.name || '').slice(0, 120),
-      unit: String(item.unit || '').slice(0, 40),
-      price: Number(item.price) || 0,
-      originalPrice: Number(item.originalPrice) || 0,
-      quantity: Math.min(999, Math.max(1, Number(item.quantity) || 1))
+function loadProductPriceMap() {
+  var map = {};
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRODUCTS_SHEET);
+  if (!sheet) return map;
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return map;
+  var headers = values[0];
+  var idIdx = headers.indexOf('id');
+  var priceIdx = headers.indexOf('price');
+  var mrpIdx = headers.indexOf('originalPrice');
+  var nameIdx = headers.indexOf('name');
+  var unitIdx = headers.indexOf('unit');
+  var activeIdx = headers.indexOf('active');
+  if (idIdx < 0 || priceIdx < 0) return map;
+
+  values.slice(1).forEach(function (row) {
+    var id = String(row[idIdx]);
+    var active = activeIdx < 0 ? true : row[activeIdx];
+    if (String(active).toLowerCase() === 'false' || active === false || active === 0) return;
+    map[id] = {
+      id: row[idIdx],
+      name: nameIdx >= 0 ? String(row[nameIdx] || '') : '',
+      unit: unitIdx >= 0 ? String(row[unitIdx] || '') : '',
+      price: Number(row[priceIdx]) || 0,
+      originalPrice: mrpIdx >= 0 ? Number(row[mrpIdx]) || 0 : Number(row[priceIdx]) || 0
     };
   });
-  return out;
+  return map;
+}
+
+/** Recompute money from Products sheet — never trust client totals/prices. */
+function priceCartFromCatalog(cart) {
+  var map = loadProductPriceMap();
+  var useCatalog = Object.keys(map).length > 0;
+  var out = {};
+  var total = 0;
+  var saved = 0;
+  var keys = Object.keys(cart || {}).slice(0, MAX_CART_ITEMS);
+  if (!keys.length) return { error: 'Empty cart' };
+
+  for (var i = 0; i < keys.length; i++) {
+    var id = String(keys[i]).slice(0, 24);
+    var item = cart[keys[i]] || {};
+    var qty = Math.min(999, Math.max(1, parseInt(item.quantity, 10) || 1));
+    var live = useCatalog ? map[id] : null;
+    // Prefer sheet prices; if id missing from Products sheet, fall back to client line
+    // so local-first catalogue still works before Products sync.
+    var price = live ? live.price : Number(item.price) || 0;
+    var mrp = live ? live.originalPrice || price : Number(item.originalPrice) || price;
+    var name = live ? live.name : String(item.name || '').slice(0, 120);
+    var unit = live ? live.unit : String(item.unit || '').slice(0, 40);
+
+    out[id] = {
+      id: live ? live.id : item.id,
+      name: name,
+      unit: unit,
+      price: price,
+      originalPrice: mrp,
+      quantity: qty
+    };
+    total += price * qty;
+    saved += Math.max(0, mrp - price) * qty;
+  }
+
+  return {
+    cart: out,
+    total: Math.round(total),
+    saved: Math.round(saved)
+  };
+}
+
+function sanitizeCart(cart) {
+  var priced = priceCartFromCatalog(cart);
+  return priced.cart || {};
 }
 
 function readProducts() {
