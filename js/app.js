@@ -429,6 +429,72 @@ window.VishApp = (function () {
     document.body.classList.remove('lightbox-open');
   }
 
+  let priceListPreviewUrl = '';
+  let priceListPreviewFilename = '';
+
+  function closePdfViewer() {
+    const viewer = $('pdf-viewer');
+    const frame = $('pdf-viewer-frame');
+    if (frame) frame.src = 'about:blank';
+    if (viewer) viewer.hidden = true;
+    document.body.classList.remove('pdf-viewer-open');
+    if (priceListPreviewUrl) {
+      URL.revokeObjectURL(priceListPreviewUrl);
+      priceListPreviewUrl = '';
+    }
+    priceListPreviewFilename = '';
+  }
+
+  function openPriceListViewer() {
+    if (!productsData.length) {
+      alert('Catalogue is still loading. Please try again in a moment.');
+      return;
+    }
+    try {
+      closePdfViewer();
+      const preview = VishPdf.createPriceListPreview(productsData, cfg());
+      priceListPreviewUrl = preview.url;
+      priceListPreviewFilename = preview.filename;
+      const frame = $('pdf-viewer-frame');
+      const viewer = $('pdf-viewer');
+      if (frame) frame.src = preview.url;
+      if (viewer) viewer.hidden = false;
+      document.body.classList.add('pdf-viewer-open');
+      injectIcons(viewer);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Could not create PDF. Please refresh and try again.');
+    }
+  }
+
+  function downloadPriceListFromViewer() {
+    if (!productsData.length) return;
+    try {
+      VishPdf.downloadPriceListPdf(productsData, cfg());
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Could not download PDF.');
+    }
+  }
+
+  function showEnquiryConfirm() {
+    const confirm = $('enquiry-confirm');
+    const panel = document.querySelector('#sheet .sheet-panel');
+    if (panel) panel.classList.add('is-confirming');
+    if (confirm) {
+      confirm.hidden = false;
+      const primary = $('confirm-with-pdf');
+      if (primary) primary.focus();
+    }
+  }
+
+  function hideEnquiryConfirm() {
+    const confirm = $('enquiry-confirm');
+    const panel = document.querySelector('#sheet .sheet-panel');
+    if (confirm) confirm.hidden = true;
+    if (panel) panel.classList.remove('is-confirming');
+  }
+
   function packTotals(pack) {
     let total = 0;
     let mrp = 0;
@@ -663,6 +729,7 @@ window.VishApp = (function () {
     $('sheet').classList.remove('is-open');
     $('sheet').setAttribute('aria-hidden', 'true');
     document.body.classList.remove('sheet-open');
+    hideEnquiryConfirm();
   }
 
   function setPinMeta(text, ok) {
@@ -817,13 +884,29 @@ window.VishApp = (function () {
     const contact = validateContact();
     if (!contact) return;
 
-    submitting = true;
-    const btn = $('submit-enquiry');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Submitting…';
+    showEnquiryConfirm();
+  }
+
+  async function finishEnquiry(wantPdf) {
+    if (submitting) return;
+
+    const cart = VishCart.getCart();
+    if (VishCart.cartCount(cart) === 0) return;
+    const contact = validateContact();
+    if (!contact) {
+      hideEnquiryConfirm();
+      return;
     }
-    if ($('form-msg')) $('form-msg').textContent = 'Saving your enquiry…';
+
+    submitting = true;
+    const withPdfBtn = $('confirm-with-pdf');
+    const waOnlyBtn = $('confirm-whatsapp-only');
+    const backBtn = $('confirm-back');
+    [withPdfBtn, waOnlyBtn, backBtn].forEach((b) => {
+      if (b) b.disabled = true;
+    });
+    if (withPdfBtn) withPdfBtn.textContent = 'Submitting…';
+    if (waOnlyBtn) waOnlyBtn.textContent = 'Submitting…';
 
     const payload = {
       name: contact.name,
@@ -862,10 +945,12 @@ window.VishApp = (function () {
       console.warn('Sheet submit failed', err);
     }
 
-    try {
-      VishPdf.downloadEnquiryPdf(contact, cart, cfg());
-    } catch (err) {
-      console.warn('PDF failed', err);
+    if (wantPdf) {
+      try {
+        VishPdf.downloadEnquiryPdf(contact, cart, cfg());
+      } catch (err) {
+        console.warn('PDF failed', err);
+      }
     }
 
     const waText = VishPdf.buildWhatsAppMessage(contact, cart, cfg());
@@ -875,26 +960,37 @@ window.VishApp = (function () {
     updateCartBar();
     renderProducts();
     renderPacks();
+    hideEnquiryConfirm();
     closeSheet();
-    showSuccess(sheetOk || !url);
+    showSuccess(sheetOk || !url, wantPdf);
     if ($('enquiry-form')) $('enquiry-form').reset();
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();
     setPinMeta('');
     submitting = false;
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Send enquiry';
+    if (withPdfBtn) {
+      withPdfBtn.disabled = false;
+      withPdfBtn.textContent = 'Yes, download PDF';
     }
+    if (waOnlyBtn) {
+      waOnlyBtn.disabled = false;
+      waOnlyBtn.textContent = 'No, continue';
+    }
+    if (backBtn) backBtn.disabled = false;
   }
 
-  function showSuccess(logged) {
+  function showSuccess(logged, wantPdf) {
     const el = $('success');
     if (!el || !$('success-detail')) return;
     el.hidden = false;
-    $('success-detail').textContent = logged
-      ? 'Your enquiry PDF is open. WhatsApp should launch with the same list for confirmation.'
-      : 'WhatsApp should open with your enquiry. Add the Apps Script URL in js/config.js to also save stats in Google Sheets.';
+    if (logged) {
+      $('success-detail').textContent = wantPdf
+        ? 'Enquiry submitted. Your PDF is downloading — we will contact you shortly to confirm.'
+        : 'Enquiry submitted. We will contact you shortly to confirm.';
+    } else {
+      $('success-detail').textContent =
+        'Enquiry submitted. We will contact you shortly to confirm.';
+    }
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -956,15 +1052,8 @@ window.VishApp = (function () {
 
     function runPriceListDownload(btn) {
       try {
-        if (!productsData.length) {
-          alert('Catalogue is still loading. Please try again in a moment.');
-          return;
-        }
         if (btn) btn.disabled = true;
-        VishPdf.downloadPriceListPdf(productsData, cfg());
-      } catch (err) {
-        console.error(err);
-        alert(err.message || 'Could not create PDF. Please refresh and try again.');
+        openPriceListViewer();
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -978,6 +1067,26 @@ window.VishApp = (function () {
       const el = $(id);
       if (el) el.addEventListener('click', () => runPriceListDownload(el));
     });
+
+    if ($('confirm-with-pdf')) {
+      $('confirm-with-pdf').addEventListener('click', () => finishEnquiry(true));
+    }
+    if ($('confirm-whatsapp-only')) {
+      $('confirm-whatsapp-only').addEventListener('click', () => finishEnquiry(false));
+    }
+    if ($('confirm-back')) {
+      $('confirm-back').addEventListener('click', hideEnquiryConfirm);
+    }
+
+    if ($('pdf-viewer-close')) {
+      $('pdf-viewer-close').addEventListener('click', closePdfViewer);
+    }
+    if ($('pdf-viewer-backdrop')) {
+      $('pdf-viewer-backdrop').addEventListener('click', closePdfViewer);
+    }
+    if ($('pdf-viewer-download')) {
+      $('pdf-viewer-download').addEventListener('click', downloadPriceListFromViewer);
+    }
 
     wireWhatsAppFloat();
 
@@ -995,6 +1104,7 @@ window.VishApp = (function () {
         closeSheet();
         closeLightbox();
         closeCategoryPicker();
+        closePdfViewer();
       }
     });
   }

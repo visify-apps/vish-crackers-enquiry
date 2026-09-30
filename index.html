@@ -6,13 +6,23 @@
   <title>Vish Fireworks Store | Sivakasi Crackers Enquiry</title>
   <meta name="description" content="Browse Sivakasi fireworks from Vish Fireworks Store, build your enquiry list, and confirm on WhatsApp. Online sale of firecrackers is not permitted." />
   <meta name="theme-color" content="#140c0a" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
   <meta property="og:title" content="Vish Fireworks Store" />
-  <meta property="og:description" content="Sivakasi fireworks enquiry — browse prices, send your list, confirm on WhatsApp." />
+  <meta property="og:description" content="Sivakasi fireworks enquiry — browse catalogue, build your list, confirm delivery." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://vishcrackers.online/" />
+  <meta property="og:image" content="https://vishcrackers.online/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Vish Fireworks Store" />
+  <meta name="twitter:description" content="Sivakasi fireworks enquiry — browse catalogue, build your list, confirm delivery." />
+  <meta name="twitter:image" content="https://vishcrackers.online/og-image.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=price1" />
+  <link rel="stylesheet" href="css/styles.css?v=pdf4" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -21,7 +31,7 @@
   <header class="site-header">
     <div class="shell header-inner">
       <div class="brand-block">
-        <span class="brand-mark" aria-hidden="true">V</span>
+        <img class="brand-mark" src="favicon.svg" width="34" height="34" alt="" />
         <div class="brand-copy">
           <h1 class="brand-name" id="brand-name">Vish Fireworks</h1>
           <p class="brand-tag" id="brand-tag">From Sivakasi · Vish Crackers</p>
@@ -67,7 +77,7 @@
         <span data-icon="file"></span>
         <span class="featured-copy">
           <strong>Price list PDF</strong>
-          <small>Full catalogue · share anytime</small>
+          <small>View rates · download if needed</small>
         </span>
       </button>
     </div>
@@ -92,7 +102,7 @@
 
   <div id="success" class="success shell" hidden>
     <h2>Enquiry ready</h2>
-    <p id="success-detail">Your PDF is open and WhatsApp should launch with the same list.</p>
+    <p id="success-detail">Enquiry submitted. We will contact you shortly to confirm.</p>
   </div>
 
   <div class="filter-dock" id="catalog">
@@ -194,6 +204,29 @@
     <p id="lightbox-caption"></p>
   </div>
 
+  <div class="pdf-viewer" id="pdf-viewer" hidden>
+    <div class="pdf-viewer-backdrop" id="pdf-viewer-backdrop"></div>
+    <div class="pdf-viewer-panel" role="dialog" aria-modal="true" aria-labelledby="pdf-viewer-title">
+      <div class="pdf-viewer-head">
+        <div>
+          <p class="pdf-viewer-kicker">Enquiry reference</p>
+          <h2 id="pdf-viewer-title">Price list</h2>
+        </div>
+        <div class="pdf-viewer-actions">
+          <button type="button" class="btn-pdf-optional" id="pdf-viewer-download">
+            <span data-icon="file"></span>
+            Download
+          </button>
+          <button type="button" class="nav-icon-btn" id="pdf-viewer-close" aria-label="Close price list">
+            <span data-icon="close"></span>
+          </button>
+        </div>
+      </div>
+      <p class="pdf-viewer-hint">Preview below. On some phones, use Download if the preview is blank.</p>
+      <iframe id="pdf-viewer-frame" title="Price list PDF preview"></iframe>
+    </div>
+  </div>
+
   <div class="picker" id="category-picker" hidden>
     <div class="picker-backdrop" id="category-picker-backdrop"></div>
     <div class="picker-panel" role="dialog" aria-modal="true" aria-labelledby="picker-title">
@@ -218,6 +251,7 @@
         <button type="button" class="nav-icon-btn" id="close-sheet" aria-label="Close"><span data-icon="close"></span></button>
       </div>
 
+      <div class="sheet-main" id="sheet-main">
       <div id="sheet-items" class="sheet-items"></div>
 
       <div class="sheet-summary">
@@ -233,7 +267,7 @@
         <p class="form-help">
           We deliver to your <strong>preferred parcel / courier office</strong> — not doorstep.
           Door delivery of fireworks is generally not accepted in India for safety / transport rules.
-          After dispatch, tracking and the exact office location will be shared on WhatsApp.
+          After dispatch, tracking and the exact office location will be shared with you.
         </p>
 
         <div class="field">
@@ -259,8 +293,18 @@
         </div>
 
         <p class="form-msg" id="form-msg" role="status"></p>
-        <button type="submit" class="btn-submit" id="submit-enquiry">Send enquiry</button>
+        <button type="submit" class="btn-submit" id="submit-enquiry">Submit enquiry</button>
       </form>
+      </div>
+
+      <div class="enquiry-confirm" id="enquiry-confirm" hidden>
+        <p class="enquiry-confirm-kicker">Final step</p>
+        <p class="enquiry-confirm-title">Save a PDF copy?</p>
+        <p class="enquiry-confirm-copy">Optional — for your records only.</p>
+        <button type="button" class="btn-submit" id="confirm-with-pdf">Yes, download PDF</button>
+        <button type="button" class="btn-pdf-optional" id="confirm-whatsapp-only">No, continue</button>
+        <button type="button" class="enquiry-confirm-back" id="confirm-back">Edit details</button>
+      </div>
     </div>
   </div>
 
@@ -270,7 +314,7 @@
   <script src="data/packs.js"></script>
   <script src="js/icons.js"></script>
   <script src="js/cart.js"></script>
-  <script src="js/pdf.js"></script>
-  <script src="js/app.js?v=price1" defer></script>
+  <script src="js/pdf.js?v=pdf4"></script>
+  <script src="js/app.js?v=pdf4" defer></script>
 </body>
 </html>

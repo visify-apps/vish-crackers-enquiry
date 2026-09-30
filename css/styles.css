@@ -63,6 +63,10 @@ body.lightbox-open {
   overflow: hidden;
 }
 
+body.pdf-viewer-open {
+  overflow: hidden;
+}
+
 img {
   max-width: 100%;
   display: block;
@@ -137,19 +141,13 @@ a {
 }
 
 .brand-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   flex-shrink: 0;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.15rem;
-  background:
-    radial-gradient(circle at 30% 25%, rgba(240, 199, 94, 0.95), transparent 40%),
-    linear-gradient(145deg, #3a1a18, #1a0f0c);
+  display: block;
+  object-fit: cover;
+  background: #1a0f0c;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
@@ -1348,6 +1346,98 @@ a {
   color: var(--good);
 }
 
+.enquiry-confirm {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  justify-items: stretch;
+  min-height: min(52vh, 420px);
+  padding: 28px 8px 18px;
+  text-align: center;
+}
+
+.enquiry-confirm[hidden] {
+  display: none !important;
+}
+
+.sheet-panel.is-confirming .sheet-main {
+  display: none;
+}
+
+.sheet-panel.is-confirming .sheet-head h2 {
+  visibility: hidden;
+}
+
+.enquiry-confirm-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.enquiry-confirm-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.enquiry-confirm-copy {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.enquiry-confirm-back {
+  justify-self: center;
+  margin-top: 4px;
+  background: none;
+  border: 0;
+  padding: 8px 4px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.enquiry-confirm-back:hover {
+  color: var(--ink-soft);
+}
+
+.btn-pdf-optional {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  width: 100%;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-pdf-optional .icon {
+  color: var(--gold);
+}
+
+.btn-pdf-optional:disabled,
+.btn-submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .saved-note {
   color: var(--good);
   font-weight: 700;
@@ -2113,6 +2203,107 @@ a {
   color: #ffe9c8;
   text-align: center;
   font-weight: 600;
+}
+
+/* In-page price list PDF viewer */
+.pdf-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: end center;
+  padding: 0;
+}
+
+.pdf-viewer[hidden] {
+  display: none !important;
+}
+
+.pdf-viewer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 4, 3, 0.72);
+}
+
+.pdf-viewer-panel {
+  position: relative;
+  z-index: 1;
+  width: min(920px, 100%);
+  height: min(92vh, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.pdf-viewer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pdf-viewer-kicker {
+  margin: 0 0 2px;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.pdf-viewer-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+.pdf-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pdf-viewer-actions .btn-pdf-optional {
+  width: auto;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+}
+
+.pdf-viewer-hint {
+  margin: 0;
+  padding: 8px 14px 10px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+#pdf-viewer-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #111;
+  min-height: 0;
+}
+
+@media (min-width: 720px) {
+  .pdf-viewer {
+    place-items: center;
+    padding: 24px;
+  }
+
+  .pdf-viewer-panel {
+    height: min(86vh, 900px);
+    border-radius: 18px;
+  }
 }
 
 @media (min-width: 720px) {

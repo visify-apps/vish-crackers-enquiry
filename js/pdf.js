@@ -38,18 +38,13 @@ window.VishPdf = (function () {
       .trim();
   }
 
-  function openPdf(doc, filename) {
+  function savePdf(doc, filename) {
+    doc.save(filename);
+  }
+
+  function pdfObjectUrl(doc) {
     var blob = doc.output('blob');
-    var url = URL.createObjectURL(blob);
-    var win = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!win) {
-      doc.save(filename);
-      alert('Pop-up blocked. Allow pop-ups for this site, or open the PDF from your Downloads folder.');
-      return;
-    }
-    setTimeout(function () {
-      URL.revokeObjectURL(url);
-    }, 120000);
+    return URL.createObjectURL(blob);
   }
 
   function paintStripe(doc, y, pageWidth) {
@@ -301,10 +296,10 @@ window.VishPdf = (function () {
     });
 
     finalizePages(doc, config);
-    openPdf(doc, 'Vish-Enquiry-' + Date.now() + '.pdf');
+    savePdf(doc, 'Vish-Enquiry-' + Date.now() + '.pdf');
   }
 
-  function downloadPriceListPdf(productsData, config) {
+  function buildPriceListDoc(productsData, config) {
     var jsPDF = getJsPdf();
     var doc = new jsPDF({ unit: 'pt', format: 'a4' });
     var pageWidth = doc.internal.pageSize.getWidth();
@@ -416,7 +411,26 @@ window.VishPdf = (function () {
     });
 
     finalizePages(doc, config);
-    openPdf(doc, 'Vish-Price-List-' + new Date().toISOString().slice(0, 10) + '.pdf');
+    return doc;
+  }
+
+  function priceListFilename() {
+    return 'Vish-Price-List-' + new Date().toISOString().slice(0, 10) + '.pdf';
+  }
+
+  function downloadPriceListPdf(productsData, config) {
+    var doc = buildPriceListDoc(productsData, config);
+    savePdf(doc, priceListFilename());
+  }
+
+  function createPriceListPreview(productsData, config) {
+    var doc = buildPriceListDoc(productsData, config);
+    var filename = priceListFilename();
+    return {
+      doc: doc,
+      filename: filename,
+      url: pdfObjectUrl(doc)
+    };
   }
 
   return {
@@ -424,6 +438,7 @@ window.VishPdf = (function () {
     openWhatsApp: openWhatsApp,
     downloadEnquiryPdf: downloadEnquiryPdf,
     downloadPriceListPdf: downloadPriceListPdf,
+    createPriceListPreview: createPriceListPreview,
     money: money
   };
 })();
