@@ -5,7 +5,8 @@
  * 1. Sheet sharing = Restricted (only you). NEVER "Anyone with the link".
  * 2. Deploy → Web app: Execute as Me, Who has access: Anyone.
  * 3. Set Script property ENQUIRY_INGEST_KEY to the same value as js/config.js enquiryIngestKey.
- * 4. Never returns Enquiries rows.
+ * 4. Optional: Script property NOTIFY_EMAIL (defaults to visifyapps@gmail.com).
+ * 5. Never returns Enquiries rows.
  *
  * After pasting: Run setupSheet() once, set ENQUIRY_INGEST_KEY, Redeploy web app.
  */
@@ -17,6 +18,8 @@ var MAX_BODY_CHARS = 80000;
 var RATE_LIMIT_PER_PHONE = 5;
 var RATE_WINDOW_SECONDS = 3600;
 var SUBMISSION_TTL_SECONDS = 86400;
+/** Fallback if Script property NOTIFY_EMAIL is not set */
+var DEFAULT_NOTIFY_EMAIL = 'visifyapps@gmail.com';
 
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -139,6 +142,12 @@ function doPost(e) {
       if (submissionId) markSubmission(submissionId);
       SpreadsheetApp.flush();
 
+      try {
+        sendEnquiryEmail(contact, priced, submissionId, data.submittedAt);
+      } catch (mailErr) {
+        // Sheet save already succeeded — do not fail the enquiry if mail fails
+      }
+
       return jsonOutput({
         status: 'ok',
         total: priced.total,
@@ -150,6 +159,105 @@ function doPost(e) {
   } catch (err) {
     return jsonOutput({ status: 'error', message: 'Rejected' });
   }
+}
+
+function notifyEmail() {
+  var fromProp = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL');
+  return String(fromProp || DEFAULT_NOTIFY_EMAIL).trim();
+}
+
+/**
+ * Plain-text email: pack list first (id / name / qty), prices only at the end.
+ * Easy to forward to the packing owner.
+ */
+function sendEnquiryEmail(contact, priced, submissionId, submittedAt) {
+  var to = notifyEmail();
+  if (!to) return;
+
+  var cart = priced.cart || {};
+  var ids = Object.keys(cart).sort(function (a, b) {
+    return Number(a) - Number(b) || String(a).localeCompare(String(b));
+  });
+
+  var packLines = [];
+  var priceLines = [];
+  for (var i = 0; i < ids.length; i++) {
+    var item = cart[ids[i]];
+    var id = item.id != null ? item.id : ids[i];
+    var name = item.name || '';
+    var qty = item.quantity || 1;
+    var unit = item.unit ? ' (' + item.unit + ')' : '';
+    var price = Number(item.price) || 0;
+    var lineTotal = price * qty;
+
+    packLines.push(padRight(String(id), 6) + '  ' + name + unit + '  × ' + qty);
+    priceLines.push(
+      padRight(String(id), 6) +
+        '  ' +
+        name +
+        '  × ' +
+        qty +
+        '  @ ₹' +
+        price +
+        '  = ₹' +
+        lineTotal
+    );
+  }
+
+  var when = submittedAt || new Date().toISOString();
+  var subject =
+    'New enquiry — ' + contact.name + ' — ' + ids.length + ' item(s) — ₹' + priced.total;
+
+  var lines = [];
+  lines.push('NEW ENQUIRY — Vish Fireworks Store');
+  lines.push('================================');
+  lines.push('');
+  lines.push('CUSTOMER');
+  lines.push('--------');
+  lines.push('Name:    ' + contact.name);
+  lines.push('Phone:   ' + contact.phone);
+  lines.push('Pincode: ' + contact.pincode);
+  lines.push('City:    ' + (contact.city || '-'));
+  lines.push('State:   ' + (contact.state || '-'));
+  lines.push('Office:  ' + (contact.officeName || '-'));
+  lines.push('Address: ' + (contact.address || '-'));
+  lines.push('Time:    ' + when);
+  if (submissionId) lines.push('Ref:     ' + submissionId);
+  lines.push('');
+  lines.push('PACK LIST  (ID / NAME / QTY)  — forward this section');
+  lines.push('-----------------------------------------------');
+  if (packLines.length) {
+    for (var p = 0; p < packLines.length; p++) lines.push(packLines[p]);
+  } else {
+    lines.push('(no items)');
+  }
+  lines.push('');
+  lines.push('Total items: ' + ids.length);
+  lines.push('');
+  lines.push('PRICES (reference only — at the end)');
+  lines.push('------------------------------------');
+  if (priceLines.length) {
+    for (var r = 0; r < priceLines.length; r++) lines.push(priceLines[r]);
+  } else {
+    lines.push('(no items)');
+  }
+  lines.push('');
+  lines.push('Order total:  ₹' + priced.total);
+  lines.push('Customer saved: ₹' + priced.saved);
+  lines.push('');
+  lines.push('— Auto mail from Vish enquiry form —');
+
+  MailApp.sendEmail({
+    to: to,
+    subject: subject,
+    body: lines.join('\n')
+  });
+}
+
+function padRight(str, len) {
+  str = String(str);
+  while (str.length < len) str += ' ';
+  return str;
 }
 
 function ingestKeyOk(data) {
