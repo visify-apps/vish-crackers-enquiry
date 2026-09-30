@@ -1,5 +1,5 @@
 /**
- * Vish Fireworks Store — Google Apps Script (hardened v2)
+ * Vish Fireworks Store — Google Apps Script (hardened v3 — order sheet)
  *
  * SECURITY:
  * 1. Sheet sharing = Restricted (only you). NEVER "Anyone with the link".
@@ -9,11 +9,11 @@
  * 5. Never returns Enquiries rows.
  *
  * After pasting:
- * 1. Run setupSheet() once (if needed).
- * 2. Set ENQUIRY_INGEST_KEY.
- * 3. Run testNotifyEmail() once and click Allow (Gmail).
+ * 1. Run migrateEnquiriesSheet() once (wipes old Enquiries data + new headers/dropdowns).
+ * 2. Set ENQUIRY_INGEST_KEY if not already set.
+ * 3. Run testNotifyEmail() once and Allow (Gmail) if needed.
  * 4. Run flushEnquiryMailQueue() once and Allow if asked (triggers).
- * 5. Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy.
+ * 5. Deploy → Manage deployments → Edit → Version: New version → Deploy.
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -25,6 +25,37 @@ var RATE_WINDOW_SECONDS = 3600;
 var SUBMISSION_TTL_SECONDS = 86400;
 /** Fallback if Script property NOTIFY_EMAIL is not set */
 var DEFAULT_NOTIFY_EMAIL = 'visifyapps@gmail.com';
+
+var ORDER_STATUSES = [
+  'UnderEnquiry',
+  'Requested Address',
+  'Order Confirmed',
+  'Dispatched',
+  'Delivered'
+];
+var PAYMENT_STATUSES = ['Paid', 'Partially Paid', 'Pending'];
+
+/** Column titles — keep Capitalized */
+var ENQUIRY_HEADERS = [
+  'S.No',
+  'Date',
+  'Time',
+  'Name',
+  'Phone',
+  'Area',
+  'City',
+  'State',
+  'Pincode',
+  'Items',
+  'Total Price',
+  'Address',
+  'Order Status',
+  'Payment Status',
+  'Paid Amount',
+  'WhatsApp',
+  'Items Json',
+  'Submission Id'
+];
 
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -44,29 +75,61 @@ function setupSheet() {
     ]);
   }
 
-  var enquiries = ss.getSheetByName(ENQUIRIES_SHEET) || ss.insertSheet(ENQUIRIES_SHEET);
-  if (enquiries.getLastRow() === 0) {
-    enquiries.appendRow([
-      'timestamp',
-      'name',
-      'phone',
-      'address',
-      'city',
-      'state',
-      'pincode',
-      'officeName',
-      'total',
-      'saved',
-      'itemsJson',
-      'userAgent',
-      'submissionId'
-    ]);
-  }
+  ensureEnquiriesSheet_();
 
   var sheet1 = ss.getSheetByName('Sheet1');
   if (sheet1 && ss.getSheets().length > 1) {
     ss.deleteSheet(sheet1);
   }
+}
+
+/**
+ * ONE-TIME: clears old Enquiries rows and installs the new header layout + dropdowns.
+ * Products sheet is not touched.
+ */
+function migrateEnquiriesSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(ENQUIRIES_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(ENQUIRIES_SHEET);
+  }
+  sheet.clear();
+  sheet.clearDataValidations();
+  sheet.appendRow(ENQUIRY_HEADERS);
+  sheet.setFrozenRows(1);
+  applyEnquiryValidations_(sheet);
+  sheet.autoResizeColumns(1, ENQUIRY_HEADERS.length);
+  Logger.log('Enquiries sheet migrated. Old enquiry rows were deleted.');
+}
+
+function ensureEnquiriesSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(ENQUIRIES_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(ENQUIRIES_SHEET);
+    sheet.appendRow(ENQUIRY_HEADERS);
+    sheet.setFrozenRows(1);
+    applyEnquiryValidations_(sheet);
+    return sheet;
+  }
+  var first = sheet.getRange(1, 1, 1, ENQUIRY_HEADERS.length).getValues()[0];
+  if (String(first[0]).trim() !== 'S.No') {
+    // Old layout still present — force migrate once so new writes do not corrupt columns
+    migrateEnquiriesSheet();
+    return ss.getSheetByName(ENQUIRIES_SHEET);
+  }
+  applyEnquiryValidations_(sheet);
+  return sheet;
+}
+
+function applyEnquiryValidations_(sheet) {
+  var last = Math.max(sheet.getMaxRows(), 500);
+  sheet.getRange(2, 13, last - 1, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(ORDER_STATUSES, true).setAllowInvalid(false).build()
+  );
+  sheet.getRange(2, 14, last - 1, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(PAYMENT_STATUSES, true).setAllowInvalid(false).build()
+  );
 }
 
 function doGet(e) {
@@ -124,25 +187,30 @@ function doPost(e) {
         return jsonOutput({ status: 'error', message: priced.error });
       }
 
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
-      if (!sheet) {
-        setupSheet();
-        sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
-      }
+      var sheet = ensureEnquiriesSheet_();
+      var serialNo = nextSerialNumber_(sheet);
+      var when = istParts_(data.submittedAt);
+      var itemsSummary = itemsSummaryText_(priced);
+      var waLink = 'https://wa.me/91' + contact.phone;
 
       sheet.appendRow([
-        data.submittedAt || new Date().toISOString(),
+        serialNo,
+        when.date,
+        when.time,
         contact.name,
         contact.phone,
-        contact.address,
-        contact.city,
-        contact.state,
+        contact.officeName || '',
+        contact.city || '',
+        contact.state || '',
         contact.pincode,
-        contact.officeName,
+        itemsSummary,
         priced.total,
-        priced.saved,
+        '', // Address — filled manually later
+        'UnderEnquiry',
+        'Pending',
+        '', // Paid Amount
+        waLink,
         JSON.stringify(priced.cart),
-        String(data.userAgent || '').slice(0, 180),
         submissionId
       ]);
 
@@ -150,14 +218,12 @@ function doPost(e) {
       rateLimitBump(contact.phone);
       SpreadsheetApp.flush();
 
-      // Queue mail so HTTP response returns fast (browser won't time out / false-fail).
-      // Email is sent ~1s later via flushEnquiryMailQueue.
       try {
-        queueEnquiryEmail(contact, priced, submissionId, data.submittedAt);
+        queueEnquiryEmail(contact, priced, submissionId, serialNo);
       } catch (mailErr) {
         Logger.log('Enquiry mail queue failed: ' + mailErr);
         try {
-          sendEnquiryEmail(contact, priced, submissionId, data.submittedAt);
+          sendEnquiryEmail(contact, priced, submissionId, serialNo);
         } catch (inlineErr) {
           Logger.log('Inline enquiry mail failed: ' + inlineErr);
         }
@@ -166,7 +232,8 @@ function doPost(e) {
       return jsonOutput({
         status: 'ok',
         total: priced.total,
-        saved: priced.saved
+        saved: priced.saved,
+        serialNo: serialNo
       });
     } finally {
       lock.releaseLock();
@@ -174,6 +241,40 @@ function doPost(e) {
   } catch (err) {
     return jsonOutput({ status: 'error', message: 'Rejected' });
   }
+}
+
+function nextSerialNumber_(sheet) {
+  var last = sheet.getLastRow();
+  if (last < 2) return 1;
+  var values = sheet.getRange(2, 1, last - 1, 1).getValues();
+  var max = 0;
+  for (var i = 0; i < values.length; i++) {
+    var n = Number(values[i][0]);
+    if (!isNaN(n) && n > max) max = n;
+  }
+  return max + 1;
+}
+
+/** India time parts for sheet Date / Time columns */
+function istParts_(submittedAt) {
+  var d = submittedAt ? new Date(submittedAt) : new Date();
+  if (isNaN(d.getTime())) d = new Date();
+  var fmt = Session.getScriptTimeZone() || 'Asia/Kolkata';
+  // Force IST display even if script timezone differs
+  var date = Utilities.formatDate(d, 'Asia/Kolkata', 'dd/MM/yyyy');
+  var time = Utilities.formatDate(d, 'Asia/Kolkata', 'HH:mm');
+  return { date: date, time: time, tz: fmt };
+}
+
+function itemsSummaryText_(priced) {
+  var cart = priced.cart || {};
+  var ids = Object.keys(cart);
+  var productCount = ids.length;
+  var qtyTotal = 0;
+  for (var i = 0; i < ids.length; i++) {
+    qtyTotal += Number(cart[ids[i]].quantity) || 0;
+  }
+  return productCount + ' products___' + qtyTotal + ' pcs';
 }
 
 function notifyEmail() {
@@ -185,7 +286,7 @@ function notifyEmail() {
  * Save mail payload and schedule a near-immediate flush.
  * Keeps doPost fast so the website does not hang or show a false network error.
  */
-function queueEnquiryEmail(contact, priced, submissionId, submittedAt) {
+function queueEnquiryEmail(contact, priced, submissionId, serialNo) {
   var item = {
     contact: contact,
     priced: {
@@ -194,7 +295,7 @@ function queueEnquiryEmail(contact, priced, submissionId, submittedAt) {
       saved: priced.saved
     },
     submissionId: submissionId || '',
-    submittedAt: submittedAt || new Date().toISOString()
+    serialNo: serialNo
   };
 
   var props = PropertiesService.getScriptProperties();
@@ -239,7 +340,7 @@ function flushEnquiryMailQueue() {
       var item = queue[i];
       if (!item || !item.contact) continue;
       try {
-        sendEnquiryEmail(item.contact, item.priced || {}, item.submissionId, item.submittedAt);
+        sendEnquiryEmail(item.contact, item.priced || {}, item.submissionId, item.serialNo);
       } catch (mailErr) {
         Logger.log('Queued enquiry mail failed: ' + mailErr);
         leftover.push(item);
@@ -259,7 +360,6 @@ function flushEnquiryMailQueue() {
     lock.releaseLock();
   }
 
-  // Remove one-shot triggers for this handler
   var triggers = ScriptApp.getProjectTriggers();
   for (var t = 0; t < triggers.length; t++) {
     if (triggers[t].getHandlerFunction() === 'flushEnquiryMailQueue') {
@@ -269,7 +369,6 @@ function flushEnquiryMailQueue() {
     }
   }
 
-  // If new items arrived during flush, schedule another run
   try {
     var pending = JSON.parse(
       PropertiesService.getScriptProperties().getProperty('MAIL_QUEUE') || '[]'
@@ -281,106 +380,94 @@ function flushEnquiryMailQueue() {
 /**
  * Run this ONCE from the Apps Script editor (▶ Run).
  * Click Allow when Google asks for Gmail permission.
- * You should get a test mail at visifyapps@gmail.com within ~1 minute.
  */
 function testNotifyEmail() {
   var to = notifyEmail();
   MailApp.sendEmail({
     to: to,
-    subject: 'Vish enquiry — TEST mail OK',
+    subject: 'VishCrackers - New Order [Id : 0, TEST, 0]',
     body:
-      'This is a test from Vish Apps Script.\n\n' +
-      'If you received this, email alerts are working.\n' +
-      'Next: Deploy → Manage deployments → New version → Deploy,\n' +
-      'then place a real enquiry from the website.\n\n' +
-      'Sent to: ' +
-      to +
-      '\nTime: ' +
-      new Date().toISOString()
+      'New enquiry\n\n' +
+      'Name___Test\n' +
+      'Pincode___626123\n' +
+      'Area___Test Area\n' +
+      'City___Sivakasi\n' +
+      'State___Tamil Nadu\n\n' +
+      'ENQUIRED_PRODUCT_LIST\n' +
+      'Sparklers\n' +
+      'Gold Sparkler___2\n\n' +
+      'Flower Pots\n' +
+      'Flower Pot Big___1\n\n' +
+      'Total Products___2\n' +
+      'Total Items___3\n\n' +
+      'REFERENCE\n' +
+      'Gold Sparkler___2___@₹10___=₹20\n' +
+      'Flower Pot Big___1___@₹80___=₹80\n\n' +
+      'Order Total___₹100\n'
   });
   Logger.log('Test mail sent to ' + to);
 }
 
 /**
- * Plain-text email: pack list first (id / name / qty), prices only at the end.
- * Easy to forward to the packing owner.
+ * Owner email — pack list by category, ___ separators, no product ids.
  */
-function sendEnquiryEmail(contact, priced, submissionId, submittedAt) {
+function sendEnquiryEmail(contact, priced, submissionId, serialNo) {
   var to = notifyEmail();
   if (!to) return;
 
-  var cart = priced.cart || {};
-  var ids = Object.keys(cart).sort(function (a, b) {
-    return Number(a) - Number(b) || String(a).localeCompare(String(b));
-  });
-
-  var packLines = [];
-  var priceLines = [];
-  for (var i = 0; i < ids.length; i++) {
-    var item = cart[ids[i]];
-    var id = item.id != null ? item.id : ids[i];
-    var name = item.name || '';
-    var qty = item.quantity || 1;
-    var unit = item.unit ? ' (' + item.unit + ')' : '';
-    var price = Number(item.price) || 0;
-    var lineTotal = price * qty;
-
-    packLines.push(padRight(String(id), 6) + '  ' + name + unit + '  × ' + qty);
-    priceLines.push(
-      padRight(String(id), 6) +
-        '  ' +
-        name +
-        '  × ' +
-        qty +
-        '  @ ₹' +
-        price +
-        '  = ₹' +
-        lineTotal
-    );
-  }
-
-  var when = submittedAt || new Date().toISOString();
+  var built = buildCategorizedLists_(priced.cart || {});
   var subject =
-    'New enquiry — ' + contact.name + ' — ' + ids.length + ' item(s) — ₹' + priced.total;
+    'VishCrackers - New Order [Id : ' +
+    serialNo +
+    ', ' +
+    contact.name +
+    ', ' +
+    priced.total +
+    ']';
 
   var lines = [];
-  lines.push('NEW ENQUIRY — Vish Fireworks Store');
-  lines.push('================================');
+  lines.push('New enquiry');
   lines.push('');
-  lines.push('CUSTOMER');
-  lines.push('--------');
-  lines.push('Name:    ' + contact.name);
-  lines.push('Phone:   ' + contact.phone);
-  lines.push('Pincode: ' + contact.pincode);
-  lines.push('City:    ' + (contact.city || '-'));
-  lines.push('State:   ' + (contact.state || '-'));
-  lines.push('Office:  ' + (contact.officeName || '-'));
-  lines.push('Address: ' + (contact.address || '-'));
-  lines.push('Time:    ' + when);
-  if (submissionId) lines.push('Ref:     ' + submissionId);
+  lines.push('Name___' + contact.name);
+  lines.push('Phone___' + contact.phone);
+  lines.push('Pincode___' + contact.pincode);
+  lines.push('Area___' + (contact.officeName || '-'));
+  lines.push('City___' + (contact.city || '-'));
+  lines.push('State___' + (contact.state || '-'));
   lines.push('');
-  lines.push('PACK LIST  (ID / NAME / QTY)  — forward this section');
-  lines.push('-----------------------------------------------');
-  if (packLines.length) {
-    for (var p = 0; p < packLines.length; p++) lines.push(packLines[p]);
-  } else {
+  lines.push('ENQUIRED_PRODUCT_LIST');
+
+  if (!built.packBlocks.length) {
     lines.push('(no items)');
+  } else {
+    for (var b = 0; b < built.packBlocks.length; b++) {
+      if (b > 0) lines.push(''); // extra blank line between categories
+      var block = built.packBlocks[b];
+      lines.push(block.category);
+      for (var L = 0; L < block.lines.length; L++) {
+        lines.push(block.lines[L]);
+      }
+    }
+  }
+
+  lines.push('');
+  lines.push('Total Products___' + built.productCount);
+  lines.push('Total Items___' + built.qtyTotal);
+  lines.push('');
+  lines.push('REFERENCE');
+  if (!built.priceLines.length) {
+    lines.push('(no items)');
+  } else {
+    for (var r = 0; r < built.priceLines.length; r++) {
+      lines.push(built.priceLines[r]);
+    }
   }
   lines.push('');
-  lines.push('Total items: ' + ids.length);
-  lines.push('');
-  lines.push('PRICES (reference only — at the end)');
-  lines.push('------------------------------------');
-  if (priceLines.length) {
-    for (var r = 0; r < priceLines.length; r++) lines.push(priceLines[r]);
-  } else {
-    lines.push('(no items)');
+  lines.push('Order Total___₹' + priced.total);
+  if (submissionId) {
+    lines.push('');
+    lines.push('Submission Id___' + submissionId);
   }
-  lines.push('');
-  lines.push('Order total:  ₹' + priced.total);
-  lines.push('Customer saved: ₹' + priced.saved);
-  lines.push('');
-  lines.push('— Auto mail from Vish enquiry form —');
 
   MailApp.sendEmail({
     to: to,
@@ -389,10 +476,72 @@ function sendEnquiryEmail(contact, priced, submissionId, submittedAt) {
   });
 }
 
-function padRight(str, len) {
-  str = String(str);
-  while (str.length < len) str += ' ';
-  return str;
+/** Group cart lines by Products.category (fallback Other). */
+function buildCategorizedLists_(cart) {
+  var map = loadProductPriceMap();
+  var ids = Object.keys(cart || {}).sort(function (a, b) {
+    return Number(a) - Number(b) || String(a).localeCompare(String(b));
+  });
+
+  var byCat = {};
+  var catOrder = [];
+  var productCount = 0;
+  var qtyTotal = 0;
+  var priceLines = [];
+
+  for (var i = 0; i < ids.length; i++) {
+    var item = cart[ids[i]] || {};
+    var name = String(item.name || '').trim() || 'Item';
+    var qty = Number(item.quantity) || 1;
+    var price = Number(item.price) || 0;
+    var live = map[String(ids[i])] || map[String(item.id)] || null;
+    var category = (live && live.category) || item.category || 'Other';
+    category = String(category).trim() || 'Other';
+
+    if (!byCat[category]) {
+      byCat[category] = [];
+      catOrder.push(category);
+    }
+    byCat[category].push(name + '___' + qty);
+    priceLines.push(name + '___' + qty + '___@₹' + price + '___=₹' + price * qty);
+    productCount += 1;
+    qtyTotal += qty;
+  }
+
+  var packBlocks = catOrder.map(function (cat) {
+    return { category: cat, lines: byCat[cat] };
+  });
+
+  return {
+    packBlocks: packBlocks,
+    priceLines: priceLines,
+    productCount: productCount,
+    qtyTotal: qtyTotal
+  };
+}
+
+/**
+ * When Payment Status is set to Paid, auto-fill Paid Amount with Total Price
+ * (user can still edit Paid Amount afterwards).
+ */
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    var sheet = e.range.getSheet();
+    if (sheet.getName() !== ENQUIRIES_SHEET) return;
+    if (e.range.getRow() < 2) return;
+    if (e.range.getColumn() !== 14) return; // Payment Status
+
+    var value = String(e.value || '').trim();
+    if (value !== 'Paid') return;
+
+    var row = e.range.getRow();
+    var totalPrice = sheet.getRange(row, 11).getValue(); // Total Price
+    var paidCell = sheet.getRange(row, 15); // Paid Amount
+    paidCell.setValue(totalPrice);
+  } catch (err) {
+    Logger.log('onEdit paid fill failed: ' + err);
+  }
 }
 
 function ingestKeyOk(data) {
@@ -440,7 +589,7 @@ function validateEnquiry(data) {
   var city = String(data.city || '').trim().slice(0, 80);
   var state = String(data.state || '').trim().slice(0, 80);
   var officeName = String(data.officeName || '').trim().slice(0, 120);
-  var address = String(data.address || 'Nearest parcel / courier office').trim().slice(0, 200);
+  var address = String(data.address || '').trim().slice(0, 200);
 
   if (!name || name.length < 2) return { error: 'Invalid name' };
   if (!/^[6-9]\d{9}$/.test(phone)) return { error: 'Invalid phone' };
@@ -475,6 +624,7 @@ function loadProductPriceMap() {
   var nameIdx = headers.indexOf('name');
   var unitIdx = headers.indexOf('unit');
   var activeIdx = headers.indexOf('active');
+  var catIdx = headers.indexOf('category');
   if (idIdx < 0 || priceIdx < 0) return map;
 
   values.slice(1).forEach(function (row) {
@@ -485,6 +635,7 @@ function loadProductPriceMap() {
       id: row[idIdx],
       name: nameIdx >= 0 ? String(row[nameIdx] || '') : '',
       unit: unitIdx >= 0 ? String(row[unitIdx] || '') : '',
+      category: catIdx >= 0 ? String(row[catIdx] || 'Other') : 'Other',
       price: Number(row[priceIdx]) || 0,
       originalPrice: mrpIdx >= 0 ? Number(row[mrpIdx]) || 0 : Number(row[priceIdx]) || 0
     };
@@ -507,17 +658,17 @@ function priceCartFromCatalog(cart) {
     var item = cart[keys[i]] || {};
     var qty = Math.min(999, Math.max(1, parseInt(item.quantity, 10) || 1));
     var live = useCatalog ? map[id] : null;
-    // Prefer sheet prices; if id missing from Products sheet, fall back to client line
-    // so local-first catalogue still works before Products sync.
     var price = live ? live.price : Number(item.price) || 0;
     var mrp = live ? live.originalPrice || price : Number(item.originalPrice) || price;
     var name = live ? live.name : String(item.name || '').slice(0, 120);
     var unit = live ? live.unit : String(item.unit || '').slice(0, 40);
+    var category = live ? live.category : String(item.category || 'Other');
 
     out[id] = {
       id: live ? live.id : item.id,
       name: name,
       unit: unit,
+      category: category || 'Other',
       price: price,
       originalPrice: mrp,
       quantity: qty

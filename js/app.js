@@ -245,8 +245,8 @@ window.VishApp = (function () {
     el.dataset.id = item.id;
 
     const badges =
-      (item.limited ? '<span class="badge-limited">Limited</span>' : '') +
-      (off > 0 && !unavailable ? '<span class="badge-off">' + off + '% off</span>' : '');
+      (off > 0 && !unavailable ? '<span class="badge-off">' + off + '% off</span>' : '') +
+      (item.limited ? '<span class="badge-limited">Limited</span>' : '');
 
     el.innerHTML =
       '<button type="button" class="thumb-btn" data-lightbox="1" aria-label="View larger image of ' +
@@ -259,19 +259,18 @@ window.VishApp = (function () {
       '" loading="lazy" decoding="async" width="72" height="72">' +
       '</button>' +
       '<div class="product-main">' +
-      '<div class="product-top">' +
       '<h3 class="product-name">' +
       escapeHtml(item.name) +
       '</h3>' +
-      badges +
-      '</div>' +
       '<div class="product-meta">' +
       '<span class="product-unit">' +
       escapeHtml(item.unit) +
       '</span>' +
+      badges +
       '</div>' +
       '</div>' +
       '<div class="product-side">' +
+      '<div class="product-actions"></div>' +
       '<div class="price-stack">' +
       (item.originalPrice > item.price
         ? '<span class="mrp" aria-label="MRP">' + money(item.originalPrice) + '</span>'
@@ -280,7 +279,6 @@ window.VishApp = (function () {
       money(item.price) +
       '</div>' +
       '</div>' +
-      '<div class="product-actions"></div>' +
       '</div>';
 
     const thumbBtn = el.querySelector('[data-lightbox]');
