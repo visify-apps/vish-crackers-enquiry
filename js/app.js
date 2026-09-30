@@ -940,24 +940,31 @@ window.VishApp = (function () {
   }
 
   /**
-   * Google Apps Script /exec redirects; a normal CORS fetch with redirect:follow
-   * often turns POST into GET and drops the body — Sheet never updates, but the
-   * UI still continues. mode:'no-cors' is the reliable path for GAS web apps.
+   * Apps Script /exec returns 302 then a JSON body (GET on redirect).
+   * Use cors + redirect:follow + text/plain so we can READ status:ok|error.
+   * Never treat opaque/no-cors as success — that opened WhatsApp with no Sheet row.
    */
   async function postEnquiry(payload) {
     const url = (cfg().appsScriptUrl || '').trim();
     if (!url) return { ok: false, reason: 'missing-url' };
 
-    const body = JSON.stringify(payload);
-    const headers = { 'Content-Type': 'text/plain;charset=utf-8' };
-
     try {
-      await fetchWithTimeout(
+      const res = await fetchWithTimeout(
         url,
-        { method: 'POST', mode: 'no-cors', headers: headers, body: body },
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
+        },
         45000
       );
-      return { ok: null, reason: 'opaque' };
+      const data = await res.json().catch(() => null);
+      if (data && data.status === 'ok') return { ok: true, data: data };
+      if (data && data.status === 'error') {
+        return { ok: false, reason: data.message || 'rejected', data: data };
+      }
+      return { ok: false, reason: 'bad-response' };
     } catch (err) {
       console.warn('Enquiry POST failed', err);
       return { ok: false, reason: 'network' };
@@ -988,7 +995,6 @@ window.VishApp = (function () {
       return;
     }
 
-    // Clear honeypot in case a password manager autofilled it (would silent-drop on server)
     const hp = $('customer-website');
     if (hp) hp.value = '';
 
@@ -1030,16 +1036,20 @@ window.VishApp = (function () {
 
     const result = await postEnquiry(payload);
 
-    // Any failure — do NOT open PDF/WhatsApp or clear the cart
-    if (result.ok === false) {
+    // Require confirmed server save — never open PDF/WA on hope
+    if (result.ok !== true) {
       resetConfirmButtons(withPdfBtn, waOnlyBtn, backBtn);
       hideEnquiryConfirm();
-      if ($('form-msg')) {
-        $('form-msg').textContent =
-          result.reason === 'missing-url'
-            ? 'Enquiry service is not configured. Please contact us on WhatsApp directly.'
-            : 'Could not save your enquiry. Check your connection and try Submit again — your list is still here.';
+      let errText = 'Could not save your enquiry. Please try Submit again — your list is still here.';
+      if (result.reason === 'missing-url') {
+        errText = 'Enquiry service is not configured. Please contact us on WhatsApp directly.';
+      } else if (result.reason && result.reason !== 'network' && result.reason !== 'bad-response') {
+        errText = result.reason + ' — your list is still here. Try again in a minute or use another number.';
+      } else if (result.reason === 'network') {
+        errText =
+          'Network error while saving. Check connection and try Submit again — your list is still here.';
       }
+      if ($('form-msg')) $('form-msg').textContent = errText;
       return;
     }
 
@@ -1080,7 +1090,7 @@ window.VishApp = (function () {
     renderPacks();
     hideEnquiryConfirm();
     closeSheet();
-    showSuccess(true, wantPdf, result.ok === null);
+    showSuccess(true, wantPdf, false);
     if ($('enquiry-form')) $('enquiry-form').reset();
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();

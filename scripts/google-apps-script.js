@@ -20,7 +20,7 @@ var PRODUCTS_SHEET = 'Products';
 var ENQUIRIES_SHEET = 'Enquiries';
 var MAX_CART_ITEMS = 120;
 var MAX_BODY_CHARS = 80000;
-var RATE_LIMIT_PER_PHONE = 5;
+var RATE_LIMIT_PER_PHONE = 25;
 var RATE_WINDOW_SECONDS = 3600;
 var SUBMISSION_TTL_SECONDS = 86400;
 /** Fallback if Script property NOTIFY_EMAIL is not set */
@@ -115,7 +115,7 @@ function doPost(e) {
         return jsonOutput({ status: 'ok', duplicate: true });
       }
 
-      if (!rateLimitOk(contact.phone)) {
+      if (!rateLimitAllow(contact.phone)) {
         return jsonOutput({ status: 'error', message: 'Too many requests. Try again later.' });
       }
 
@@ -147,6 +147,7 @@ function doPost(e) {
       ]);
 
       if (submissionId) markSubmission(submissionId);
+      rateLimitBump(contact.phone);
       SpreadsheetApp.flush();
 
       // Queue mail so HTTP response returns fast (browser won't time out / false-fail).
@@ -409,14 +410,27 @@ function markSubmission(submissionId) {
   CacheService.getScriptCache().put('sub_' + submissionId, '1', SUBMISSION_TTL_SECONDS);
 }
 
-function rateLimitOk(phone) {
+function rateLimitAllow(phone) {
   var cache = CacheService.getScriptCache();
   var key = 'enq_' + phone;
   var raw = cache.get(key);
   var count = raw ? Number(raw) : 0;
-  if (count >= RATE_LIMIT_PER_PHONE) return false;
+  return count < RATE_LIMIT_PER_PHONE;
+}
+
+function rateLimitBump(phone) {
+  var cache = CacheService.getScriptCache();
+  var key = 'enq_' + phone;
+  var raw = cache.get(key);
+  var count = raw ? Number(raw) : 0;
   cache.put(key, String(count + 1), RATE_WINDOW_SECONDS);
-  return true;
+}
+
+/** Clears rate limit for a phone — run once from the editor if testing blocked you. */
+function clearRateLimitForPhone() {
+  var phone = '9994376845'; // change if needed
+  CacheService.getScriptCache().remove('enq_' + phone);
+  Logger.log('Cleared rate limit for ' + phone);
 }
 
 function validateEnquiry(data) {
