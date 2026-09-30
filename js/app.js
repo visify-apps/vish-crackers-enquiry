@@ -933,35 +933,46 @@ window.VishApp = (function () {
     showEnquiryConfirm();
   }
 
+  function fetchWithTimeout(url, options, ms) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+  }
+
   async function postEnquiry(payload) {
     const url = (cfg().appsScriptUrl || '').trim();
     if (!url) return { ok: false, reason: 'missing-url' };
 
-    // Prefer a readable response when CORS allows it
+    const body = JSON.stringify(payload);
+    const headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+
+    // 1) Prefer readable response (when Apps Script CORS allows it)
     try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
-        redirect: 'follow'
-      });
+      const res = await fetchWithTimeout(
+        url,
+        { method: 'POST', headers: headers, body: body, redirect: 'follow' },
+        25000
+      );
       if (res.type !== 'opaque' && typeof res.json === 'function') {
         const data = await res.json().catch(() => null);
         if (data && data.status === 'ok') return { ok: true, data: data };
-        if (data && data.status === 'error') return { ok: false, data: data, reason: data.message };
+        if (data && data.status === 'error') {
+          return { ok: false, data: data, reason: data.message || 'rejected' };
+        }
       }
+      // Opaque / unreadable but HTTP completed — treat as saved (do not re-POST)
+      return { ok: null, reason: 'opaque' };
     } catch (err) {
-      console.warn('Readable enquiry POST failed, trying opaque', err);
+      console.warn('Readable enquiry POST failed, trying opaque once', err);
     }
 
-    // Fallback: best-effort opaque POST (cannot confirm)
+    // 2) One opaque retry only if the readable attempt never completed
     try {
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
+      await fetchWithTimeout(
+        url,
+        { method: 'POST', mode: 'no-cors', headers: headers, body: body },
+        25000
+      );
       return { ok: null, reason: 'opaque' };
     } catch (err) {
       console.warn('Opaque enquiry POST failed', err);
@@ -987,8 +998,11 @@ window.VishApp = (function () {
     [withPdfBtn, waOnlyBtn, backBtn].forEach((b) => {
       if (b) b.disabled = true;
     });
-    if (withPdfBtn) withPdfBtn.textContent = 'Submitting…';
-    if (waOnlyBtn) waOnlyBtn.textContent = 'Submitting…';
+    if (withPdfBtn) withPdfBtn.textContent = 'Saving… please wait';
+    if (waOnlyBtn) waOnlyBtn.textContent = 'Saving… please wait';
+    if ($('form-msg')) {
+      $('form-msg').textContent = 'Saving your enquiry… please keep this page open for a few seconds.';
+    }
 
     const totals = liveCartTotals(cart);
     const submissionId = newSubmissionId();
@@ -1030,7 +1044,7 @@ window.VishApp = (function () {
       hideEnquiryConfirm();
       if ($('form-msg')) {
         $('form-msg').textContent =
-          'Could not reach the server. Check your connection and try Submit again — your list is still here.';
+          'Connection unclear. Check your email / sheet first — if the enquiry is already there, you are done. Otherwise try Submit again (your list is still here).';
       }
       return;
     }

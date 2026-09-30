@@ -8,7 +8,12 @@
  * 4. Optional: Script property NOTIFY_EMAIL (defaults to visifyapps@gmail.com).
  * 5. Never returns Enquiries rows.
  *
- * After pasting: Run setupSheet() once, set ENQUIRY_INGEST_KEY, Redeploy web app.
+ * After pasting:
+ * 1. Run setupSheet() once (if needed).
+ * 2. Set ENQUIRY_INGEST_KEY.
+ * 3. Run testNotifyEmail() once and click Allow (Gmail).
+ * 4. Run flushEnquiryMailQueue() once and Allow if asked (triggers).
+ * 5. Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy.
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -142,10 +147,17 @@ function doPost(e) {
       if (submissionId) markSubmission(submissionId);
       SpreadsheetApp.flush();
 
+      // Queue mail so HTTP response returns fast (browser won't time out / false-fail).
+      // Email is sent ~1s later via flushEnquiryMailQueue.
       try {
-        sendEnquiryEmail(contact, priced, submissionId, data.submittedAt);
+        queueEnquiryEmail(contact, priced, submissionId, data.submittedAt);
       } catch (mailErr) {
-        // Sheet save already succeeded — do not fail the enquiry if mail fails
+        Logger.log('Enquiry mail queue failed: ' + mailErr);
+        try {
+          sendEnquiryEmail(contact, priced, submissionId, data.submittedAt);
+        } catch (inlineErr) {
+          Logger.log('Inline enquiry mail failed: ' + inlineErr);
+        }
       }
 
       return jsonOutput({
@@ -164,6 +176,126 @@ function doPost(e) {
 function notifyEmail() {
   var fromProp = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL');
   return String(fromProp || DEFAULT_NOTIFY_EMAIL).trim();
+}
+
+/**
+ * Save mail payload and schedule a near-immediate flush.
+ * Keeps doPost fast so the website does not hang or show a false network error.
+ */
+function queueEnquiryEmail(contact, priced, submissionId, submittedAt) {
+  var item = {
+    contact: contact,
+    priced: {
+      cart: priced.cart,
+      total: priced.total,
+      saved: priced.saved
+    },
+    submissionId: submissionId || '',
+    submittedAt: submittedAt || new Date().toISOString()
+  };
+
+  var props = PropertiesService.getScriptProperties();
+  var queue = [];
+  try {
+    queue = JSON.parse(props.getProperty('MAIL_QUEUE') || '[]');
+  } catch (e) {
+    queue = [];
+  }
+  if (!Array.isArray(queue)) queue = [];
+  queue.push(item);
+  if (queue.length > 40) queue = queue.slice(-40);
+  props.setProperty('MAIL_QUEUE', JSON.stringify(queue));
+  scheduleMailFlush();
+}
+
+function scheduleMailFlush() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'flushEnquiryMailQueue') return;
+  }
+  ScriptApp.newTrigger('flushEnquiryMailQueue').timeBased().after(1000).create();
+}
+
+/** Runs ~1 second after an enquiry — sends any queued owner emails. */
+function flushEnquiryMailQueue() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return;
+
+  var leftover = [];
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var queue = [];
+    try {
+      queue = JSON.parse(props.getProperty('MAIL_QUEUE') || '[]');
+    } catch (e) {
+      queue = [];
+    }
+    props.setProperty('MAIL_QUEUE', '[]');
+
+    for (var i = 0; i < queue.length; i++) {
+      var item = queue[i];
+      if (!item || !item.contact) continue;
+      try {
+        sendEnquiryEmail(item.contact, item.priced || {}, item.submissionId, item.submittedAt);
+      } catch (mailErr) {
+        Logger.log('Queued enquiry mail failed: ' + mailErr);
+        leftover.push(item);
+      }
+    }
+
+    if (leftover.length) {
+      var again = [];
+      try {
+        again = JSON.parse(props.getProperty('MAIL_QUEUE') || '[]');
+      } catch (e2) {
+        again = [];
+      }
+      props.setProperty('MAIL_QUEUE', JSON.stringify(again.concat(leftover).slice(-40)));
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  // Remove one-shot triggers for this handler
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var t = 0; t < triggers.length; t++) {
+    if (triggers[t].getHandlerFunction() === 'flushEnquiryMailQueue') {
+      try {
+        ScriptApp.deleteTrigger(triggers[t]);
+      } catch (delErr) {}
+    }
+  }
+
+  // If new items arrived during flush, schedule another run
+  try {
+    var pending = JSON.parse(
+      PropertiesService.getScriptProperties().getProperty('MAIL_QUEUE') || '[]'
+    );
+    if (pending && pending.length) scheduleMailFlush();
+  } catch (e3) {}
+}
+
+/**
+ * Run this ONCE from the Apps Script editor (▶ Run).
+ * Click Allow when Google asks for Gmail permission.
+ * You should get a test mail at visifyapps@gmail.com within ~1 minute.
+ */
+function testNotifyEmail() {
+  var to = notifyEmail();
+  MailApp.sendEmail({
+    to: to,
+    subject: 'Vish enquiry — TEST mail OK',
+    body:
+      'This is a test from Vish Apps Script.\n\n' +
+      'If you received this, email alerts are working.\n' +
+      'Next: Deploy → Manage deployments → New version → Deploy,\n' +
+      'then place a real enquiry from the website.\n\n' +
+      'Sent to: ' +
+      to +
+      '\nTime: ' +
+      new Date().toISOString()
+  });
+  Logger.log('Test mail sent to ' + to);
 }
 
 /**
