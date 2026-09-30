@@ -88,7 +88,9 @@ function doPost(e) {
 
     var data = JSON.parse(e.postData.contents);
 
-    if (data.website || data.company || data.url) {
+    // Honeypot — only reject clear bot fills (URL-like). Autofill of "website" must not drop real orders.
+    var honeypot = String(data.website || data.company || data.url || '').trim();
+    if (honeypot && /https?:\/\//i.test(honeypot)) {
       return jsonOutput({ status: 'ok' });
     }
 

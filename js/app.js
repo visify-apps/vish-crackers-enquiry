@@ -939,6 +939,11 @@ window.VishApp = (function () {
     return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
   }
 
+  /**
+   * Google Apps Script /exec redirects; a normal CORS fetch with redirect:follow
+   * often turns POST into GET and drops the body — Sheet never updates, but the
+   * UI still continues. mode:'no-cors' is the reliable path for GAS web apps.
+   */
   async function postEnquiry(payload) {
     const url = (cfg().appsScriptUrl || '').trim();
     if (!url) return { ok: false, reason: 'missing-url' };
@@ -946,38 +951,30 @@ window.VishApp = (function () {
     const body = JSON.stringify(payload);
     const headers = { 'Content-Type': 'text/plain;charset=utf-8' };
 
-    // 1) Prefer readable response (when Apps Script CORS allows it)
-    try {
-      const res = await fetchWithTimeout(
-        url,
-        { method: 'POST', headers: headers, body: body, redirect: 'follow' },
-        25000
-      );
-      if (res.type !== 'opaque' && typeof res.json === 'function') {
-        const data = await res.json().catch(() => null);
-        if (data && data.status === 'ok') return { ok: true, data: data };
-        if (data && data.status === 'error') {
-          return { ok: false, data: data, reason: data.message || 'rejected' };
-        }
-      }
-      // Opaque / unreadable but HTTP completed — treat as saved (do not re-POST)
-      return { ok: null, reason: 'opaque' };
-    } catch (err) {
-      console.warn('Readable enquiry POST failed, trying opaque once', err);
-    }
-
-    // 2) One opaque retry only if the readable attempt never completed
     try {
       await fetchWithTimeout(
         url,
         { method: 'POST', mode: 'no-cors', headers: headers, body: body },
-        25000
+        45000
       );
       return { ok: null, reason: 'opaque' };
     } catch (err) {
-      console.warn('Opaque enquiry POST failed', err);
+      console.warn('Enquiry POST failed', err);
       return { ok: false, reason: 'network' };
     }
+  }
+
+  function resetConfirmButtons(withPdfBtn, waOnlyBtn, backBtn) {
+    submitting = false;
+    if (withPdfBtn) {
+      withPdfBtn.disabled = false;
+      withPdfBtn.textContent = 'Yes, download PDF';
+    }
+    if (waOnlyBtn) {
+      waOnlyBtn.disabled = false;
+      waOnlyBtn.textContent = 'No, continue';
+    }
+    if (backBtn) backBtn.disabled = false;
   }
 
   async function finishEnquiry(wantPdf) {
@@ -990,6 +987,10 @@ window.VishApp = (function () {
       hideEnquiryConfirm();
       return;
     }
+
+    // Clear honeypot in case a password manager autofilled it (would silent-drop on server)
+    const hp = $('customer-website');
+    if (hp) hp.value = '';
 
     submitting = true;
     const withPdfBtn = $('confirm-with-pdf');
@@ -1022,29 +1023,22 @@ window.VishApp = (function () {
       saved: totals.saved,
       submissionId: submissionId,
       submittedAt: new Date().toISOString(),
-      website: ($('customer-website') && $('customer-website').value) || '',
+      website: '',
       ingestKey: cfg().enquiryIngestKey || '',
       userAgent: navigator.userAgent || ''
     };
 
     const result = await postEnquiry(payload);
 
-    // Hard network failure before any opaque send — keep cart, show error
-    if (result.ok === false && result.reason === 'network') {
-      submitting = false;
-      if (withPdfBtn) {
-        withPdfBtn.disabled = false;
-        withPdfBtn.textContent = 'Yes, download PDF';
-      }
-      if (waOnlyBtn) {
-        waOnlyBtn.disabled = false;
-        waOnlyBtn.textContent = 'No, continue';
-      }
-      if (backBtn) backBtn.disabled = false;
+    // Any failure — do NOT open PDF/WhatsApp or clear the cart
+    if (result.ok === false) {
+      resetConfirmButtons(withPdfBtn, waOnlyBtn, backBtn);
       hideEnquiryConfirm();
       if ($('form-msg')) {
         $('form-msg').textContent =
-          'Connection unclear. Check your email / sheet first — if the enquiry is already there, you are done. Otherwise try Submit again (your list is still here).';
+          result.reason === 'missing-url'
+            ? 'Enquiry service is not configured. Please contact us on WhatsApp directly.'
+            : 'Could not save your enquiry. Check your connection and try Submit again — your list is still here.';
       }
       return;
     }
@@ -1086,21 +1080,12 @@ window.VishApp = (function () {
     renderPacks();
     hideEnquiryConfirm();
     closeSheet();
-    showSuccess(result.ok !== false, wantPdf, result.ok === null);
+    showSuccess(true, wantPdf, result.ok === null);
     if ($('enquiry-form')) $('enquiry-form').reset();
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();
     setPinMeta('');
-    submitting = false;
-    if (withPdfBtn) {
-      withPdfBtn.disabled = false;
-      withPdfBtn.textContent = 'Yes, download PDF';
-    }
-    if (waOnlyBtn) {
-      waOnlyBtn.disabled = false;
-      waOnlyBtn.textContent = 'No, continue';
-    }
-    if (backBtn) backBtn.disabled = false;
+    resetConfirmButtons(withPdfBtn, waOnlyBtn, backBtn);
   }
 
   function showSuccess(logged, wantPdf, opaque) {
