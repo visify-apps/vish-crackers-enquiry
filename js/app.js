@@ -630,10 +630,18 @@ window.VishApp = (function () {
       bySection.get(key).push(pack);
     });
 
-    bySection.forEach((sectionPacks, sectionName) => {
-      const isKids = /kids|colour|color|peace/i.test(sectionName);
+    const sectionOrder = Array.from(bySection.keys()).sort((a, b) => {
+      const aKids = /kids|soft colour|no bombs/i.test(a) ? 0 : 1;
+      const bKids = /kids|soft colour|no bombs/i.test(b) ? 0 : 1;
+      return aKids - bKids;
+    });
+
+    sectionOrder.forEach((sectionName) => {
+      const sectionPacks = bySection.get(sectionName) || [];
+      const isKids = /kids|soft colour|no bombs/i.test(sectionName);
       const block = document.createElement('section');
       block.className = 'packs-section' + (isKids ? ' packs-section-kids' : ' packs-section-night');
+      block.id = isKids ? 'kids-combos' : 'diwali-combos';
       const heading = document.createElement('div');
       heading.className = 'packs-section-head';
       heading.innerHTML =
@@ -643,8 +651,8 @@ window.VishApp = (function () {
         '<p>' +
         escapeHtml(
           isKids
-            ? 'Soft colour & kids showcase — no bombs, no heavy sound. Parents can light these without fear.'
-            : 'One tap = full Diwali mix across firework types. Budget only changes how big each type is.'
+            ? 'Soft colour & kids items only — no bombs, no heavy sound. You can change the list after adding.'
+            : 'Combos start at our ₹2,000 soft minimum and go up to ~₹20,000. Add one, then customise freely.'
         ) +
         '</p>';
       block.appendChild(heading);
@@ -690,6 +698,7 @@ window.VishApp = (function () {
             )
             .join('') +
           '</ul>' +
+          '<p class="pack-customize-hint">After adding, you can change quantities or remove items from Enquiry.</p>' +
           '<div class="pack-foot">' +
           '<div class="pack-pricing">' +
           '<strong class="price">' +

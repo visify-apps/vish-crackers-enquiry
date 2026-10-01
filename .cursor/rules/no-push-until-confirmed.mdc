@@ -1,0 +1,11 @@
+---
+description: Never push to remote until the user confirms after local testing
+alwaysApply: true
+---
+
+# Git push — wait for confirmation
+
+- Do **not** push to origin (or any remote) unless the user explicitly asks to push after they have tested locally.
+- Commits are allowed when the user asks to commit; push is a separate step.
+- If the user says “commit and push”, still treat push as requiring clear go-ahead after local test — ask first if they have not confirmed the change is good.
+- Never run `git push` proactively after finishing a feature.

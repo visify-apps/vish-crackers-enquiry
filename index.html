@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=ux5" />
+  <link rel="stylesheet" href="css/styles.css?v=combo5" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -39,7 +39,7 @@
         </div>
       </div>
       <nav class="header-actions" aria-label="Quick actions">
-        <a class="nav-link" href="combos.html">Combos</a>
+        <a class="nav-link nav-link-kits" href="combos.html">Combos</a>
         <button type="button" class="nav-cta cart-badge-wrap is-idle" id="cart-badge-btn" aria-label="Open enquiry list">
           <span data-icon="cart"></span>
           <span id="enquiry-btn-label">Enquiry</span>
@@ -49,56 +49,54 @@
     </div>
   </header>
 
-  <section class="hero shell">
-    <div class="hero-art" aria-hidden="true">
-      <span class="spark s1"></span>
-      <span class="spark s2"></span>
-      <span class="spark s3"></span>
-      <span class="spark s4"></span>
-      <span class="spark s5"></span>
-    </div>
-    <p class="legal-chip">Enquiry only · Online sale not permitted</p>
-    <p class="eyebrow">Sivakasi dispatch window</p>
-    <h2 class="hero-title">Light up your list from Sivakasi.</h2>
-    <p class="hero-sub">Pick crackers, send one enquiry, confirm on WhatsApp within 24 hours.</p>
-    <div class="trust-row">
-      <span class="trust-pill"><span data-icon="spark"></span> Direct Sivakasi</span>
-      <span class="trust-pill"><span data-icon="truck"></span> Pan India delivery</span>
-      <span class="trust-pill"><span data-icon="clock"></span> 24hr WhatsApp confirm</span>
-    </div>
-    <div class="hero-actions featured-actions">
+  <section class="hero shell hero-combined" id="urgency-banner" aria-live="polite">
+    <p class="legal-chip">Enquiry only ·  Min ₹2,000</p>
+    <p class="eyebrow">Fastest way to enquire</p>
+    <h2 class="hero-title">Start with a ready combo.</h2>
+    <p class="hero-sub">One tap adds a full cart from ₹2,000–₹20,000. Change quantities anytime — then confirm on WhatsApp.</p>
+
+    <div class="hero-combo-panel">
       <a class="btn-hero featured" href="combos.html">
         <span data-icon="package"></span>
         <span class="featured-copy">
-          <strong>Easy combos</strong>
-          <small>Ready sets · add in one tap</small>
+          <strong>Open ready combos</strong>
+          <small>Kids · Family · Society · Mega</small>
         </span>
       </a>
-      <button type="button" class="btn-hero featured" id="download-pricelist">
-        <span data-icon="file"></span>
-        <span class="featured-copy">
-          <strong>Price list PDF</strong>
-          <small>View rates · download if needed</small>
-        </span>
-      </button>
-    </div>
-    <a class="hero-browse-link" href="#catalog"><span data-icon="search"></span> Or browse all crackers</a>
-  </section>
+      <div class="hero-combo-jumps" role="group" aria-label="Combo sections">
+        <a class="combo-jump" href="combos.html#kids-combos">
+          <span class="combo-jump-label">Kids & soft</span>
+          <span class="combo-jump-meta">No bombs</span>
+        </a>
+        <a class="combo-jump" href="combos.html#diwali-combos">
+          <span class="combo-jump-label">Diwali combos</span>
+          <span class="combo-jump-meta">₹2,000–₹20,000</span>
+        </a>
+      </div>
+      <p class="hero-combo-note">Customisable after adding a combo</p>
 
-  <section class="urgency-banner shell" id="urgency-banner" aria-live="polite">
-    <div class="urgency-inner">
-      <div class="urgency-copy">
-        <p class="urgency-kicker" id="urgency-kicker">Dispatch clock · 25 Oct</p>
-        <h3 id="urgency-title">Earlier lists = lower delivery charges</h3>
-        <p id="urgency-text">Near Diwali, Sivakasi parcel vehicles get scarce and transport rates climb. Lock your enquiry early for a smoother, more affordable dispatch.</p>
-      </div>
-      <div class="urgency-timer" id="urgency-timer">
-        <div class="timer-block"><span id="cd-days">00</span><small>days left</small></div>
-        <div class="timer-block"><span id="cd-hours">00</span><small>hours</small></div>
-        <div class="timer-block"><span id="cd-mins">00</span><small>mins</small></div>
-      </div>
     </div>
-    <div class="urgency-bar" aria-hidden="true"><span id="urgency-progress"></span></div>
+
+    <div class="hero-more-links">
+      <a href="#catalog"><span data-icon="search"></span> Browse all crackers</a>
+      <button type="button" id="download-pricelist"><span data-icon="file"></span> Price list PDF</button>
+    </div>
+
+    <div class="hero-urgency">
+      <div class="urgency-inner">
+        <div class="urgency-copy">
+          <p class="urgency-kicker" id="urgency-kicker">Dispatch clock · 25 Oct</p>
+          <h3 id="urgency-title">Earlier lists = lower delivery charges</h3>
+          <p id="urgency-text">Near Diwali, Sivakasi parcel vehicles get scarce and transport rates climb. Lock your enquiry early for a smoother, more affordable dispatch.</p>
+        </div>
+        <div class="urgency-timer" id="urgency-timer">
+          <div class="timer-block"><span id="cd-days">00</span><small>days left</small></div>
+          <div class="timer-block"><span id="cd-hours">00</span><small>hours</small></div>
+          <div class="timer-block"><span id="cd-mins">00</span><small>mins</small></div>
+        </div>
+      </div>
+      <div class="urgency-bar" aria-hidden="true"><span id="urgency-progress"></span></div>
+    </div>
   </section>
 
   <div id="success" class="success shell" hidden>
@@ -164,7 +162,7 @@
         </article>
         <article class="fact">
           <strong><span data-icon="file"></span> Full price list</strong>
-          <p>Need rates offline? Use <button type="button" class="link-action" id="download-pricelist-footer">Price list PDF</button> or jump to <a class="link-action" href="combos.html">Easy combos</a>.</p>
+          <p>Need rates offline? Use <button type="button" class="link-action" id="download-pricelist-footer">Price list PDF</button> or jump to <a class="link-action" href="combos.html">ready combos</a>.</p>
         </article>
       </div>
     </div>
@@ -322,10 +320,10 @@
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
   <script src="js/config.js?v=feat3"></script>
   <script src="data/products.js?v=feat3"></script>
-  <script src="data/packs.js?v=feat3"></script>
+  <script src="data/packs.js?v=combo3"></script>
   <script src="js/icons.js"></script>
   <script src="js/cart.js?v=feat3"></script>
   <script src="js/pdf.js?v=feat3"></script>
-  <script src="js/app.js?v=feat3" defer></script>
+  <script src="js/app.js?v=combo4" defer></script>
 </body>
 </html>
