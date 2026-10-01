@@ -1778,6 +1778,29 @@ a {
 
 .packs-list {
   display: grid;
+  gap: 28px;
+}
+
+.packs-section-head {
+  margin-bottom: 12px;
+}
+
+.packs-section-head h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--ink);
+}
+
+.packs-section-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  max-width: 42rem;
+}
+
+.packs-section-grid {
+  display: grid;
   gap: 10px;
 }
 
@@ -1787,6 +1810,16 @@ a {
   border-radius: 18px;
   padding: 14px;
   box-shadow: var(--shadow-sm);
+}
+
+.pack-card-kids {
+  background: linear-gradient(165deg, #1f1a28 0%, #1a1218 55%, #1c1410 100%);
+  border-color: rgba(240, 180, 120, 0.35);
+}
+
+.pack-card-kids .pack-badge {
+  color: #ffd6a8;
+  border-color: rgba(240, 180, 120, 0.4);
 }
 
 .pack-badge {

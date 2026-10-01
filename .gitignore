@@ -16,3 +16,7 @@ assets/*.webp
 !assets/optimized/
 _v1_archive/
 css/styles.light-backup.css
+
+.venv-pdf/
+scripts/sri-price-extract.txt
+scripts/profit-preview.json

@@ -623,51 +623,84 @@ window.VishApp = (function () {
       return;
     }
 
+    const bySection = new Map();
     packs.forEach((pack) => {
-      const { total, mrp, saved, lines } = packTotals(pack);
-      const card = document.createElement('article');
-      card.className = 'pack-card';
-      card.innerHTML =
-        '<div class="pack-top">' +
-        '<span class="pack-badge">' +
-        escapeHtml(pack.badge || 'Combo') +
-        '</span>' +
-        '<h3>' +
-        escapeHtml(pack.name) +
-        '</h3>' +
+      const key = pack.section || 'Combos';
+      if (!bySection.has(key)) bySection.set(key, []);
+      bySection.get(key).push(pack);
+    });
+
+    bySection.forEach((sectionPacks, sectionName) => {
+      const block = document.createElement('section');
+      block.className = 'packs-section';
+      const heading = document.createElement('div');
+      heading.className = 'packs-section-head';
+      const isKids = /kids|colour|color|peace/i.test(sectionName);
+      heading.innerHTML =
+        '<h2>' +
+        escapeHtml(sectionName) +
+        '</h2>' +
         '<p>' +
-        escapeHtml(pack.tagline || '') +
-        '</p>' +
-        '</div>' +
-        '<ul class="pack-items">' +
-        lines
-          .map(
-            (l) =>
-              '<li><span>' +
-              escapeHtml(l.product.name) +
-              '</span><span>×' +
-              l.qty +
-              '</span></li>'
-          )
-          .join('') +
-        '</ul>' +
-        '<div class="pack-foot">' +
-        '<div class="pack-pricing">' +
-        '<strong class="price">' +
-        money(total) +
-        '</strong>' +
-        (saved > 0
-          ? '<span class="mrp">' +
-            money(mrp) +
-            '</span><span class="pack-save">Save ' +
-            money(saved) +
-            '</span>'
-          : '') +
-        '</div>' +
-        '<button type="button" class="btn-add-pack">Add combo</button>' +
-        '</div>';
-      card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
-      root.appendChild(card);
+        escapeHtml(
+          isKids
+            ? 'Soft colour & kids showcase — no bombs, no heavy sound. Parents can light these without fear.'
+            : 'One tap = full Diwali mix across firework types. Budget only changes how big each type is.'
+        ) +
+        '</p>';
+      block.appendChild(heading);
+
+      const grid = document.createElement('div');
+      grid.className = 'packs-section-grid';
+
+      sectionPacks.forEach((pack) => {
+        const { total, mrp, saved, lines } = packTotals(pack);
+        const card = document.createElement('article');
+        card.className = 'pack-card' + (isKids ? ' pack-card-kids' : '');
+        card.innerHTML =
+          '<div class="pack-top">' +
+          '<span class="pack-badge">' +
+          escapeHtml(pack.badge || 'Combo') +
+          '</span>' +
+          '<h3>' +
+          escapeHtml(pack.name) +
+          '</h3>' +
+          '<p>' +
+          escapeHtml(pack.tagline || '') +
+          '</p>' +
+          '</div>' +
+          '<ul class="pack-items">' +
+          lines
+            .map(
+              (l) =>
+                '<li><span>' +
+                escapeHtml(l.product.name) +
+                '</span><span>×' +
+                l.qty +
+                '</span></li>'
+            )
+            .join('') +
+          '</ul>' +
+          '<div class="pack-foot">' +
+          '<div class="pack-pricing">' +
+          '<strong class="price">' +
+          money(total) +
+          '</strong>' +
+          (saved > 0
+            ? '<span class="mrp">' +
+              money(mrp) +
+              '</span><span class="pack-save">Save ' +
+              money(saved) +
+              '</span>'
+            : '') +
+          '</div>' +
+          '<button type="button" class="btn-add-pack">Add combo</button>' +
+          '</div>';
+        card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
+        grid.appendChild(card);
+      });
+
+      block.appendChild(grid);
+      root.appendChild(block);
     });
   }
 

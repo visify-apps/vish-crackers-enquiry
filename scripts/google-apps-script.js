@@ -18,12 +18,25 @@
  * 2. Set BILL_PAGE_PASSWORD in Script properties (bill.html asks for this; not stored in site files).
  * 3. Deploy → Manage deployments → Edit → Version: New version → Deploy.
  * 4. Test one enquiry from the website.
+ * 5. Profit analysis (seller PDF cost vs your sell price):
+ *    Run setupProfitSheets() once, then rebuildProfitAnalysis() after any price change.
  */
 
 var PRODUCTS_SHEET = 'Products';
 var ENQUIRIES_SHEET = 'Enquiries';
 /** Plain backup tab — always writable even when Enquiries is a Google Table */
 var ENQUIRY_LOG_SHEET = 'Enquiry_Log';
+/** Buy vs sell profit (Products × PDF seller costs in SELLER_COST_SEED) */
+var PROFIT_ANALYSIS_SHEET = 'Profit_Analysis';
+var PROFIT_HEADERS = [
+  'id',
+  'category',
+  'name',
+  'Buying price',
+  'Selling price',
+  'Profit rupees',
+  'Profit percent'
+];
 var MAX_CART_ITEMS = 120;
 var MAX_BODY_CHARS = 80000;
 var RATE_LIMIT_PER_PHONE = 25;
@@ -1229,4 +1242,357 @@ function importProductsFromJson(jsonText) {
       ]);
     });
   });
+}
+/** Auto-generated from Sri Crackers PDF — seller wholesale rates */
+var SELLER_COST_SEED = [
+  [1, '2 ¾” Kuruvi', 10, '1 Packet', 'Single Sound'],
+  [2, '3 ½” Lakshmi', 16, '1 packet', 'Single Sound'],
+  [3, '4” Lakshmi', 23, '1 packet', 'Single Sound'],
+  [4, '4” Lakshmi Deluxe / Gold', 32, '1 packet', 'Single Sound'],
+  [5, '5” Tiger', 45, '1 Packet', 'Single Sound'],
+  [6, '6” Mega Jallikattu / Tiger - Machine Fuse', 70, '1 Packet', 'Single Sound'],
+  [7, '2 Sound', 36, '1 Packet', 'Single Sound'],
+  [8, 'Red Bijili Premium 100 Pcs', 40, '1 packet', 'Bijili/Twin Star'],
+  [9, 'Stripped Bijili Extra Power 100 Pcs', 45, '1 packet', 'Bijili/Twin Star'],
+  [10, '1.5” Twin Star 10 pcs', 30, '1 box', 'Bijili/Twin Star'],
+  [11, '4” Deluxe Twin Stars 10 pcs', 75, '1 box', 'Bijili/Twin Star'],
+  [12, 'Amazing Pencil R&G (3 Piece Pack)', 80, '1 box', 'Pencil Varieties'],
+  [13, 'Red Flare (5 Piece Pack) - Red colour', 175, '1 box', 'Pencil Varieties'],
+  [14, 'Anandha\'s Pencil Items - 2 Varities New Arrival!!', 175, '1 box', 'Pencil Varieties'],
+  [15, 'Wolverine - Golden Falls (5 Piece Pack)', 160, '1 box', 'Pencil Varieties'],
+  [16, 'Thor Hammer (2pcs) New arrival Limited!!', 270, '1 box', 'Pencil Varieties'],
+  [17, 'Hydro Bomb', 75, '1 box', 'Sound Bomb'],
+  [18, 'King Bomb', 100, '1 box', 'Sound Bomb'],
+  [19, 'Classic Bomb', 160, '1 box', 'Sound Bomb'],
+  [20, 'Agni Bomb', 200, '1 box', 'Sound Bomb'],
+  [21, 'Red Digital / 7G Boys Bomb', 250, '1 box', 'Sound Bomb'],
+  [22, '28 Chorsa', 18, '1 packet', 'Florals Crackers'],
+  [23, '28 Giant', 30, '1 packet', 'Florals Crackers'],
+  [24, '56 Giant', 60, '1 packet', 'Florals Crackers'],
+  [25, '24 Deluxe Powerful', 60, '1 packet', 'Florals Crackers'],
+  [26, '50 Deluxe Ultra Power', 140, '1 packet', 'Florals Crackers'],
+  [27, '100 Deluxe Extreme Power', 270, '1 packet', 'Florals Crackers'],
+  [28, '100 Wala', 45, '1 packet', 'Florals Crackers'],
+  [29, '1000 Wala Super', 250, '1 box', 'Florals Crackers'],
+  [30, '1000 Wala Premium (Extra Power)', 360, '1 box', 'Florals Crackers'],
+  [31, '2000 Wala Super', 500, '1 box', 'Florals Crackers'],
+  [32, '2000 Wala Premium (Extra Power)', 720, '1 box', 'Florals Crackers'],
+  [33, '5000 Wala Super', 1250, '1 box', 'Florals Crackers'],
+  [34, '5000 Wala Premium (Extra Power)', 1800, '1 box', 'Florals Crackers'],
+  [35, '10000 Wala Super', 2500, '1 box', 'Florals Crackers'],
+  [36, '10000 Wala Premium (Extra Power)', 3600, '1 box', 'Florals Crackers'],
+  [37, 'Rocket Bomb', 65, '1 box', 'Rocket'],
+  [38, 'Lunik Rocket', 120, '1 box', 'Rocket'],
+  [39, 'Sky Whistling Rocket', 150, '1 box', 'Rocket'],
+  [40, '1/4 KG Bomb', 55, '1 box', 'Adiyal and Money Bomb'],
+  [41, '1/2 KG Bomb', 110, '1 box', 'Adiyal and Money Bomb'],
+  [42, '1 KG Bomb', 200, '1 box', 'Adiyal and Money Bomb'],
+  [43, 'Candy Crush (25pcs) -New Arrival', 100, '1 box', 'Adiyal and Money Bomb'],
+  [44, 'Children\'s day out gifts', 180, '1 box', 'Adiyal and Money Bomb'],
+  [45, 'Magic Show or Money Heist - 2 pieces', 210, '1 box', 'Adiyal and Money Bomb'],
+  [46, 'Ground Chakkars Big', 40, '1 box', 'Ground Chakkars Varities'],
+  [47, 'Ground Chakkars Special', 80, '1 box', 'Ground Chakkars Varities'],
+  [48, 'Ground Chakkars Deluxe', 160, '1 box', 'Ground Chakkars Varities'],
+  [49, 'Maska Chaska - Red and Green', 180, '1 box', 'Ground Chakkars Varities'],
+  [50, 'Rathna\'s Mega Chakkar Deluxe', 250, '1 box', 'Ground Chakkars Varities'],
+  [51, 'Flower Pot Big', 70, '1 box', 'Flower Pots Varities'],
+  [52, 'Flower Pot Special', 90, '1 box', 'Flower Pots Varities'],
+  [53, 'Flower Pot Ashoka', 120, '1 box', 'Flower Pots Varities'],
+  [54, 'Colour Koti', 180, '1 box', 'Flower Pots Varities'],
+  [55, 'Colour Koti Deluxe', 270, '1 box', 'Flower Pots Varities'],
+  [56, 'Mega Deluxe Colour Koti - Red and Green', 525, '1 box', 'Flower Pots Varities'],
+  [57, 'Kids  Tri Colour', 200, '1 box', 'Tri Colour Varieties'],
+  [58, 'Yo-Yo Tri Colour Dlx', 250, '1 box', 'Tri Colour Varieties'],
+  [59, 'HI-HI Bus (limited) New Arrival!!  Continuous Shower', 270, '1 box', 'Tri Colour Varieties'],
+  [60, 'Ayyan\'s Little Dove Mix - 5 varities', 90, '1 box', 'Night Splendid Items'],
+  [61, 'Glittering / Candy / Golden Pops', 90, '1 box', 'Night Splendid Items'],
+  [62, 'Volcono Mix - 3 varities (New Arrival)', 75, '1 box', 'Night Splendid Items'],
+  [63, 'Tin Shower (5 Varieties)', 85, '1 box', 'Night Splendid Items'],
+  [64, 'Cherry Mix (5 Varieties - New Arrival)', 120, '1 box', 'Night Splendid Items'],
+  [65, 'Bambaram', 120, '1 box', 'Night Splendid Items'],
+  [66, 'Rang Lava R&G (20 secs)', 120, '1 box', 'Night Splendid Items'],
+  [67, 'Colour Smoke - 3 Colours - Superb Timing', 180, '1 box', 'Night Splendid Items'],
+  [68, 'Butterfly', 80, '1 box', 'Night Splendid Items'],
+  [69, 'Kit Kat / Little Hearts', 30, '1 box', 'Night Splendid Items'],
+  [70, 'Photo Flash - 5 pieces', 60, '1 box', 'Night Splendid Items'],
+  [71, 'Krishna\'s Assorted Cartoon', 45, '1 box', 'Night Splendid Items'],
+  [72, 'Drone', 120, '1 box', 'Night Splendid Items'],
+  [73, 'Ayyan\'s Helicopter', 100, '1 box', 'Night Splendid Items'],
+  [74, 'Mini Siren - 5 pieces', 150, '1 box', 'Night Splendid Items'],
+  [75, 'Mega Siren - 3 pieces', 160, '1 box', 'Night Splendid Items'],
+  [76, 'Colour Pots- 5 colours', 100, '1 box', 'Night Splendid Items'],
+  [77, 'Lotus Wheel - 2 in 1 (New Arrival) Limited !!', 180, '1 box', 'Splendid Chakkar Varities'],
+  [78, 'Moon or Honda Wheel (Triple Spin)', 150, '1 box', 'Splendid Chakkar Varities'],
+  [79, 'Kalis Wire Chakkar Spl  - 10 pieces (Hand held)', 180, '1 box', 'Splendid Chakkar Varities'],
+  [80, 'Hot Wheels / Circus - 5 pieces', 200, '1 box', 'Splendid Chakkar Varities'],
+  [81, 'Jio Wheel (Pink colour wheel) -Limited', 180, '1 box', 'Splendid Chakkar Varities'],
+  [82, 'Classic Wheel - Silver wheel', 100, '1 box', 'Splendid Chakkar Varities'],
+  [83, 'Retro / Lays - 5 Varieties', 40, '1 box', 'Kids Special'],
+  [84, 'WB Fountain - 5 Varieties', 65, '1 box', 'Kids Special'],
+  [85, 'DinoDem 4 steps (Hot Sale Product ) New arrival Limited!!', 300, '1 box', 'Kids Special'],
+  [86, 'Lion King - New Arrival -Limited!! 4steps', 300, '1 box', 'Kids Special'],
+  [87, 'Hulk - Star Crakling', 150, '1 box', 'Kids Special'],
+  [88, '24 Carat Gold  / Trixx / Spike / Rockstar', 190, '1 box', 'Kids Special'],
+  [89, 'Color Galaxy - 5 Varities  - New Arrival- Limited!! (2pcs)', 230, '1 box', 'Kids Special'],
+  [90, 'Romeo Juliet  - pink colour New Arrival', 230, '1 box', 'Kids Special'],
+  [91, 'Mad Angles - 3 in 1 (New Arrival)', 200, '1 box', 'Kids Special'],
+  [92, 'Pink Panther (Limited)', 180, '1 box', 'Kids Special'],
+  [93, 'Flintstones / Dexter - New Arrival!!', 95, '1 box', 'Kids Special'],
+  [94, 'Smoke Gun (Crakling function with smoke )  - 5 Pieces', 210, '1 box', 'Kids Special'],
+  [95, 'Monkey Dance - 4 steps - (New Arrival)', 300, '1 box', 'Kids Special'],
+  [96, 'Tropical Mushroom', 190, '1 box', 'Kids Special'],
+  [97, 'Pink Pearls - 2 pieces  (New Arrival)', 250, '1 box', 'Kids Special'],
+  [98, 'Cocomelons (5in1) New Arrival - Limited !!', 360, '1 box', 'Kids Special'],
+  [99, 'Cylinder with smoke - 2 pieces (new Arrival)', 300, '1 box', 'Kids Special'],
+  [100, 'Fruit Mix - 5 varieties (New Arrival)', 230, '1 box', 'Kids Special'],
+  [101, 'Hybrid 2 in 1 New Arrival', 180, '1 box', 'Kids Special'],
+  [102, 'Frozen  - Touchable', 120, '1 box', 'Kids Special'],
+  [103, 'Ice Cream Cone  -  Limited !!', 200, '1 box', 'Kids Special'],
+  [104, 'Feel the Fire Gun - Touchable', 320, '1 box', 'Kids Special'],
+  [105, 'Kulfi 3 pieces (New Arrival)', 250, '1 box', 'Kids Special'],
+  [106, 'Belly Dance Peacock - 4 varieties', 180, '1 box', 'Peacock Varieties'],
+  [107, 'Anandha\'s Peacock - 5 Sides', 200, '1 box', 'Peacock Varieties'],
+  [108, 'Bada Peacock Purple', 450, '1 box', 'Peacock Varieties'],
+  [109, 'Bada Peacock 2in1  (Limited)', 420, '1 box', 'Peacock Varieties'],
+  [110, '7 Shots - 5 piece', 100, '1 box', 'Muti Sky Shot Varieties'],
+  [111, 'Penta Magic / Battle Ship - 5 colors in 1', 125, '1 box', 'Muti Sky Shot Varieties'],
+  [112, 'Hi-Fi - 5 colors', 95, '1 box', 'Muti Sky Shot Varieties'],
+  [113, 'Sky Shot- 10 piece', 140, '1 box', 'Muti Sky Shot Varieties'],
+  [114, 'Chotta Fancy (5 Varieities)', 42, '1 piece', 'Fancy Sky Shots Pipes'],
+  [115, '2” Fancy (5 Varieties)', 100, '1 piece', 'Fancy Sky Shots Pipes'],
+  [116, '2.5” Fancy - SPL (5 Varieties)', 140, '1 piece', 'Fancy Sky Shots Pipes'],
+  [117, '3 in 1 Fancy - 3 piece pack (6 Varieties) premium', 270, '1 piece', 'Fancy Sky Shots Pipes'],
+  [118, '3.5” Fancy Premium (7 Varieties)', 285, '1 piece', 'Fancy Sky Shots Pipes'],
+  [119, '3.5" Spl colour Blue Perals or Pink Bingo Boom-Limited', 300, '1 piece', 'Fancy Sky Shots Pipes'],
+  [120, '3.5” Niagra Falls Bluestar  Fancy - Limited', 300, '1 piece', 'Fancy Sky Shots Pipes'],
+  [121, '4" Fancy Marine / Candy Series spl colour(8 Varieties) New Arrival', 400, '1 piece', 'Fancy Sky Shots Pipes'],
+  [122, '5” Fancy Elite (6 Varieties)', 600, '1 piece', 'Fancy Sky Shots Pipes'],
+  [123, '4” Fancy Premium - 2 piece pack (5 Varieties)', 750, '1 piece', 'Fancy Sky Shots Pipes'],
+  [124, 'Krishna\'s 4” Fancy - 2 piece pack (5 Varieties) - Limited', 800, '1 piece', 'Fancy Sky Shots Pipes'],
+  [125, 'Sony 6" 3 Varities Awesome Display', 2000, '1 piece', 'Special Edition Mega Pipes-New Arrival (Limited!!)'],
+  [126, 'Spnka 4" Gambling series (3 in 1) - 4 Varities -3 pcs pack', 1200, '1 box', 'Special Edition Mega Pipes-New Arrival (Limited!!)'],
+  [127, 'Bindu\'s spl 6" 4 Varities wonderful display', 1400, '1 box', 'Special Edition Mega Pipes-New Arrival (Limited!!)'],
+  [128, 'Spnka 4" Fruits series (Spl Color) - 4 Varities -2 pcs pack', 1200, '1 box', 'Special Edition Mega Pipes-New Arrival (Limited!!)'],
+  [129, 'Sri Krishna 5" Elite series (Pink Panther ,Lone wolf)', 1400, '1 piece', 'Special Edition Mega Pipes-New Arrival (Limited!!)'],
+  [130, 'Double Ball Premium ( 5 Varieties)', 420, '1 piece', 'Dual and Triple Sky Attractions'],
+  [131, '8 Steps Premium ( 5 Varieties)', 350, '1 piece', 'Dual and Triple Sky Attractions'],
+  [132, 'Triple Ball Premium ( 5 Varieties)', 600, '1 piece', 'Dual and Triple Sky Attractions'],
+  [133, 'Dancing Shooters (Flying Mines)', 230, '1 piece', 'Dual and Triple Sky Attractions'],
+  [134, '12 Steps Sky Shot (4 Varieties)', 360, '1 piece', 'Dual and Triple Sky Attractions'],
+  [135, 'Love dose - 6 shot (New Arrival)', 100, '1 piece', 'Repeating Sky Shots'],
+  [136, '10 Shots - Multi Color', 190, '1 piece', 'Repeating Sky Shots'],
+  [137, '5G+ New Arrival - 5 in 1', 190, '1 piece', 'Repeating Sky Shots'],
+  [138, '30 Shots Premium', 400, '1 piece', 'Repeating Sky Shots'],
+  [139, '30 Shots Elite', 475, '1 piece', 'Repeating Sky Shots'],
+  [140, '30 Peacock Dance (30 Mines Attraction)', 390, '1 piece', 'Repeating Sky Shots'],
+  [141, '30 Flash Joker/ Chariot (30 Flash With Sky shots)', 450, '1 piece', 'Repeating Sky Shots'],
+  [142, '60 Shots Premium', 800, '1 piece', 'Repeating Sky Shots'],
+  [143, '60 Shots Elite', 950, '1 piece', 'Repeating Sky Shots'],
+  [144, '120 Shots Premium', 1600, '1 piece', 'Repeating Sky Shots'],
+  [145, '120 Shots Elite', 1900, '1 piece', 'Repeating Sky Shots'],
+  [146, '240 Shots Premium', 3200, '1 piece', 'Repeating Sky Shots'],
+  [147, '240 Shots Elite', 3800, '1 piece', 'Repeating Sky Shots'],
+  [148, '510 Shots Elite (Exclusive for festivals)', 7900, '1 piece', 'Repeating Sky Shots'],
+  [149, 'Krishna\'s Singing Dolls (10 Whistles)', 210, '1 box', 'Whistling Sky Shots'],
+  [150, 'Sonny 25 cukatoo (Whistle with Boom)', 700, '1 box', 'Whistling Sky Shots'],
+  [151, 'Krishna\'s Wedding Singer (50 Whistles)', 1300, '1 box', 'Whistling Sky Shots'],
+  [152, 'Golden Octopusy (golden fall) - 2pcs', 1300, '1 box', 'Sonny\'s Sky Series - Limited!!'],
+  [153, '4" Great wall series (10 varities) -2pcs', 1400, '1 box', 'Sonny\'s Sky Series - Limited!!'],
+  [154, 'Neega Angels (blue) -2pcs', 1300, '1 box', 'Sonny\'s Sky Series - Limited!!'],
+  [155, '5" Happy Ring or Duos Series (dual function)-2pcs', 1600, '1 box', 'Sonny\'s Sky Series - Limited!!'],
+  [156, '2 inch Setout - 30 shots', 3300, '1 box', 'Setouts -Mega Continuous  Sky Display'],
+  [157, 'Air Strike - 4x4 (New Arrival)', 3000, '1 box', 'Setouts -Mega Continuous  Sky Display'],
+  [158, '3.5 inch Setout - 20 shots (Champion Nights)', 5400, '1 box', 'Setouts -Mega Continuous  Sky Display'],
+  [159, 'Double Wave - 5x10 (New Arrival) - 2 in 1', 2700, '1 box', 'Setouts -Mega Continuous  Sky Display'],
+  [160, '10x10 - Sizzling (100 Rider shots - New Arrival Limited)', 3300, '1 box', 'Setouts -Mega Continuous  Sky Display'],
+  [161, '10x10 - Thunder Lights (100 shots - New Arrival Limited)', 4300, '1 box', 'Setouts -Mega Continuous  Sky Display'],
+  [162, '10 cm Electric', 20, '1 box', 'Sparkelrs'],
+  [163, '10 cm Red', 27, '1 box', 'Sparkelrs'],
+  [164, '10 cm Green', 25, '1 box', 'Sparkelrs'],
+  [165, '15 cm Electric', 45, '1 box', 'Sparkelrs'],
+  [166, '15 cm Red', 48, '1 box', 'Sparkelrs'],
+  [167, '15 cm Green', 45, '1 box', 'Sparkelrs'],
+  [168, '30 cm Electric', 45, '1 box - 5 pcs', 'Sparkelrs'],
+  [169, '30 cm Red', 48, '1 box - 5 pcs', 'Sparkelrs'],
+  [170, '30 cm Green', 45, '1 box - 5 pcs', 'Sparkelrs'],
+  [171, '50 cm Electric - Tube', 180, '1 box - 5 pcs', 'Sparkelrs'],
+  [172, '50 cm Super Mix - Tube (4 in 1)', 230, '1 box - 5 pcs', 'Sparkelrs'],
+  [173, '15 cm Orange (New Arrival Limited)', 75, '1 box - 10 pcs', 'Sparkelrs'],
+  [174, '15 cm Pink (New Arrival Limited)', 75, '1 box - 10 pcs', 'Sparkelrs'],
+  [175, 'Merry Go Go Rotating Sparkles (New Arrival Limited!!)', 220, '1 box', 'Sparkelrs'],
+  [176, '5 Men Army - 5 in 1 or diamond', 63, '1 box', 'Colour Matches'],
+  [177, 'Butterfly - 8 in 1', 120, '1 box', 'Colour Matches'],
+  [178, 'Dhasara - 10 in 1 (10 boxes)', 200, '1 box', 'Colour Matches'],
+  [179, 'Roll Cap Box', 75, '1 box', 'Roll Cap And Tablets'],
+  [180, 'Sonny Big Snake Serpent', 30, '1 box', 'Roll Cap And Tablets'],
+  [181, 'MIB (gun with Ring Cap) New Arrival', 125, '1 box', 'Roll Cap And Tablets'],
+  [182, '19 Items', 330, '1 box', 'Gift Boxes'],
+  [183, '23 Items', 390, '1 box', 'Gift Boxes'],
+  [184, '27 Items', 450, '1 box', 'Gift Boxes'],
+  [185, '41 Items', 750, '1 box', 'Gift Boxes'],
+  [186, '52 Items', 950, '1 box', 'Gift Boxes'],
+];
+
+/* ========== PROFIT ANALYSIS (seller cost vs your sell price) ========== */
+
+function normalizeProductName_(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[""''']/g, '')
+    .replace(/¾/g, '3/4')
+    .replace(/½/g, '1/2')
+    .replace(/¼/g, '1/4')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function tokenOverlap_(a, b) {
+  var ta = String(a || '').split(' ').filter(Boolean);
+  var tb = String(b || '').split(' ').filter(Boolean);
+  if (!ta.length || !tb.length) return 0;
+  var setB = {};
+  tb.forEach(function (t) {
+    setB[t] = true;
+  });
+  var hit = 0;
+  ta.forEach(function (t) {
+    if (setB[t]) hit++;
+  });
+  return hit / Math.max(ta.length, tb.length);
+}
+
+/** Seller costs from PDF seed baked into this script (no separate sheet). */
+function loadSellerCostsFromSeed_() {
+  var seed = typeof SELLER_COST_SEED !== 'undefined' ? SELLER_COST_SEED : [];
+  return seed
+    .map(function (r) {
+      return {
+        sno: Number(r[0]) || 0,
+        name: String(r[1] || '').trim(),
+        cost: Number(r[2]) || 0,
+        unit: String(r[3] || '').trim(),
+        category: String(r[4] || '').trim(),
+        key: normalizeProductName_(r[1])
+      };
+    })
+    .filter(function (s) {
+      return s.name && s.cost;
+    });
+}
+
+function readProductsFlat_() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRODUCTS_SHEET);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var out = [];
+  values.slice(1).forEach(function (row) {
+    var item = {};
+    headers.forEach(function (h, i) {
+      item[h] = row[i];
+    });
+    if (!item.name && !item.id) return;
+    out.push({
+      id: Number(item.id) || 0,
+      category: String(item.category || 'Other'),
+      name: String(item.name || ''),
+      sell: Number(item.price) || 0,
+      key: normalizeProductName_(item.name)
+    });
+  });
+  return out;
+}
+
+function matchSellerCost_(product, sellerByKey, sellerBySno, usedKeys) {
+  var key = product.key;
+  if (key && sellerByKey[key] && !usedKeys[key]) {
+    usedKeys[key] = true;
+    return sellerByKey[key];
+  }
+  if (product.id && sellerBySno[product.id]) {
+    var byId = sellerBySno[product.id];
+    var a = key;
+    var b = byId.key;
+    if (a && b && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0 || tokenOverlap_(a, b) >= 0.5)) {
+      if (!usedKeys[byId.key]) usedKeys[byId.key] = true;
+      return byId;
+    }
+  }
+  var best = null;
+  var bestScore = 0;
+  Object.keys(sellerByKey).forEach(function (sk) {
+    if (usedKeys[sk]) return;
+    var score = tokenOverlap_(key, sk);
+    if (score > bestScore) {
+      bestScore = score;
+      best = sellerByKey[sk];
+    }
+  });
+  if (best && bestScore >= 0.72) {
+    usedKeys[best.key] = true;
+    return best;
+  }
+  return null;
+}
+
+/**
+ * Create/reset Profit_Analysis and fill from Products × PDF seller costs.
+ * Run: setupProfitSheets  or  rebuildProfitAnalysis
+ */
+function setupProfitSheets() {
+  rebuildProfitAnalysis();
+  try {
+    SpreadsheetApp.getUi().alert(
+      'Profit_Analysis ready.\n\nColumns: id, category, name, Buying price, Selling price, Profit rupees, Profit percent.\n' +
+        'Re-run rebuildProfitAnalysis() after you change Products prices.'
+    );
+  } catch (e) {
+    /* headless */
+  }
+}
+
+/**
+ * Rebuild Profit_Analysis only. Buying price comes from SELLER_COST_SEED (Sri Crackers PDF).
+ */
+function rebuildProfitAnalysis() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var products = readProductsFlat_();
+  var sellers = loadSellerCostsFromSeed_();
+  var sellerByKey = {};
+  var sellerBySno = {};
+  sellers.forEach(function (s) {
+    sellerByKey[s.key] = s;
+    if (s.sno) sellerBySno[s.sno] = s;
+  });
+  var used = {};
+  var rows = products.map(function (p) {
+    var seller = matchSellerCost_(p, sellerByKey, sellerBySno, used);
+    var buy = seller ? seller.cost : '';
+    var sell = p.sell;
+    var profit = buy === '' ? '' : Math.round((sell - buy) * 100) / 100;
+    var pct =
+      buy === '' || !sell ? '' : Math.round(((sell - buy) / sell) * 10000) / 100;
+    return [p.id, p.category, p.name, buy, sell, profit, pct];
+  });
+
+  var sh = ss.getSheetByName(PROFIT_ANALYSIS_SHEET);
+  if (!sh) sh = ss.insertSheet(PROFIT_ANALYSIS_SHEET);
+  sh.clear();
+  sh.appendRow(PROFIT_HEADERS);
+  sh.setFrozenRows(1);
+  if (rows.length) {
+    sh.getRange(2, 1, rows.length, PROFIT_HEADERS.length).setValues(rows);
+  }
+}
+
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi()
+      .createMenu('Vish Profit')
+      .addItem('Setup / rebuild Profit_Analysis', 'rebuildProfitAnalysis')
+      .addToUi();
+  } catch (e) {
+    /* headless */
+  }
 }
