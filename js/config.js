@@ -14,7 +14,7 @@ window.SITE_CONFIG = {
   /* Soft warning only — does not block enquiry */
   softMinOrder: 2000,
   softMinOrderNote:
-    'Orders under ₹2,000 may share transport with other parcels — we will confirm the best option on WhatsApp.',
+    'Orders under ₹2,000 will be reviewed first and confirmed only after we check the list with you on WhatsApp.',
   /* First 2–3 digits of pincode → zone hint after lookup */
   deliveryZones: {
     '62': {

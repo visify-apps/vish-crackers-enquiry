@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=ux4" />
-  <link rel="stylesheet" href="css/bill.css?v=3" />
+  <link rel="stylesheet" href="css/styles.css?v=ux5" />
+  <link rel="stylesheet" href="css/bill.css?v=4" />
 </head>
 <body class="bill-page">
   <div class="festive-bg" aria-hidden="true"></div>
@@ -97,18 +97,14 @@
         <textarea id="c-notes" placeholder="e.g. Special Diwali offer applied"></textarea>
       </div>
 
-      <div class="bill-grid bill-grid-3">
+      <div class="bill-grid">
         <div class="bill-field">
           <label for="c-discount">Discount ₹ (optional)</label>
           <input id="c-discount" type="number" min="0" step="1" placeholder="0" value="" />
         </div>
         <div class="bill-field">
-          <label for="c-packing">Packing ₹ (optional)</label>
-          <input id="c-packing" type="number" min="0" step="1" placeholder="0" value="" />
-        </div>
-        <div class="bill-field">
-          <label for="c-transport">Transport ₹ (optional)</label>
-          <input id="c-transport" type="number" min="0" step="1" placeholder="0" value="" />
+          <label for="c-charges">Packing + transport ₹ (optional)</label>
+          <input id="c-charges" type="number" min="0" step="1" placeholder="0" value="" />
         </div>
       </div>
 
@@ -142,12 +138,8 @@
           <span id="bill-discount-label">− ₹0</span>
         </div>
         <div class="bill-summary-row">
-          <span>Packing</span>
-          <span id="bill-packing-label">₹0</span>
-        </div>
-        <div class="bill-summary-row">
-          <span>Transport</span>
-          <span id="bill-transport-label">₹0</span>
+          <span>Packing + transport</span>
+          <span id="bill-charges-label">₹0</span>
         </div>
         <div class="bill-total">
           <span>Amount payable</span>
@@ -169,9 +161,15 @@
           <button type="button" class="btn-secondary" data-wa-tpl="dispatched">Dispatched</button>
           <button type="button" class="btn-secondary" data-wa-tpl="payment">Payment reminder</button>
         </div>
-        <div class="bill-field" style="margin-top:10px">
-          <label for="c-lr">LR / tracking (for Dispatched)</label>
-          <input id="c-lr" placeholder="Optional — pasted into dispatch message" />
+        <div class="bill-grid" style="margin-top:10px">
+          <div class="bill-field">
+            <label for="c-courier">Parcel service (for Dispatched)</label>
+            <input id="c-courier" placeholder="e.g. DTDC, Professional, India Post" />
+          </div>
+          <div class="bill-field">
+            <label for="c-tracking">Tracking Id (optional)</label>
+            <input id="c-tracking" placeholder="Paste tracking number if ready" />
+          </div>
         </div>
       </div>
     </section>
@@ -197,8 +195,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=bill5" defer></script>
-  <script src="js/pdf.js?v=bill5" defer></script>
-  <script src="js/bill.js?v=bill5" defer></script>
+  <script src="js/config.js?v=bill6" defer></script>
+  <script src="js/pdf.js?v=bill6" defer></script>
+  <script src="js/bill.js?v=bill6" defer></script>
 </body>
 </html>

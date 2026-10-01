@@ -101,16 +101,14 @@
   function updateSummary() {
     var subtotal = calcSubtotal();
     var discount = readDiscount(subtotal);
-    var packing = readMoneyField('c-packing');
-    var transport = readMoneyField('c-transport');
-    var payable = Math.max(0, subtotal - discount + packing + transport);
+    var charges = readMoneyField('c-charges');
+    var payable = Math.max(0, subtotal - discount + charges);
     lastPayable = payable;
     if ($('bill-subtotal')) $('bill-subtotal').textContent = money(subtotal);
     if ($('bill-discount-label')) {
       $('bill-discount-label').textContent = discount > 0 ? '− ' + money(discount) : '− ₹0';
     }
-    if ($('bill-packing-label')) $('bill-packing-label').textContent = money(packing);
-    if ($('bill-transport-label')) $('bill-transport-label').textContent = money(transport);
+    if ($('bill-charges-label')) $('bill-charges-label').textContent = money(charges);
     if ($('bill-total')) $('bill-total').textContent = money(payable);
   }
 
@@ -262,9 +260,9 @@
     $('c-state').value = enq.state || '';
     $('c-address').value = enq.address || '';
     if ($('c-discount')) $('c-discount').value = '';
-    if ($('c-packing')) $('c-packing').value = '';
-    if ($('c-transport')) $('c-transport').value = '';
-    if ($('c-lr')) $('c-lr').value = '';
+    if ($('c-charges')) $('c-charges').value = '';
+    if ($('c-courier')) $('c-courier').value = '';
+    if ($('c-tracking')) $('c-tracking').value = '';
     lines = cartToLines(enq.cart);
     if (!lines.length) {
       lines = [{ name: '', unit: '', qty: 1, price: 0 }];
@@ -507,8 +505,7 @@
       enquirySno: enquirySno,
       notes: ($('c-notes').value || '').trim(),
       discount: readDiscount(subtotal),
-      packing: readMoneyField('c-packing'),
-      transport: readMoneyField('c-transport')
+      packingTransport: readMoneyField('c-charges')
     };
   }
 
@@ -658,40 +655,44 @@
   }
 
   function waTemplate(kind) {
-    var name = ($('c-name').value || '').trim() || 'Sir/Madam';
-    var brand = cfg().brandShort || cfg().brand || 'Vish Fireworks';
-    var sno = enquirySno ? ' (Enquiry #' + enquirySno + ')' : '';
-    var lr = ($('c-lr') && $('c-lr').value.trim()) || '';
+    var name = ($('c-name').value || '').trim() || 'there';
+    var brand = cfg().brandShort || 'Vish Crackers';
+    var gpay = cfg().phone || '9994376845';
+    var courier = ($('c-courier') && $('c-courier').value.trim()) || '';
+    var tracking = ($('c-tracking') && $('c-tracking').value.trim()) || '';
     var texts = {
       address:
-        'Vanakkam ' +
+        'Hi ' +
         name +
-        sno +
-        ',\n\nPlease share your full delivery address and preferred parcel office so we can confirm packing from ' +
-        brand +
-        '.\n\nThank you.',
+        ',\n\nWould you like to make any changes to your order, or shall we proceed with it?\n\nTo proceed, please share your complete delivery address so we can confirm the delivery charges.',
       confirmed:
-        'Vanakkam ' +
+        'Thank you ' +
         name +
-        sno +
-        ',\n\nYour order is confirmed. We will update you once it is packed / dispatched from Sivakasi.\n\n— ' +
+        '\n\nYour order is confirmed. We will update you once it is packed / dispatched from Sivakasi - ' +
         brand,
-      dispatched:
-        'Vanakkam ' +
-        name +
-        sno +
-        ',\n\nYour order has been dispatched.' +
-        (lr ? '\nLR / tracking: ' + lr : '\n(LR number will follow shortly.)') +
-        '\n\n— ' +
-        brand,
+      dispatched: tracking
+        ? 'Hi ' +
+          name +
+          '\n\nYour order has been dispatched' +
+          (courier ? ' through ' + courier + ' couriers' : '') +
+          ' with Tracking Id : ' +
+          tracking +
+          '.\n\nThank you - ' +
+          brand
+        : 'Hello ' +
+          name +
+          '\n\nYour order has been dispatched.' +
+          (courier ? ' Parcel service: ' + courier + '.' : '') +
+          ' Tracking details will be shared shortly - ' +
+          brand,
       payment:
-        'Vanakkam ' +
+        'Hey ' +
         name +
-        sno +
-        ',\n\nFriendly reminder: please complete payment for your confirmed order so we can prioritize dispatch.\nAmount payable: ' +
+        '\n\nFriendly reminder: please complete payment for your order so we can dispatch it.\n\nAmount payable: ' +
         money(lastPayable) +
-        '\n\n— ' +
-        brand
+        '\nGPAY Number : ' +
+        gpay +
+        '\n(share screenshot after payment success)'
     };
     var text = texts[kind];
     if (!text) return;
@@ -724,7 +725,7 @@
     $('btn-packing-slip').addEventListener('click', downloadPackingSlip);
     $('btn-wa-bill').addEventListener('click', sendBillWhatsApp);
 
-    ['c-discount', 'c-packing', 'c-transport'].forEach(function (id) {
+    ['c-discount', 'c-charges'].forEach(function (id) {
       if ($(id)) {
         $(id).addEventListener('input', updateSummary);
         $(id).addEventListener('change', updateSummary);

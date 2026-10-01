@@ -158,10 +158,7 @@ window.VishApp = (function () {
     }
 
     if (bar) bar.classList.toggle('is-empty', count === 0);
-    if ($('review-btn')) {
-      $('review-btn').disabled = count === 0;
-      if (count > 0) $('review-btn').textContent = t('Enquire', 'Review');
-    }
+    if ($('review-btn')) $('review-btn').disabled = count === 0;
 
     const warn = $('cart-min-warn');
     if (warn) {
@@ -261,7 +258,7 @@ window.VishApp = (function () {
 
     const badges =
       (off > 0 && !unavailable ? '<span class="badge-off">' + off + '% off</span>' : '') +
-      (item.limited ? '<span class="badge-limited">' + t('Limited', 'Limited') + '</span>' : '');
+      (item.limited ? '<span class="badge-limited">Limited</span>' : '');
 
     el.innerHTML =
       '<button type="button" class="thumb-btn" data-lightbox="1" aria-label="View larger image of ' +
@@ -303,7 +300,7 @@ window.VishApp = (function () {
     if (unavailable) {
       const sold = document.createElement('span');
       sold.className = 'unavailable-label';
-      sold.textContent = t('Unavailable', 'Unavailable');
+      sold.textContent = 'Unavailable';
       actions.appendChild(sold);
       return el;
     }
@@ -329,7 +326,7 @@ window.VishApp = (function () {
       const add = document.createElement('button');
       add.type = 'button';
       add.className = 'btn btn-add';
-      add.textContent = t('Add', 'Add');
+      add.textContent = 'Add';
       add.addEventListener('click', () => {
         VishCart.addItem(item);
         refreshAfterCartChange();
@@ -501,46 +498,10 @@ window.VishApp = (function () {
     if (!min || total >= min) return '';
     return (
       cfg().softMinOrderNote ||
-      'Orders under ' + money(min) + ' may share transport — we will confirm on WhatsApp.'
+      'Orders under ' +
+        money(min) +
+        ' will be reviewed first and confirmed only after we check with you on WhatsApp.'
     );
-  }
-
-  function t(key, en) {
-    const lang = document.documentElement.lang === 'ta' ? 'ta' : 'en';
-    const map = {
-      Add: { en: 'Add', ta: 'சேர்' },
-      Cart: { en: 'Enquiry', ta: 'விசாரணை' },
-      Enquire: { en: 'Review', ta: 'பார்' },
-      Search: { en: 'Search products', ta: 'தேடு' },
-      Limited: { en: 'Limited', ta: 'வரையறுக்கப்பட்ட' },
-      Unavailable: { en: 'Unavailable', ta: 'கிடைக்கவில்லை' }
-    };
-    const row = map[key];
-    if (!row) return en || key;
-    return row[lang] || row.en || en || key;
-  }
-
-  function applyUiLanguage() {
-    const lang = document.documentElement.lang === 'ta' ? 'ta' : 'en';
-    const search = $('search-input');
-    if (search) {
-      search.placeholder =
-        lang === 'ta' ? 'ஸ்பார்க்லர், பாம், ராக்கெட்…' : 'Search sparklers, bombs, rockets…';
-      const lab = document.querySelector('label[for="search-input"]');
-      if (lab) lab.textContent = t('Search');
-    }
-    const enquiryLabel = $('enquiry-btn-label');
-    if (enquiryLabel) enquiryLabel.textContent = t('Cart');
-    const review = $('review-btn');
-    if (review && !review.disabled) {
-      /* label stays Review / பார் when enabled */
-    }
-    if (review) review.textContent = t('Enquire');
-    const toggle = $('lang-toggle');
-    if (toggle) toggle.textContent = lang === 'ta' ? 'EN' : 'தமிழ்';
-    renderProducts();
-    renderPacks();
-    updateCartBar();
   }
 
   function openLightbox(item) {
@@ -641,7 +602,7 @@ window.VishApp = (function () {
     return { total, mrp, saved: Math.max(0, mrp - total), lines };
   }
 
-  function addPack(pack, openCustomize) {
+  function addPack(pack) {
     const { lines } = packTotals(pack);
     if (!lines.length) {
       alert('This combo has no available products right now.');
@@ -650,9 +611,6 @@ window.VishApp = (function () {
     lines.forEach(({ product, qty }) => VishCart.addItem(product, qty));
     refreshAfterCartChange();
     openSheet();
-    if (openCustomize) {
-      showToast('Combo added — adjust quantities below before submitting');
-    }
   }
 
   function renderPacks() {
@@ -706,15 +664,9 @@ window.VishApp = (function () {
             '</span>'
           : '') +
         '</div>' +
-        '<div class="pack-actions">' +
         '<button type="button" class="btn-add-pack">Add combo</button>' +
-        '<button type="button" class="btn-customize-pack">Customize</button>' +
-        '</div>' +
         '</div>';
-      card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack, false));
-      card
-        .querySelector('.btn-customize-pack')
-        .addEventListener('click', () => addPack(pack, true));
+      card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
       root.appendChild(card);
     });
   }
@@ -1268,40 +1220,6 @@ window.VishApp = (function () {
         searchQuery = e.target.value;
         renderProducts();
       });
-      search.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        const grouped = groupedFiltered();
-        let first = null;
-        grouped.forEach((items) => {
-          if (!first) {
-            for (let i = 0; i < items.length; i++) {
-              if (items[i].active !== false) {
-                first = items[i];
-                break;
-              }
-            }
-          }
-        });
-        if (!first) {
-          showToast('No matching product to add');
-          return;
-        }
-        VishCart.addItem(first);
-        refreshAfterCartChange();
-        showToast('Added ' + first.name);
-      });
-    }
-
-    if ($('lang-toggle')) {
-      $('lang-toggle').addEventListener('click', () => {
-        const next = document.documentElement.lang === 'ta' ? 'en' : 'ta';
-        document.documentElement.lang = next;
-        try {
-          localStorage.setItem('vish_lang', next);
-        } catch (err) {}
-        applyUiLanguage();
-      });
     }
 
     if ($('share-cart-btn')) {
@@ -1500,10 +1418,6 @@ window.VishApp = (function () {
   async function init() {
     injectIcons(document);
     hydrateHeader();
-    try {
-      const savedLang = localStorage.getItem('vish_lang');
-      if (savedLang === 'ta' || savedLang === 'en') document.documentElement.lang = savedLang;
-    } catch (err) {}
     bindUi();
     updateUrgency();
     setInterval(updateUrgency, 30000);
@@ -1519,14 +1433,27 @@ window.VishApp = (function () {
     const params = new URLSearchParams(location.search);
     const cartShare = params.get('cart');
     if (cartShare) {
-      const result = VishCart.applyShare(cartShare, productById);
-      if (result.added) {
-        showToast(
-          'Loaded ' +
-            result.added +
-            ' item(s) from shared link' +
-            (result.skipped ? ' (' + result.skipped + ' unavailable skipped)' : '')
+      const existingCount = VishCart.cartCount();
+      let apply = true;
+      if (existingCount > 0) {
+        apply = window.confirm(
+          'You already have ' +
+            existingCount +
+            ' item(s) in your enquiry list.\n\nReplace them with the shared cart?'
         );
+      }
+      if (apply) {
+        const result = VishCart.applyShare(cartShare, productById, { replace: true });
+        if (result.added) {
+          showToast(
+            'Loaded ' +
+              result.added +
+              ' item(s) from shared link' +
+              (result.skipped ? ' (' + result.skipped + ' unavailable skipped)' : '')
+          );
+        }
+      } else {
+        showToast('Kept your existing enquiry list');
       }
       try {
         history.replaceState({}, '', location.pathname + location.hash);
@@ -1536,7 +1463,6 @@ window.VishApp = (function () {
     }
 
     paintCatalog();
-    applyUiLanguage();
     refreshProductsFromSheet();
   }
 

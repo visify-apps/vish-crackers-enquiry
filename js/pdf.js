@@ -317,7 +317,7 @@ window.VishPdf = (function () {
   /**
    * Proforma / order confirmation — same theme as enquiry PDF.
    * lines: [{ name, unit, qty, price }]
-   * meta: { billNo, enquirySno, notes, discount, packing, transport }
+   * meta: { billNo, enquirySno, notes, discount, packingTransport }
    */
   function buildBillDoc(contact, lines, config, meta) {
     var jsPDF = getJsPdf();
@@ -336,8 +336,13 @@ window.VishPdf = (function () {
     var billNo = (meta && meta.billNo) || makeBillNo();
     var enquirySno = meta && meta.enquirySno ? String(meta.enquirySno) : '';
     var discount = Math.max(0, Number(meta && meta.discount) || 0);
-    var packing = Math.max(0, Number(meta && meta.packing) || 0);
-    var transport = Math.max(0, Number(meta && meta.transport) || 0);
+    var packingTransport = Math.max(0, Number(meta && meta.packingTransport) || 0);
+    if (!packingTransport && meta) {
+      packingTransport = Math.max(
+        0,
+        (Number(meta.packing) || 0) + (Number(meta.transport) || 0)
+      );
+    }
 
     var cartLike = {};
     (lines || []).forEach(function (line, idx) {
@@ -352,7 +357,7 @@ window.VishPdf = (function () {
     var built = buildEnquiryLines(cartLike);
     var subtotal = built.total;
     if (discount > subtotal) discount = subtotal;
-    var payable = Math.max(0, subtotal - discount + packing + transport);
+    var payable = Math.max(0, subtotal - discount + packingTransport);
 
     doc.setFillColor(COLORS.night[0], COLORS.night[1], COLORS.night[2]);
     doc.rect(0, 0, pageWidth, 92, 'F');
@@ -445,8 +450,7 @@ window.VishPdf = (function () {
 
     var extraRows = 0;
     if (discount > 0) extraRows++;
-    if (packing > 0) extraRows++;
-    if (transport > 0) extraRows++;
+    if (packingTransport > 0) extraRows++;
     var boxH = 28 + (1 + extraRows) * 18;
     doc.setFillColor(255, 248, 242);
     doc.roundedRect(margin, y, contentW, boxH, 6, 6, 'F');
@@ -466,14 +470,9 @@ window.VishPdf = (function () {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(COLORS.ink[0], COLORS.ink[1], COLORS.ink[2]);
     }
-    if (packing > 0) {
-      doc.text('Packing', margin + 12, ty);
-      doc.text(money(packing), pageWidth - margin - 12, ty, { align: 'right' });
-      ty += 18;
-    }
-    if (transport > 0) {
-      doc.text('Transport', margin + 12, ty);
-      doc.text(money(transport), pageWidth - margin - 12, ty, { align: 'right' });
+    if (packingTransport > 0) {
+      doc.text('Packing + transport', margin + 12, ty);
+      doc.text(money(packingTransport), pageWidth - margin - 12, ty, { align: 'right' });
     }
     y += boxH + 12;
 
@@ -513,38 +512,70 @@ window.VishPdf = (function () {
       filename: 'Vish-Bill-' + billNo + '.pdf',
       subtotal: subtotal,
       discount: discount,
-      packing: packing,
-      transport: transport,
+      packingTransport: packingTransport,
       payable: payable
     };
   }
 
-  /** Compact A5 packing slip — product + qty only */
+  /** A4 packing slip — name, address, product + qty */
   function downloadPackingSlipPdf(contact, lines, config, meta) {
     var jsPDF = getJsPdf();
-    var doc = new jsPDF({ unit: 'pt', format: 'a5' });
+    var doc = new jsPDF({ unit: 'pt', format: 'a4' });
     var pageWidth = doc.internal.pageSize.getWidth();
-    var margin = 28;
+    var margin = 40;
     var contentW = pageWidth - margin * 2;
-    var y = 36;
+    var y = 48;
     var billNo = (meta && meta.billNo) || makeBillNo();
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.setTextColor(COLORS.night[0], COLORS.night[1], COLORS.night[2]);
     doc.text(safeText(config.brandShort || config.brand), margin, y);
-    y += 16;
+    y += 18;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     doc.text('Packing slip  |  ' + billNo, margin, y);
+    y += 16;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Ship to', margin, y);
     y += 14;
-    if (contact && contact.name) {
-      doc.text(safeText(contact.name + (contact.phone ? ' · ' + contact.phone : '')), margin, y);
+    doc.setFillColor(255, 248, 242);
+    doc.roundedRect(margin, y, contentW, 88, 6, 6, 'F');
+    y += 16;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(COLORS.ink[0], COLORS.ink[1], COLORS.ink[2]);
+    doc.text(safeText((contact && contact.name) || '—'), margin + 12, y);
+    y += 14;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    if (contact && contact.phone) {
+      doc.text('Phone: ' + safeText(contact.phone), margin + 12, y);
       y += 12;
     }
-    y += 6;
+    var addrParts = [];
+    if (contact && contact.address) addrParts.push(String(contact.address).trim());
+    var place = [contact && contact.officeName, contact && contact.city, contact && contact.state, contact && contact.pincode]
+      .filter(Boolean)
+      .join(', ');
+    if (place) addrParts.push(place);
+    if (!addrParts.length) addrParts.push('Address to be confirmed');
+    addrParts.forEach(function (part) {
+      var wrapped = doc.splitTextToSize(safeText(part), contentW - 24);
+      doc.text(wrapped, margin + 12, y);
+      y += wrapped.length * 12;
+    });
+    y += 18;
+
     doc.setDrawColor(200, 180, 160);
     doc.line(margin, y, pageWidth - margin, y);
+    y += 16;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Items to pack', margin, y);
     y += 14;
 
     (lines || []).forEach(function (line, idx) {
@@ -553,26 +584,26 @@ window.VishPdf = (function () {
       var qty = Number(line.qty) || 1;
       var unit = String(line.unit || '').trim();
       var label = name + (unit ? ' (' + unit + ')' : '');
-      var wrapped = doc.splitTextToSize(label, contentW - 48);
-      var rowH = Math.max(wrapped.length * 11, 14) + 6;
-      if (y + rowH > 520) {
+      var wrapped = doc.splitTextToSize(label, contentW - 56);
+      var rowH = Math.max(wrapped.length * 12, 16) + 8;
+      if (y + rowH > 760) {
         doc.addPage();
-        y = 36;
+        y = 48;
       }
       if (idx % 2 === 1) {
         doc.setFillColor(250, 245, 238);
         doc.rect(margin, y - 4, contentW, rowH, 'F');
       }
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
+      doc.setFontSize(10);
       doc.setTextColor(30, 20, 16);
-      doc.text(wrapped, margin, y + 6);
+      doc.text(wrapped, margin + 4, y + 8);
       doc.setFont('helvetica', 'bold');
-      doc.text('×' + qty, pageWidth - margin, y + 6, { align: 'right' });
+      doc.text('×' + qty, pageWidth - margin - 4, y + 8, { align: 'right' });
       y += rowH;
     });
 
-    y += 16;
+    y += 20;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(120, 100, 90);
@@ -608,8 +639,7 @@ window.VishPdf = (function () {
       filename: built.filename,
       subtotal: built.subtotal,
       discount: built.discount,
-      packing: built.packing,
-      transport: built.transport,
+      packingTransport: built.packingTransport,
       payable: built.payable,
       url: pdfObjectUrl(built.doc)
     };

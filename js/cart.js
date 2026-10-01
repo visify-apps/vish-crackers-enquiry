@@ -164,8 +164,10 @@ window.VishCart = (function () {
    * Apply ?cart= share string using resolveProduct(id) → product object.
    * Returns { cart, added, skipped }.
    */
-  function applyShare(share, resolveProduct) {
-    const cart = getCart();
+  function applyShare(share, resolveProduct, options) {
+    options = options || {};
+    const replace = !!options.replace;
+    const cart = replace ? {} : getCart();
     let added = 0;
     let skipped = 0;
     String(share || '')
@@ -197,7 +199,7 @@ window.VishCart = (function () {
         }
         added++;
       });
-    return { cart: saveCart(cart), added: added, skipped: skipped };
+    return { cart: saveCart(cart), added: added, skipped: skipped, replaced: replace };
   }
 
   return {

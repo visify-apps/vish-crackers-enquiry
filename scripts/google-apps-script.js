@@ -17,8 +17,7 @@
  * 1. Set ENQUIRY_INGEST_KEY if not already set.
  * 2. Set BILL_PAGE_PASSWORD in Script properties (bill.html asks for this; not stored in site files).
  * 3. Deploy → Manage deployments → Edit → Version: New version → Deploy.
- * 4. Optional: run installDailySummaryTrigger() once for morning summary email.
- * 5. Test one enquiry from the website.
+ * 4. Test one enquiry from the website.
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -537,102 +536,6 @@ function parseIstDate_(dStr) {
   if (!m) return null;
   var d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
   return isNaN(d.getTime()) ? null : d;
-}
-
-/**
- * Time-driven: Apps Script → Triggers → sendDailySummary → Day timer 8am IST.
- * Or run installDailySummaryTrigger() once from the editor.
- */
-function sendDailySummary() {
-  var to = notifyEmail();
-  if (!to) return;
-  var today = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'dd/MM/yyyy');
-  var rows = listRecentEnquiries_(200);
-  var todayRows = [];
-  var unpaid = 0;
-  var sum = 0;
-  for (var i = 0; i < rows.length; i++) {
-    if (String(rows[i].date || '').trim() !== today) continue;
-    todayRows.push(rows[i]);
-    var t = Number(String(rows[i].totalPrice || '').replace(/[^\d.]/g, '')) || 0;
-    sum += t;
-    var pay = String(rows[i].paymentStatus || '').toLowerCase();
-    if (pay !== 'paid') unpaid++;
-  }
-  // Prefer full log scan for today's totals if list is capped
-  try {
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
-    if (sh) {
-      var meta = readEnquiryHeaderMap_(sh);
-      var lastRow = sh.getLastRow();
-      if (lastRow >= 2) {
-        todayRows = [];
-        unpaid = 0;
-        sum = 0;
-        var values = sh.getRange(2, 1, lastRow, Math.max(meta.colCount, 1)).getDisplayValues();
-        var dateCol = headerCol_(meta.map, ['Date']);
-        var totalCol = headerCol_(meta.map, ['Total Price', 'Total', 'Amount']);
-        var payCol = headerCol_(meta.map, ['Payment Status']);
-        var snoCol = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
-        var nameCol = headerCol_(meta.map, ['Name']);
-        for (var r = 0; r < values.length; r++) {
-          var row = values[r];
-          if (!dateCol || String(row[dateCol - 1] || '').trim() !== today) continue;
-          var total = totalCol ? Number(String(row[totalCol - 1] || '').replace(/[^\d.]/g, '')) || 0 : 0;
-          sum += total;
-          var pay = payCol ? String(row[payCol - 1] || '').toLowerCase() : '';
-          if (pay !== 'paid') unpaid++;
-          todayRows.push({
-            serialNo: snoCol ? String(row[snoCol - 1] || '').trim() : '',
-            name: nameCol ? String(row[nameCol - 1] || '').trim() : '',
-            totalPrice: total
-          });
-        }
-      }
-    }
-  } catch (err) {
-    Logger.log('sendDailySummary scan: ' + err);
-  }
-
-  var lines = [];
-  lines.push('Daily summary — ' + today);
-  lines.push('');
-  lines.push('Enquiries today___' + todayRows.length);
-  lines.push('Order value sum___₹' + Math.round(sum));
-  lines.push('Not fully paid___' + unpaid);
-  lines.push('');
-  if (!todayRows.length) {
-    lines.push('(no enquiries today)');
-  } else {
-    lines.push('LIST');
-    for (var j = 0; j < todayRows.length; j++) {
-      var e = todayRows[j];
-      lines.push(
-        '#' +
-          e.serialNo +
-          '___' +
-          (e.name || '-') +
-          '___₹' +
-          (e.totalPrice != null ? e.totalPrice : '')
-      );
-    }
-  }
-  MailApp.sendEmail({
-    to: to,
-    subject: 'VishCrackers daily — ' + today + ' (' + todayRows.length + ' enquiries)',
-    body: lines.join('\n')
-  });
-}
-
-function installDailySummaryTrigger() {
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() === 'sendDailySummary') {
-      ScriptApp.deleteTrigger(triggers[i]);
-    }
-  }
-  ScriptApp.newTrigger('sendDailySummary').timeBased().everyDays(1).atHour(8).create();
-  Logger.log('Installed daily summary trigger ~8:00 (script timezone)');
 }
 
 function doPost(e) {
