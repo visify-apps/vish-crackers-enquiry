@@ -631,11 +631,11 @@ window.VishApp = (function () {
     });
 
     bySection.forEach((sectionPacks, sectionName) => {
+      const isKids = /kids|colour|color|peace/i.test(sectionName);
       const block = document.createElement('section');
-      block.className = 'packs-section';
+      block.className = 'packs-section' + (isKids ? ' packs-section-kids' : ' packs-section-night');
       const heading = document.createElement('div');
       heading.className = 'packs-section-head';
-      const isKids = /kids|colour|color|peace/i.test(sectionName);
       heading.innerHTML =
         '<h2>' +
         escapeHtml(sectionName) +
@@ -654,9 +654,19 @@ window.VishApp = (function () {
 
       sectionPacks.forEach((pack) => {
         const { total, mrp, saved, lines } = packTotals(pack);
+        const theme = String(pack.theme || 'starter')
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, '');
         const card = document.createElement('article');
-        card.className = 'pack-card' + (isKids ? ' pack-card-kids' : '');
+        card.className =
+          'pack-card pack-theme-' + theme + (isKids ? ' pack-card-kids' : '');
+        card.dataset.theme = theme;
         card.innerHTML =
+          '<div class="pack-atmosphere" aria-hidden="true">' +
+          '<span class="pack-burst"></span>' +
+          '<span class="pack-sparks"></span>' +
+          '</div>' +
+          '<div class="pack-body">' +
           '<div class="pack-top">' +
           '<span class="pack-badge">' +
           escapeHtml(pack.badge || 'Combo') +
@@ -694,6 +704,7 @@ window.VishApp = (function () {
             : '') +
           '</div>' +
           '<button type="button" class="btn-add-pack">Add combo</button>' +
+          '</div>' +
           '</div>';
         card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
         grid.appendChild(card);

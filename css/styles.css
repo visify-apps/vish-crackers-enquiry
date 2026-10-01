@@ -1781,6 +1781,24 @@ a {
   gap: 28px;
 }
 
+.packs-section-night .packs-section-head h2 {
+  color: #f3e6d2;
+}
+
+.packs-section-kids {
+  padding: 14px 12px 4px;
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(255, 180, 200, 0.12), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 90% 10%, rgba(140, 220, 200, 0.1), transparent 50%),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 210, 180, 0.12);
+}
+
+.packs-section-kids .packs-section-head h2 {
+  color: #ffe4c8;
+}
+
 .packs-section-head {
   margin-bottom: 12px;
 }
@@ -1801,25 +1819,76 @@ a {
 
 .packs-section-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pack-card {
-  background: linear-gradient(180deg, #241614, #1a100e);
-  border: 1px solid var(--line-strong);
+  --pack-a: #3a2418;
+  --pack-b: #1a100e;
+  --pack-c: #0e0908;
+  --pack-accent: #f0c75e;
+  --pack-accent-soft: rgba(240, 199, 94, 0.35);
+  --pack-sky: rgba(255, 170, 80, 0.18);
+  --pack-spark: #ffe7a8;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--pack-accent) 35%, var(--line-strong));
   border-radius: 18px;
-  padding: 14px;
+  padding: 0;
   box-shadow: var(--shadow-sm);
+  background:
+    radial-gradient(ellipse 90% 70% at 85% -10%, var(--pack-sky), transparent 55%),
+    linear-gradient(165deg, var(--pack-a) 0%, var(--pack-b) 48%, var(--pack-c) 100%);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.pack-card-kids {
-  background: linear-gradient(165deg, #1f1a28 0%, #1a1218 55%, #1c1410 100%);
-  border-color: rgba(240, 180, 120, 0.35);
+.pack-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--pack-accent) 55%, white 10%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
-.pack-card-kids .pack-badge {
-  color: #ffd6a8;
-  border-color: rgba(240, 180, 120, 0.4);
+.pack-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pack-burst {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  top: -48px;
+  right: -28px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--pack-accent) 55%, transparent), transparent 68%);
+  opacity: 0.55;
+  filter: blur(2px);
+}
+
+.pack-sparks {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 28%, var(--pack-spark), transparent),
+    radial-gradient(1.5px 1.5px at 28% 14%, var(--pack-spark), transparent),
+    radial-gradient(1px 1px at 48% 22%, #fff6d8, transparent),
+    radial-gradient(1.5px 1.5px at 72% 18%, var(--pack-spark), transparent),
+    radial-gradient(1px 1px at 88% 36%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 64% 42%, var(--pack-spark), transparent),
+    radial-gradient(1px 1px at 18% 48%, #fff6d8, transparent);
+  background-repeat: no-repeat;
+  animation: pack-spark-drift 9s ease-in-out infinite alternate;
+}
+
+.pack-body {
+  position: relative;
+  z-index: 1;
+  padding: 14px;
 }
 
 .pack-badge {
@@ -1827,12 +1896,193 @@ a {
   min-height: 24px;
   padding: 0 9px;
   border-radius: 999px;
-  background: #0e0908;
-  color: #f0c75e;
+  background: rgba(8, 5, 4, 0.72);
+  color: var(--pack-accent);
   font-size: 0.72rem;
   font-weight: 700;
   align-items: center;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--pack-accent-soft);
+}
+
+.pack-card-kids .pack-items li {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Theme tokens */
+.pack-theme-starter {
+  --pack-a: #3b2416;
+  --pack-b: #1c110d;
+  --pack-c: #100a08;
+  --pack-accent: #e8b86a;
+  --pack-accent-soft: rgba(232, 184, 106, 0.4);
+  --pack-sky: rgba(255, 160, 70, 0.16);
+  --pack-spark: #ffd89a;
+}
+
+.pack-theme-vibe {
+  --pack-a: #4a1f18;
+  --pack-b: #24100e;
+  --pack-c: #120808;
+  --pack-accent: #ff8f5c;
+  --pack-accent-soft: rgba(255, 143, 92, 0.4);
+  --pack-sky: rgba(255, 90, 50, 0.2);
+  --pack-spark: #ffc29a;
+}
+
+.pack-theme-balcony {
+  --pack-a: #1c2438;
+  --pack-b: #121824;
+  --pack-c: #0a0d14;
+  --pack-accent: #9ec5ff;
+  --pack-accent-soft: rgba(158, 197, 255, 0.35);
+  --pack-sky: rgba(90, 140, 220, 0.22);
+  --pack-spark: #dce9ff;
+}
+
+.pack-theme-family {
+  --pack-a: #3a221c;
+  --pack-b: #1d1212;
+  --pack-c: #120c0c;
+  --pack-accent: #f0b7a0;
+  --pack-accent-soft: rgba(240, 183, 160, 0.4);
+  --pack-sky: rgba(255, 150, 130, 0.18);
+  --pack-spark: #ffe0d2;
+}
+
+.pack-theme-society {
+  --pack-a: #2e2414;
+  --pack-b: #18140c;
+  --pack-c: #0c0a06;
+  --pack-accent: #f2d06b;
+  --pack-accent-soft: rgba(242, 208, 107, 0.45);
+  --pack-sky: rgba(80, 200, 220, 0.14);
+  --pack-spark: #fff1b0;
+}
+
+.pack-theme-main {
+  --pack-a: #4a1814;
+  --pack-b: #1f0e0c;
+  --pack-c: #0e0706;
+  --pack-accent: #ffd166;
+  --pack-accent-soft: rgba(255, 209, 102, 0.5);
+  --pack-sky: rgba(255, 70, 50, 0.22);
+  --pack-spark: #ffe9a8;
+}
+
+.pack-theme-main .pack-burst {
+  width: 200px;
+  height: 200px;
+  opacity: 0.7;
+}
+
+.pack-theme-open {
+  --pack-a: #142033;
+  --pack-b: #0d1420;
+  --pack-c: #06080e;
+  --pack-accent: #f0c75e;
+  --pack-accent-soft: rgba(240, 199, 94, 0.45);
+  --pack-sky: rgba(60, 120, 220, 0.28);
+  --pack-spark: #fff4c2;
+}
+
+.pack-theme-open .pack-burst {
+  width: 220px;
+  height: 220px;
+  top: -70px;
+  right: 10%;
+  left: auto;
+}
+
+.pack-theme-finale {
+  --pack-a: #2a1a0c;
+  --pack-b: #120c08;
+  --pack-c: #050403;
+  --pack-accent: #ffc94a;
+  --pack-accent-soft: rgba(255, 201, 74, 0.55);
+  --pack-sky: rgba(255, 170, 40, 0.28);
+  --pack-spark: #fff0b8;
+}
+
+.pack-theme-finale .pack-sparks {
+  opacity: 0.85;
+  background-image:
+    radial-gradient(2px 2px at 10% 22%, var(--pack-spark), transparent),
+    radial-gradient(1.5px 1.5px at 24% 12%, #fff, transparent),
+    radial-gradient(2px 2px at 40% 18%, var(--pack-spark), transparent),
+    radial-gradient(1.5px 1.5px at 58% 10%, #fff6d8, transparent),
+    radial-gradient(2px 2px at 74% 16%, var(--pack-spark), transparent),
+    radial-gradient(1.5px 1.5px at 88% 28%, #fff, transparent),
+    radial-gradient(2px 2px at 66% 36%, var(--pack-spark), transparent),
+    radial-gradient(1.5px 1.5px at 32% 40%, #fff6d8, transparent),
+    radial-gradient(1.5px 1.5px at 50% 30%, #fff, transparent);
+}
+
+.pack-theme-toddler {
+  --pack-a: #2a2430;
+  --pack-b: #1a161e;
+  --pack-c: #121016;
+  --pack-accent: #ffc2d4;
+  --pack-accent-soft: rgba(255, 194, 212, 0.45);
+  --pack-sky: rgba(140, 230, 200, 0.2);
+  --pack-spark: #ffe0ea;
+}
+
+.pack-theme-colour {
+  --pack-a: #2c1f28;
+  --pack-b: #1a1218;
+  --pack-c: #100e12;
+  --pack-accent: #ffb38a;
+  --pack-accent-soft: rgba(255, 179, 138, 0.45);
+  --pack-sky: rgba(255, 120, 160, 0.18);
+  --pack-spark: #ffe0c8;
+}
+
+.pack-theme-colour {
+  background:
+    radial-gradient(ellipse 50% 40% at 15% 0%, rgba(255, 120, 160, 0.22), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 85% 10%, rgba(120, 210, 140, 0.16), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 55% 0%, rgba(255, 170, 80, 0.14), transparent 50%),
+    linear-gradient(165deg, var(--pack-a) 0%, var(--pack-b) 48%, var(--pack-c) 100%);
+}
+
+.pack-theme-kids-stage {
+  --pack-a: #241e32;
+  --pack-b: #16141f;
+  --pack-c: #100e16;
+  --pack-accent: #7fd6c2;
+  --pack-accent-soft: rgba(127, 214, 194, 0.45);
+  --pack-sky: rgba(255, 150, 200, 0.18);
+  --pack-spark: #d8fff4;
+}
+
+.pack-theme-peace {
+  --pack-a: #22262c;
+  --pack-b: #15181c;
+  --pack-c: #0e1012;
+  --pack-accent: #c9d4ff;
+  --pack-accent-soft: rgba(201, 212, 255, 0.4);
+  --pack-sky: rgba(160, 220, 200, 0.16);
+  --pack-spark: #e8eeff;
+}
+
+@keyframes pack-spark-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.45;
+  }
+  to {
+    transform: translate3d(-6px, 8px, 0);
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-sparks {
+    animation: none;
+  }
+  .pack-card:hover {
+    transform: none;
+  }
 }
 
 .pack-top h3 {

@@ -5,6 +5,7 @@ window.PACKS_DATA = [
   /* ========== FULL NIGHT MIX (every type, scaled by budget) ========== */
   {
     id: 'one-tap-starter',
+    theme: 'starter',
     section: 'Full Night Mix',
     name: 'One-Tap Starter',
     tagline: 'Tiny full night — sound, bijili, sparkler, ground, night & mini sky',
@@ -24,6 +25,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'whole-vibe-pack',
+    theme: 'vibe',
     section: 'Full Night Mix',
     name: 'Whole Vibe Pack',
     tagline: 'Same full mix, thicker — adds kids soft + colour pots',
@@ -48,6 +50,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'balcony-full-night',
+    theme: 'balcony',
     section: 'Full Night Mix',
     name: 'Balcony Full Night',
     tagline: 'Apartment-friendly full mix across 7+ firework types',
@@ -72,6 +75,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'family-full-night',
+    theme: 'family',
     section: 'Full Night Mix',
     name: 'Family Full Night',
     tagline: 'Full mix tilted for family — more soft night & kids, still covers every type',
@@ -100,6 +104,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'society-special',
+    theme: 'society',
     section: 'Full Night Mix',
     name: 'Society Special',
     tagline: 'Full mix + mid wala + fancy pipe + colour smoke — society show energy',
@@ -124,6 +129,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'main-character-night',
+    theme: 'main',
     section: 'Full Night Mix',
     name: 'Main Character Night',
     tagline: 'Full mix with peacock, elite fancy & 30-shots finale energy',
@@ -148,6 +154,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'open-ground-drop',
+    theme: 'open',
     section: 'Full Night Mix',
     name: 'Open Ground Drop',
     tagline: 'Full mix + mega fancy + 120 shots — for open yards only',
@@ -170,6 +177,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'season-finale',
+    theme: 'finale',
     section: 'Full Night Mix',
     name: 'Season Finale',
     tagline: 'Everything bag — setout + 120 shots + 5000 wala + gift box',
@@ -192,6 +200,7 @@ window.PACKS_DATA = [
   /* ========== KIDS & COLOUR — parent peace, no bombs / no heavy sound ========== */
   {
     id: 'toddler-glow-kit',
+    theme: 'toddler',
     section: 'Kids & Colour (Parent Peace)',
     name: 'Toddler Glow Kit',
     tagline: 'Sparklers + soft night + snake + colour matches — zero bombs, zero scare',
@@ -211,6 +220,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'colour-soft-show',
+    theme: 'colour',
     section: 'Kids & Colour (Parent Peace)',
     name: 'Colour Soft Show',
     tagline: 'Pink/orange/green glow night parents can light while kids watch close',
@@ -234,6 +244,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'kids-main-stage',
+    theme: 'kids-stage',
     section: 'Kids & Colour (Parent Peace)',
     name: 'Kids Main Stage',
     tagline: 'Touchable + peacock + kids heroes + soft sky — showcase night, no bombs',
@@ -258,6 +269,7 @@ window.PACKS_DATA = [
   },
   {
     id: 'parent-peace-pack',
+    theme: 'peace',
     section: 'Kids & Colour (Parent Peace)',
     name: 'Parent Peace Pack',
     tagline: 'Biggest fear-free colour night — sparklers, smoke, touchable, peacock, soft sky',
