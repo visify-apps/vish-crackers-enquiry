@@ -8,16 +8,22 @@
  * 4. Optional: Script property NOTIFY_EMAIL (defaults to visifyapps@gmail.com).
  * 5. Never returns Enquiries rows.
  *
+ * SHEET UI:
+ * Keep your formatted Enquiries Google Table as-is (dropdowns / colors).
+ * This script only APPENDS values by matching header names — it does not
+ * recreate the tab or change data validations.
+ *
  * After pasting:
- * 1. Run migrateEnquiriesSheet() once (wipes old Enquiries data + new headers/dropdowns).
- * 2. Set ENQUIRY_INGEST_KEY if not already set.
- * 3. Run testNotifyEmail() once and Allow (Gmail) if needed.
- * 4. Run flushEnquiryMailQueue() once and Allow if asked (triggers).
- * 5. Deploy → Manage deployments → Edit → Version: New version → Deploy.
+ * 1. Set ENQUIRY_INGEST_KEY if not already set.
+ * 2. Set BILL_PAGE_PASSWORD in Script properties (bill.html asks for this; not stored in site files).
+ * 3. Deploy → Manage deployments → Edit → Version: New version → Deploy.
+ * 4. Test one enquiry from the website.
  */
 
 var PRODUCTS_SHEET = 'Products';
 var ENQUIRIES_SHEET = 'Enquiries';
+/** Plain backup tab — always writable even when Enquiries is a Google Table */
+var ENQUIRY_LOG_SHEET = 'Enquiry_Log';
 var MAX_CART_ITEMS = 120;
 var MAX_BODY_CHARS = 80000;
 var RATE_LIMIT_PER_PHONE = 25;
@@ -35,9 +41,8 @@ var ORDER_STATUSES = [
 ];
 var PAYMENT_STATUSES = ['Paid', 'Partially Paid', 'Pending'];
 
-/** Column titles — keep Capitalized */
-var ENQUIRY_HEADERS = [
-  'S.No',
+var LOG_HEADERS = [
+  'Sl.No',
   'Date',
   'Time',
   'Name',
@@ -75,7 +80,7 @@ function setupSheet() {
     ]);
   }
 
-  ensureEnquiriesSheet_();
+  ensureEnquiryLogSheet_();
 
   var sheet1 = ss.getSheetByName('Sheet1');
   if (sheet1 && ss.getSheets().length > 1) {
@@ -83,53 +88,146 @@ function setupSheet() {
   }
 }
 
-/**
- * ONE-TIME: clears old Enquiries rows and installs the new header layout + dropdowns.
- * Products sheet is not touched.
- */
-function migrateEnquiriesSheet() {
+function ensureEnquiryLogSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(ENQUIRIES_SHEET);
+  var sheet = ss.getSheetByName(ENQUIRY_LOG_SHEET);
   if (!sheet) {
-    sheet = ss.insertSheet(ENQUIRIES_SHEET);
-  }
-  sheet.clear();
-  sheet.clearDataValidations();
-  sheet.appendRow(ENQUIRY_HEADERS);
-  sheet.setFrozenRows(1);
-  applyEnquiryValidations_(sheet);
-  sheet.autoResizeColumns(1, ENQUIRY_HEADERS.length);
-  Logger.log('Enquiries sheet migrated. Old enquiry rows were deleted.');
-}
-
-function ensureEnquiriesSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(ENQUIRIES_SHEET);
-  if (!sheet) {
-    sheet = ss.insertSheet(ENQUIRIES_SHEET);
-    sheet.appendRow(ENQUIRY_HEADERS);
+    sheet = ss.insertSheet(ENQUIRY_LOG_SHEET);
+    sheet.appendRow(LOG_HEADERS);
     sheet.setFrozenRows(1);
-    applyEnquiryValidations_(sheet);
-    return sheet;
+  } else if (sheet.getLastRow() === 0) {
+    sheet.appendRow(LOG_HEADERS);
+    sheet.setFrozenRows(1);
   }
-  var first = sheet.getRange(1, 1, 1, ENQUIRY_HEADERS.length).getValues()[0];
-  if (String(first[0]).trim() !== 'S.No') {
-    // Old layout still present — force migrate once so new writes do not corrupt columns
-    migrateEnquiriesSheet();
-    return ss.getSheetByName(ENQUIRIES_SHEET);
-  }
-  applyEnquiryValidations_(sheet);
   return sheet;
 }
 
-function applyEnquiryValidations_(sheet) {
-  var last = Math.max(sheet.getMaxRows(), 500);
-  sheet.getRange(2, 13, last - 1, 1).setDataValidation(
-    SpreadsheetApp.newDataValidation().requireValueInList(ORDER_STATUSES, true).setAllowInvalid(false).build()
-  );
-  sheet.getRange(2, 14, last - 1, 1).setDataValidation(
-    SpreadsheetApp.newDataValidation().requireValueInList(PAYMENT_STATUSES, true).setAllowInvalid(false).build()
-  );
+/** Read header row → { normalizedName: columnIndex1Based } */
+function readEnquiryHeaderMap_(sheet) {
+  var headers = sheet.getRange(1, 1, 1, 20).getDisplayValues()[0];
+  var map = {};
+  var colCount = 0;
+  for (var c = 0; c < headers.length; c++) {
+    var raw = String(headers[c] || '').trim();
+    if (raw) colCount = c + 1;
+    var key = normalizeHeader_(raw);
+    if (key && map[key] == null) map[key] = c + 1;
+  }
+  if (colCount < 1) colCount = LOG_HEADERS.length;
+  return { map: map, colCount: colCount, headers: headers };
+}
+
+function normalizeHeader_(h) {
+  return String(h || '')
+    .replace(/\u00a0/g, ' ')
+    .trim()
+    .toLowerCase()
+    .replace(/[._]/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function headerCol_(map, names) {
+  for (var i = 0; i < names.length; i++) {
+    var key = normalizeHeader_(names[i]);
+    if (map[key] != null) return map[key];
+  }
+  return 0;
+}
+
+function rowFromHeaderMap_(map, colCount, fields) {
+  var valuesByCol = {};
+  function put(names, value) {
+    var col = headerCol_(map, names);
+    if (col) valuesByCol[col] = value;
+  }
+
+  put(['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno'], fields.serialNo);
+  put(['Date'], fields.date);
+  put(['Time'], fields.time);
+  put(['Name'], fields.name);
+  put(['Phone'], fields.phone);
+  put(['Area', 'Office', 'Office Name'], fields.area);
+  put(['City'], fields.city);
+  put(['State'], fields.state);
+  put(['Pincode', 'Pin code', 'Pin'], fields.pincode);
+  put(['Items'], fields.items);
+  put(['Total Price', 'Total', 'Amount'], fields.totalPrice);
+  put(['Address'], fields.address);
+  put(['Order Status'], fields.orderStatus);
+  put(['Payment Status'], fields.paymentStatus);
+  put(['Paid Amount', 'Paid'], fields.paidAmount);
+  put(['WhatsApp', 'Whatsapp', 'WA'], fields.whatsapp);
+  put(['Items Json', 'ItemsJSON', 'Cart Json', 'Cart'], fields.itemsJson);
+  put(['Submission Id', 'SubmissionID', 'Ref'], fields.submissionId);
+
+  var row = [];
+  for (var c = 1; c <= colCount; c++) {
+    row.push(valuesByCol[c] != null ? valuesByCol[c] : '');
+  }
+  return row;
+}
+
+function nextSerialNumber_() {
+  var props = PropertiesService.getScriptProperties();
+  var fromProp = Number(props.getProperty('ENQUIRY_NEXT_SNO') || '0');
+  var fromSheets = 0;
+
+  function scanSheet(name) {
+    try {
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+      if (!sh) return;
+      var meta = readEnquiryHeaderMap_(sh);
+      var col = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']) || 1;
+      var values = sh.getRange(2, col, 1000, col).getValues();
+      for (var i = 0; i < values.length; i++) {
+        var n = Number(values[i][0]);
+        if (!isNaN(n) && n > fromSheets) fromSheets = n;
+      }
+    } catch (e) {
+      Logger.log('serial scan ' + name + ': ' + e);
+    }
+  }
+
+  scanSheet(ENQUIRIES_SHEET);
+  scanSheet(ENQUIRY_LOG_SHEET);
+
+  var next = Math.max(fromProp, fromSheets) + 1;
+  if (next < 1) next = 1;
+  return next;
+}
+
+function rememberSerial_(serialNo) {
+  PropertiesService.getScriptProperties().setProperty('ENQUIRY_NEXT_SNO', String(serialNo));
+}
+
+/**
+ * 1) Always write plain Enquiry_Log (reliable)
+ * 2) Also try Enquiries Table via appendRow (keeps pretty UI in sync)
+ */
+function saveEnquiryRows_(fields) {
+  var serialNo = nextSerialNumber_();
+  fields.serialNo = serialNo;
+
+  var logSheet = ensureEnquiryLogSheet_();
+  var logMeta = readEnquiryHeaderMap_(logSheet);
+  var logRow = rowFromHeaderMap_(logMeta.map, Math.max(logMeta.colCount, LOG_HEADERS.length), fields);
+  logSheet.appendRow(logRow);
+
+  var uiOk = false;
+  try {
+    var uiSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+    if (uiSheet) {
+      var uiMeta = readEnquiryHeaderMap_(uiSheet);
+      var uiRow = rowFromHeaderMap_(uiMeta.map, uiMeta.colCount, fields);
+      uiSheet.appendRow(uiRow);
+      uiOk = true;
+    }
+  } catch (e) {
+    Logger.log('Enquiries Table append failed (log still saved): ' + e);
+  }
+
+  rememberSerial_(serialNo);
+  return { serialNo: serialNo, uiOk: uiOk };
 }
 
 function doGet(e) {
@@ -138,6 +236,95 @@ function doGet(e) {
     return jsonOutput({ status: 'ok', products: readProducts() });
   }
   return jsonOutput({ status: 'ok' });
+}
+
+function billPasswordOk_(password) {
+  var expected = PropertiesService.getScriptProperties().getProperty('BILL_PAGE_PASSWORD');
+  if (!expected) return false;
+  return String(password || '') === String(expected);
+}
+
+function snoEquals_(cell, want) {
+  var a = String(cell == null ? '' : cell).trim();
+  var b = String(want == null ? '' : want).trim();
+  if (!a || !b) return false;
+  if (a === b) return true;
+  var na = Number(a);
+  var nb = Number(b);
+  return !isNaN(na) && !isNaN(nb) && na === nb;
+}
+
+/**
+ * Find enquiry by S.No.
+ * Prefer Enquiry_Log (plain sheet + Items Json). Enquiries Table can throw on
+ * large getRange — always catch so Log still works.
+ */
+function findEnquiryBySno_(sno) {
+  var want = String(sno || '').trim();
+  if (!want) return null;
+
+  function scan(sheetName) {
+    try {
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+      if (!sh) return null;
+      var meta = readEnquiryHeaderMap_(sh);
+      var snoCol = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
+      if (!snoCol) return null;
+
+      var lastRow = sh.getLastRow();
+      if (lastRow < 2) lastRow = 500; // Tables sometimes report lastRow=1 wrongly
+      lastRow = Math.min(Math.max(lastRow, 2), 2000);
+
+      // Fast path: only S.No column, then load the matching row
+      var snoVals = sh.getRange(2, snoCol, lastRow, snoCol).getDisplayValues();
+      var matchAt = -1;
+      for (var r = 0; r < snoVals.length; r++) {
+        if (snoEquals_(snoVals[r][0], want)) {
+          matchAt = r;
+          break;
+        }
+      }
+      if (matchAt < 0) return null;
+
+      var rowIndex = matchAt + 2;
+      var colCount = Math.max(meta.colCount, 1);
+      var row = sh.getRange(rowIndex, 1, rowIndex, colCount).getDisplayValues()[0];
+
+      function cell(names) {
+        var c = headerCol_(meta.map, names);
+        return c ? String(row[c - 1] || '').trim() : '';
+      }
+      var itemsJson = cell(['Items Json', 'ItemsJSON', 'Cart Json', 'Cart']);
+      var cart = {};
+      try {
+        cart = itemsJson ? JSON.parse(itemsJson) : {};
+      } catch (parseErr) {
+        cart = {};
+      }
+      return {
+        serialNo: want,
+        name: cell(['Name']),
+        phone: cell(['Phone']),
+        area: cell(['Area', 'Office', 'Office Name']),
+        city: cell(['City']),
+        state: cell(['State']),
+        pincode: cell(['Pincode', 'Pin code', 'Pin']),
+        address: cell(['Address']),
+        itemsSummary: cell(['Items']),
+        totalPrice: cell(['Total Price', 'Total', 'Amount']),
+        orderStatus: cell(['Order Status']),
+        paymentStatus: cell(['Payment Status']),
+        cart: cart,
+        source: sheetName
+      };
+    } catch (err) {
+      Logger.log('findEnquiry scan ' + sheetName + ': ' + err);
+      return null;
+    }
+  }
+
+  // Log first (reliable + has Items Json), then pretty Enquiries table
+  return scan(ENQUIRY_LOG_SHEET) || scan(ENQUIRIES_SHEET);
 }
 
 function doPost(e) {
@@ -151,7 +338,28 @@ function doPost(e) {
 
     var data = JSON.parse(e.postData.contents);
 
-    // Honeypot — only reject clear bot fills (URL-like). Autofill of "website" must not drop real orders.
+    // Bill desk — handle before any sheet / lock work
+    if (data.action === 'checkBillPassword') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      return jsonOutput({ status: 'ok' });
+    }
+
+    if (data.action === 'getEnquiry') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      var found = findEnquiryBySno_(data.sno);
+      if (!found) {
+        return jsonOutput({ status: 'error', message: 'Enquiry not found' });
+      }
+      return jsonOutput({ status: 'ok', enquiry: found });
+    }
+
+
+
+
     var honeypot = String(data.website || data.company || data.url || '').trim();
     if (honeypot && /https?:\/\//i.test(honeypot)) {
       return jsonOutput({ status: 'ok' });
@@ -187,43 +395,37 @@ function doPost(e) {
         return jsonOutput({ status: 'error', message: priced.error });
       }
 
-      var sheet = ensureEnquiriesSheet_();
-      var serialNo = nextSerialNumber_(sheet);
       var when = istParts_(data.submittedAt);
-      var itemsSummary = itemsSummaryText_(priced);
-      var waLink = 'https://wa.me/91' + contact.phone;
-
-      sheet.appendRow([
-        serialNo,
-        when.date,
-        when.time,
-        contact.name,
-        contact.phone,
-        contact.officeName || '',
-        contact.city || '',
-        contact.state || '',
-        contact.pincode,
-        itemsSummary,
-        priced.total,
-        '', // Address — filled manually later
-        'UnderEnquiry',
-        'Pending',
-        '', // Paid Amount
-        waLink,
-        JSON.stringify(priced.cart),
-        submissionId
-      ]);
+      var saved = saveEnquiryRows_({
+        date: when.date,
+        time: when.time,
+        name: contact.name,
+        phone: contact.phone,
+        area: contact.officeName || '',
+        city: contact.city || '',
+        state: contact.state || '',
+        pincode: contact.pincode,
+        items: itemsSummaryText_(priced),
+        totalPrice: priced.total,
+        address: '',
+        orderStatus: 'UnderEnquiry',
+        paymentStatus: 'Pending',
+        paidAmount: '',
+        whatsapp: 'https://wa.me/91' + contact.phone,
+        itemsJson: JSON.stringify(priced.cart),
+        submissionId: submissionId
+      });
 
       if (submissionId) markSubmission(submissionId);
       rateLimitBump(contact.phone);
       SpreadsheetApp.flush();
 
       try {
-        queueEnquiryEmail(contact, priced, submissionId, serialNo);
+        queueEnquiryEmail(contact, priced, submissionId, saved.serialNo);
       } catch (mailErr) {
         Logger.log('Enquiry mail queue failed: ' + mailErr);
         try {
-          sendEnquiryEmail(contact, priced, submissionId, serialNo);
+          sendEnquiryEmail(contact, priced, submissionId, saved.serialNo);
         } catch (inlineErr) {
           Logger.log('Inline enquiry mail failed: ' + inlineErr);
         }
@@ -233,37 +435,26 @@ function doPost(e) {
         status: 'ok',
         total: priced.total,
         saved: priced.saved,
-        serialNo: serialNo
+        serialNo: saved.serialNo,
+        uiSynced: !!saved.uiOk
       });
     } finally {
       lock.releaseLock();
     }
   } catch (err) {
-    return jsonOutput({ status: 'error', message: 'Rejected' });
+    Logger.log('doPost failed: ' + err);
+    var msg = String((err && err.message) || err || 'Rejected').slice(0, 160);
+    return jsonOutput({ status: 'error', message: msg });
   }
-}
-
-function nextSerialNumber_(sheet) {
-  var last = sheet.getLastRow();
-  if (last < 2) return 1;
-  var values = sheet.getRange(2, 1, last - 1, 1).getValues();
-  var max = 0;
-  for (var i = 0; i < values.length; i++) {
-    var n = Number(values[i][0]);
-    if (!isNaN(n) && n > max) max = n;
-  }
-  return max + 1;
 }
 
 /** India time parts for sheet Date / Time columns */
 function istParts_(submittedAt) {
   var d = submittedAt ? new Date(submittedAt) : new Date();
   if (isNaN(d.getTime())) d = new Date();
-  var fmt = Session.getScriptTimeZone() || 'Asia/Kolkata';
-  // Force IST display even if script timezone differs
   var date = Utilities.formatDate(d, 'Asia/Kolkata', 'dd/MM/yyyy');
   var time = Utilities.formatDate(d, 'Asia/Kolkata', 'HH:mm');
-  return { date: date, time: time, tz: fmt };
+  return { date: date, time: time };
 }
 
 function itemsSummaryText_(priced) {
@@ -295,7 +486,7 @@ function queueEnquiryEmail(contact, priced, submissionId, serialNo) {
       saved: priced.saved
     },
     submissionId: submissionId || '',
-    serialNo: serialNo
+    serialNo: serialNo,
   };
 
   var props = PropertiesService.getScriptProperties();
@@ -530,15 +721,20 @@ function onEdit(e) {
     var sheet = e.range.getSheet();
     if (sheet.getName() !== ENQUIRIES_SHEET) return;
     if (e.range.getRow() < 2) return;
-    if (e.range.getColumn() !== 14) return; // Payment Status
+
+    var meta = readEnquiryHeaderMap_(sheet);
+    var payCol = headerCol_(meta.map, ['Payment Status']);
+    var totalCol = headerCol_(meta.map, ['Total Price', 'Total', 'Amount']);
+    var paidCol = headerCol_(meta.map, ['Paid Amount', 'Paid']);
+    if (!payCol || e.range.getColumn() !== payCol) return;
 
     var value = String(e.value || '').trim();
     if (value !== 'Paid') return;
+    if (!totalCol || !paidCol) return;
 
     var row = e.range.getRow();
-    var totalPrice = sheet.getRange(row, 11).getValue(); // Total Price
-    var paidCell = sheet.getRange(row, 15); // Paid Amount
-    paidCell.setValue(totalPrice);
+    var totalPrice = sheet.getRange(row, totalCol).getValue();
+    sheet.getRange(row, paidCol).setValue(totalPrice);
   } catch (err) {
     Logger.log('onEdit paid fill failed: ' + err);
   }

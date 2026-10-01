@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /bill.html
 
 Sitemap: https://vishcrackers.online/sitemap.xml

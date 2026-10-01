@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Bill desk | Vish Fireworks Store</title>
+  <meta name="theme-color" content="#140c0a" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css?v=ux3" />
+  <link rel="stylesheet" href="css/bill.css?v=2" />
+</head>
+<body class="bill-page">
+  <div class="festive-bg" aria-hidden="true"></div>
+
+  <main class="bill-shell">
+    <section class="bill-gate" id="bill-gate">
+      <h1>Private bill desk</h1>
+      <p>Proforma / order confirmation after negotiation. Not linked from the public site.</p>
+      <div class="bill-field">
+        <label for="bill-password">Password</label>
+        <input id="bill-password" type="password" autocomplete="current-password" />
+      </div>
+      <div class="bill-actions">
+        <button type="button" class="btn-primary" id="bill-unlock">Unlock</button>
+      </div>
+      <p class="bill-msg" id="gate-msg" role="status"></p>
+    </section>
+
+    <section class="bill-desk" id="bill-desk" hidden>
+      <h1>Create bill PDF</h1>
+      <p class="bill-hint">Load an enquiry by S.No, edit products/prices, optional discount, preview PDF, then download.</p>
+
+      <div class="bill-toolbar">
+        <div class="bill-field">
+          <label for="load-sno">Enquiry S.No</label>
+          <input id="load-sno" inputmode="numeric" placeholder="e.g. 1" />
+        </div>
+        <div class="bill-actions">
+          <button type="button" class="btn-secondary" id="btn-load">Load enquiry</button>
+          <button type="button" class="btn-secondary" id="btn-lock">Lock</button>
+        </div>
+      </div>
+      <p class="bill-msg" id="desk-msg" role="status"></p>
+
+      <div class="bill-meta-row">
+        <span>Bill No: <strong id="bill-no-preview">—</strong></span>
+        <span>Enquiry #: <strong id="enquiry-sno-label">—</strong></span>
+      </div>
+
+      <div class="bill-grid">
+        <div class="bill-field">
+          <label for="c-name">Customer name</label>
+          <input id="c-name" />
+        </div>
+        <div class="bill-field">
+          <label for="c-phone">Phone</label>
+          <input id="c-phone" inputmode="tel" />
+        </div>
+        <div class="bill-field">
+          <label for="c-pincode">Pincode</label>
+          <input id="c-pincode" inputmode="numeric" maxlength="6" />
+        </div>
+        <div class="bill-field">
+          <label for="c-area">Area / hub</label>
+          <input id="c-area" />
+        </div>
+        <div class="bill-field">
+          <label for="c-city">City</label>
+          <input id="c-city" />
+        </div>
+        <div class="bill-field">
+          <label for="c-state">State</label>
+          <input id="c-state" />
+        </div>
+      </div>
+
+      <div class="bill-field">
+        <label for="c-address">Address (optional)</label>
+        <textarea id="c-address" placeholder="Filled after customer shares full address"></textarea>
+      </div>
+      <div class="bill-field">
+        <label for="c-notes">Extra note on PDF (optional)</label>
+        <textarea id="c-notes" placeholder="e.g. Special Diwali offer applied"></textarea>
+      </div>
+      <div class="bill-field">
+        <label for="c-discount">Discount amount (optional)</label>
+        <input id="c-discount" type="number" min="0" step="1" placeholder="0" value="" />
+      </div>
+
+      <div class="bill-lines">
+        <table class="bill-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="col-unit">Unit</th>
+              <th class="col-qty">Qty</th>
+              <th class="col-rate">Rate</th>
+              <th class="col-amt">Amount</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="bill-lines-body"></tbody>
+        </table>
+      </div>
+
+      <div class="bill-actions">
+        <button type="button" class="btn-secondary" id="btn-add-line">Add line</button>
+      </div>
+
+      <div class="bill-summary">
+        <div class="bill-summary-row">
+          <span>Subtotal</span>
+          <span id="bill-subtotal">₹0</span>
+        </div>
+        <div class="bill-summary-row is-discount">
+          <span>Discount</span>
+          <span id="bill-discount-label">− ₹0</span>
+        </div>
+        <div class="bill-total">
+          <span>Amount payable</span>
+          <span id="bill-total">₹0</span>
+        </div>
+      </div>
+
+      <div class="bill-actions">
+        <button type="button" class="btn-primary" id="btn-preview">Preview PDF</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="pdf-viewer" id="bill-pdf-viewer" hidden>
+    <div class="pdf-viewer-backdrop" id="bill-pdf-backdrop"></div>
+    <div class="pdf-viewer-panel" role="dialog" aria-modal="true" aria-labelledby="bill-pdf-title">
+      <div class="pdf-viewer-head">
+        <div>
+          <p class="pdf-viewer-kicker">Proforma preview</p>
+          <h2 id="bill-pdf-title">Bill PDF</h2>
+        </div>
+        <div class="pdf-viewer-actions">
+          <button type="button" class="btn-pdf-optional" id="bill-pdf-download">Download</button>
+          <button type="button" class="nav-icon-btn" id="bill-pdf-close" aria-label="Close preview">×</button>
+        </div>
+      </div>
+      <p class="pdf-viewer-hint">Check the bill below. On some phones, use Download if preview is blank.</p>
+      <iframe id="bill-pdf-frame" title="Bill PDF preview"></iframe>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
+  <script src="js/config.js?v=bill2" defer></script>
+  <script src="js/pdf.js?v=bill4" defer></script>
+  <script src="js/bill.js?v=bill4" defer></script>
+</body>
+</html>
