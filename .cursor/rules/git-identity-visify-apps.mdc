@@ -1,0 +1,26 @@
+---
+description: Enforce visify-apps as the only allowed git author/committer
+alwaysApply: true
+---
+
+# Git identity — visify-apps only
+
+For this repository (and any Visify Apps work):
+
+- **Author name:** `visify-apps`
+- **Author email:** `visifyapps@gmail.com`
+- **GitHub account:** `visify-apps`
+
+Never commit or push as any other name or email (including personal accounts, Cursor agent defaults, or company emails).
+
+When creating commits, set identity via environment variables for that command only (do **not** change global/local `git config` unless the user explicitly asks):
+
+```bash
+GIT_AUTHOR_NAME="visify-apps" \
+GIT_AUTHOR_EMAIL="visifyapps@gmail.com" \
+GIT_COMMITTER_NAME="visify-apps" \
+GIT_COMMITTER_EMAIL="visifyapps@gmail.com" \
+git commit ...
+```
+
+If a commit was created with the wrong identity, rewrite/amend it to `visify-apps <visifyapps@gmail.com>` before pushing.

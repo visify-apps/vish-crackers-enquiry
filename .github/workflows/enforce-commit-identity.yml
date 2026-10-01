@@ -1,0 +1,54 @@
+name: Enforce commit identity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  author-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require visify-apps / visifyapps@gmail.com on all commits
+        env:
+          ALLOWED_NAME: visify-apps
+          ALLOWED_EMAIL: visifyapps@gmail.com
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            RANGE="origin/${{ github.base_ref }}...HEAD"
+          else
+            BEFORE="${{ github.event.before }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              RANGE="HEAD"
+            else
+              RANGE="${BEFORE}..HEAD"
+            fi
+          fi
+
+          echo "Checking commits in range: $RANGE"
+          bad=0
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            echo "FAIL: $line"
+            bad=1
+          done < <(
+            git log --format='%H|%an|%ae|%cn|%ce|%s' $RANGE | while IFS='|' read -r hash an ae cn ce subj; do
+              if [ "$an" != "$ALLOWED_NAME" ] || [ "$ae" != "$ALLOWED_EMAIL" ] || \
+                 [ "$cn" != "$ALLOWED_NAME" ] || [ "$ce" != "$ALLOWED_EMAIL" ]; then
+                echo "$hash author=$an <$ae> committer=$cn <$ce> :: $subj"
+              fi
+            done
+          )
+
+          if [ "$bad" -ne 0 ]; then
+            echo "::error::Only visify-apps <visifyapps@gmail.com> is allowed as author and committer."
+            exit 1
+          fi
+          echo "All commits use visify-apps <visifyapps@gmail.com>."

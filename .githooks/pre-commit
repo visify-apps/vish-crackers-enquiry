@@ -1,0 +1,22 @@
+#!/bin/sh
+# Reject commits not authored as visify-apps <visifyapps@gmail.com>
+ALLOWED_NAME="visify-apps"
+ALLOWED_EMAIL="visifyapps@gmail.com"
+
+NAME=$(git config user.name 2>/dev/null || true)
+EMAIL=$(git config user.email 2>/dev/null || true)
+
+# Prefer env overrides used by agents/scripts
+if [ -n "${GIT_AUTHOR_NAME:-}" ]; then NAME="$GIT_AUTHOR_NAME"; fi
+if [ -n "${GIT_AUTHOR_EMAIL:-}" ]; then EMAIL="$GIT_AUTHOR_EMAIL"; fi
+
+if [ "$NAME" != "$ALLOWED_NAME" ] || [ "$EMAIL" != "$ALLOWED_EMAIL" ]; then
+  echo "ERROR: Commits must use:"
+  echo "  user.name  = $ALLOWED_NAME"
+  echo "  user.email = $ALLOWED_EMAIL"
+  echo "Current: name='$NAME' email='$EMAIL'"
+  echo "Tip: GIT_AUTHOR_NAME=$ALLOWED_NAME GIT_AUTHOR_EMAIL=$ALLOWED_EMAIL git commit ..."
+  exit 1
+fi
+
+exit 0
