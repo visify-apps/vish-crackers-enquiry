@@ -1399,10 +1399,14 @@ window.VishApp = (function () {
     if (!url) return;
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4000);
+    // Apps Script cold starts often exceed 4s on live; keep waiting longer than local.
+    const timer = setTimeout(() => controller.abort(), 25000);
 
     try {
-      const res = await fetch(url + '?action=products', { signal: controller.signal });
+      const res = await fetch(url + '?action=products&_=' + Date.now(), {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
       const data = await res.json();
       if (data && Array.isArray(data.products) && data.products.length) {
         productsData = data.products;
