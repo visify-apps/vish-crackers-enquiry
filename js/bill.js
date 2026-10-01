@@ -4,9 +4,12 @@
   var SESSION_PW = 'vish_bill_pw_v1';
   var lines = [];
   var enquirySno = '';
+  var enquiryStatus = '';
   var billPreviewUrl = '';
   var billPreviewFilename = '';
   var billPreviewMeta = null;
+  var lastPayable = 0;
+  var warmTimer = null;
 
   function cfg() {
     return window.SITE_CONFIG || {};
@@ -47,6 +50,24 @@
   function showDesk(show) {
     $('bill-gate').hidden = !!show;
     $('bill-desk').hidden = !show;
+    if (show) startWarmPing();
+    else stopWarmPing();
+  }
+
+  function startWarmPing() {
+    stopWarmPing();
+    warmTimer = setInterval(function () {
+      var password = getSessionPassword();
+      if (!password) return;
+      postBill({ action: 'checkBillPassword', billPassword: password }, 1).catch(function () {});
+    }, 180000);
+  }
+
+  function stopWarmPing() {
+    if (warmTimer) {
+      clearInterval(warmTimer);
+      warmTimer = null;
+    }
   }
 
   function refreshBillNo() {
@@ -65,10 +86,14 @@
     }, 0);
   }
 
-  function readDiscount(subtotal) {
-    var raw = ($('c-discount') && $('c-discount').value) || '';
+  function readMoneyField(id) {
+    var raw = ($(id) && $(id).value) || '';
     if (raw === '' || raw == null) return 0;
-    var n = Math.max(0, Number(raw) || 0);
+    return Math.max(0, Number(raw) || 0);
+  }
+
+  function readDiscount(subtotal) {
+    var n = readMoneyField('c-discount');
     if (n > subtotal) n = subtotal;
     return n;
   }
@@ -76,11 +101,16 @@
   function updateSummary() {
     var subtotal = calcSubtotal();
     var discount = readDiscount(subtotal);
-    var payable = Math.max(0, subtotal - discount);
+    var packing = readMoneyField('c-packing');
+    var transport = readMoneyField('c-transport');
+    var payable = Math.max(0, subtotal - discount + packing + transport);
+    lastPayable = payable;
     if ($('bill-subtotal')) $('bill-subtotal').textContent = money(subtotal);
     if ($('bill-discount-label')) {
       $('bill-discount-label').textContent = discount > 0 ? '− ' + money(discount) : '− ₹0';
     }
+    if ($('bill-packing-label')) $('bill-packing-label').textContent = money(packing);
+    if ($('bill-transport-label')) $('bill-transport-label').textContent = money(transport);
     if ($('bill-total')) $('bill-total').textContent = money(payable);
   }
 
@@ -127,6 +157,14 @@
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
       .replace(/</g, '&lt;');
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function cartToLines(cart) {
@@ -200,6 +238,90 @@
     throw lastErr || new Error('Could not reach Google Script — try again');
   }
 
+  function requirePassword() {
+    var password = getSessionPassword();
+    if (!password) {
+      setUnlocked(false);
+      showDesk(false);
+      setMsg($('gate-msg'), 'Session expired — enter password again');
+      return '';
+    }
+    return password;
+  }
+
+  function applyEnquiry(enq) {
+    enquirySno = String(enq.serialNo || '');
+    enquiryStatus = String(enq.orderStatus || '');
+    $('enquiry-sno-label').textContent = enquirySno || '—';
+    $('enquiry-status-label').textContent = enquiryStatus || '—';
+    $('c-name').value = enq.name || '';
+    $('c-phone').value = enq.phone || '';
+    $('c-pincode').value = enq.pincode || '';
+    $('c-area').value = enq.area || '';
+    $('c-city').value = enq.city || '';
+    $('c-state').value = enq.state || '';
+    $('c-address').value = enq.address || '';
+    if ($('c-discount')) $('c-discount').value = '';
+    if ($('c-packing')) $('c-packing').value = '';
+    if ($('c-transport')) $('c-transport').value = '';
+    if ($('c-lr')) $('c-lr').value = '';
+    lines = cartToLines(enq.cart);
+    if (!lines.length) {
+      lines = [{ name: '', unit: '', qty: 1, price: 0 }];
+    }
+    renderLines();
+    hidePickList();
+    hideRecent();
+  }
+
+  function hidePickList() {
+    var el = $('bill-pick-list');
+    if (el) {
+      el.hidden = true;
+      el.innerHTML = '';
+    }
+  }
+
+  function hideRecent() {
+    var el = $('bill-recent');
+    if (el) {
+      el.hidden = true;
+      el.innerHTML = '';
+    }
+  }
+
+  function renderMatchList(matches, containerId, title) {
+    var el = $(containerId);
+    if (!el) return;
+    hidePickList();
+    hideRecent();
+    el.hidden = false;
+    el.innerHTML =
+      '<p class="bill-list-title">' +
+      escapeHtml(title) +
+      '</p>' +
+      matches
+        .map(function (m) {
+          return (
+            '<button type="button" class="bill-list-item" data-sno="' +
+            escapeAttr(m.serialNo) +
+            '">' +
+            '<strong>#' +
+            escapeHtml(m.serialNo) +
+            '</strong> ' +
+            escapeHtml(m.name || '') +
+            ' · ' +
+            escapeHtml(m.phone || '') +
+            '<span>' +
+            escapeHtml(m.date || '') +
+            (m.totalPrice ? ' · ₹' + escapeHtml(String(m.totalPrice)) : '') +
+            (m.orderStatus ? ' · ' + escapeHtml(m.orderStatus) : '') +
+            '</span></button>'
+          );
+        })
+        .join('');
+  }
+
   async function unlock() {
     var password = ($('bill-password').value || '').trim();
     setMsg($('gate-msg'), 'Checking… (Google Script can take 10–20s first time)');
@@ -225,54 +347,127 @@
         lines = [{ name: '', unit: '', qty: 1, price: 0 }];
         renderLines();
       }
+      loadRecent(true);
     } catch (err) {
       setMsg($('gate-msg'), err.message || 'Unlock failed');
     }
   }
 
+  async function loadBySno(sno) {
+    var password = requirePassword();
+    if (!password) return;
+    setMsg($('desk-msg'), 'Loading enquiry…');
+    var data = await postBill({
+      action: 'getEnquiry',
+      sno: sno,
+      billPassword: password
+    });
+    if (!data || data.status !== 'ok' || !data.enquiry) {
+      setMsg($('desk-msg'), (data && data.message) || 'Not found');
+      return;
+    }
+    applyEnquiry(data.enquiry);
+    setMsg($('desk-msg'), 'Loaded #' + enquirySno + ' from ' + (data.enquiry.source || 'sheet'), true);
+  }
+
   async function loadEnquiry() {
     var sno = ($('load-sno').value || '').trim();
-    setMsg($('desk-msg'), 'Loading enquiry… (may retry if Google is slow)');
+    var phone = ($('load-phone').value || '').trim();
+    setMsg($('desk-msg'), 'Loading… (may retry if Google is slow)');
     try {
-      if (!sno) {
-        setMsg($('desk-msg'), 'Enter enquiry S.No');
+      var password = requirePassword();
+      if (!password) return;
+
+      if (sno) {
+        await loadBySno(sno);
         return;
       }
-      var password = getSessionPassword();
-      if (!password) {
-        setUnlocked(false);
-        showDesk(false);
-        setMsg($('gate-msg'), 'Session expired — enter password again');
+      if (!phone) {
+        setMsg($('desk-msg'), 'Enter S.No or phone');
         return;
       }
+
       var data = await postBill({
-        action: 'getEnquiry',
-        sno: sno,
+        action: 'findByPhone',
+        phone: phone,
         billPassword: password
       });
-      if (!data || data.status !== 'ok' || !data.enquiry) {
+      if (!data || data.status !== 'ok') {
         setMsg($('desk-msg'), (data && data.message) || 'Not found');
         return;
       }
-      var enq = data.enquiry;
-      enquirySno = String(enq.serialNo || sno);
-      $('enquiry-sno-label').textContent = enquirySno;
-      $('c-name').value = enq.name || '';
-      $('c-phone').value = enq.phone || '';
-      $('c-pincode').value = enq.pincode || '';
-      $('c-area').value = enq.area || '';
-      $('c-city').value = enq.city || '';
-      $('c-state').value = enq.state || '';
-      $('c-address').value = enq.address || '';
-      if ($('c-discount')) $('c-discount').value = '';
-      lines = cartToLines(enq.cart);
-      if (!lines.length) {
-        lines = [{ name: '', unit: '', qty: 1, price: 0 }];
+      if (data.enquiry) {
+        applyEnquiry(data.enquiry);
+        if ($('load-sno')) $('load-sno').value = enquirySno;
+        setMsg($('desk-msg'), 'Loaded #' + enquirySno, true);
+        return;
       }
-      renderLines();
-      setMsg($('desk-msg'), 'Loaded from ' + (enq.source || 'sheet'), true);
+      if (data.matches && data.matches.length) {
+        renderMatchList(data.matches, 'bill-pick-list', 'Multiple matches — tap one');
+        setMsg($('desk-msg'), data.matches.length + ' enquiries for this phone — pick one');
+        return;
+      }
+      setMsg($('desk-msg'), 'Not found');
     } catch (err) {
       setMsg($('desk-msg'), err.message || 'Load failed');
+    }
+  }
+
+  async function loadRecent(silent) {
+    try {
+      var password = requirePassword();
+      if (!password) return;
+      if (!silent) setMsg($('desk-msg'), 'Loading recent…');
+      var data = await postBill({
+        action: 'listRecent',
+        limit: 20,
+        billPassword: password
+      });
+      if (!data || data.status !== 'ok') {
+        if (!silent) setMsg($('desk-msg'), (data && data.message) || 'Could not load recent');
+        return;
+      }
+      var list = data.enquiries || [];
+      if (!list.length) {
+        if (!silent) setMsg($('desk-msg'), 'No recent enquiries');
+        return;
+      }
+      renderMatchList(list, 'bill-recent', 'Recent enquiries — tap to load');
+      if (!silent) setMsg($('desk-msg'), 'Showing last ' + list.length, true);
+    } catch (err) {
+      if (!silent) setMsg($('desk-msg'), err.message || 'Recent failed');
+    }
+  }
+
+  async function exportCsv() {
+    try {
+      var password = requirePassword();
+      if (!password) return;
+      setMsg($('desk-msg'), 'Exporting CSV…');
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0');
+      var yyyy = today.getFullYear();
+      var dateStr = dd + '/' + mm + '/' + yyyy;
+      var data = await postBill({
+        action: 'exportCsv',
+        date: dateStr,
+        billPassword: password
+      });
+      if (!data || data.status !== 'ok') {
+        setMsg($('desk-msg'), (data && data.message) || 'Export failed');
+        return;
+      }
+      var blob = new Blob([data.csv || ''], { type: 'text/csv;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = data.filename || 'Enquiry_Log.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setMsg($('desk-msg'), 'Downloaded ' + (data.rows || 0) + ' rows for ' + dateStr, true);
+    } catch (err) {
+      setMsg($('desk-msg'), err.message || 'Export failed');
     }
   }
 
@@ -311,7 +506,9 @@
       billNo: billNo,
       enquirySno: enquirySno,
       notes: ($('c-notes').value || '').trim(),
-      discount: readDiscount(subtotal)
+      discount: readDiscount(subtotal),
+      packing: readMoneyField('c-packing'),
+      transport: readMoneyField('c-transport')
     };
   }
 
@@ -353,10 +550,12 @@
       var preview = VishPdf.createBillPreview(contact, clean, cfg(), meta);
       billPreviewUrl = preview.url;
       billPreviewFilename = preview.filename;
+      lastPayable = preview.payable;
       billPreviewMeta = {
         contact: contact,
         lines: clean,
-        meta: meta
+        meta: meta,
+        payable: preview.payable
       };
       var frame = $('bill-pdf-frame');
       var viewer = $('bill-pdf-viewer');
@@ -394,14 +593,125 @@
     }
   }
 
+  function downloadPackingSlip() {
+    try {
+      if (!window.VishPdf || !VishPdf.downloadPackingSlipPdf) {
+        setMsg($('desk-msg'), 'PDF library not ready');
+        return;
+      }
+      var contact = readContact();
+      var clean = cleanLines();
+      if (!clean.length) {
+        setMsg($('desk-msg'), 'Add at least one product line');
+        return;
+      }
+      var billNo =
+        (billPreviewMeta && billPreviewMeta.meta && billPreviewMeta.meta.billNo) ||
+        VishPdf.makeBillNo();
+      VishPdf.downloadPackingSlipPdf(contact, clean, cfg(), {
+        billNo: billNo,
+        enquirySno: enquirySno
+      });
+      setMsg($('desk-msg'), 'Packing slip downloaded — ' + billNo, true);
+    } catch (err) {
+      setMsg($('desk-msg'), err.message || 'Packing slip failed');
+    }
+  }
+
+  function customerWaDigits() {
+    var digits = String(($('c-phone') && $('c-phone').value) || '').replace(/\D/g, '');
+    if (digits.length > 10) digits = digits.slice(-10);
+    if (digits.length === 10) return '91' + digits;
+    return '';
+  }
+
+  function openCustomerWa(text) {
+    var to = customerWaDigits();
+    if (!to) {
+      setMsg($('desk-msg'), 'Customer phone required for WhatsApp');
+      return;
+    }
+    var url = 'https://wa.me/' + to + '?text=' + encodeURIComponent(text);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  function sendBillWhatsApp() {
+    updateSummary();
+    var contact = readContact();
+    if (!contact.phone) {
+      setMsg($('desk-msg'), 'Customer phone required');
+      return;
+    }
+    var meta =
+      (billPreviewMeta && billPreviewMeta.meta) ||
+      buildBillMeta(($('bill-no-preview').textContent || '').trim() || '—', cleanLines());
+    var payable =
+      (billPreviewMeta && billPreviewMeta.payable != null
+        ? billPreviewMeta.payable
+        : lastPayable) || 0;
+    var text =
+      window.VishPdf && VishPdf.buildBillWhatsAppMessage
+        ? VishPdf.buildBillWhatsAppMessage(contact, meta, payable, cfg())
+        : 'Proforma ready. Amount: ' + money(payable);
+    openCustomerWa(text);
+    setMsg($('desk-msg'), 'WhatsApp opened — attach PDF after download', true);
+  }
+
+  function waTemplate(kind) {
+    var name = ($('c-name').value || '').trim() || 'Sir/Madam';
+    var brand = cfg().brandShort || cfg().brand || 'Vish Fireworks';
+    var sno = enquirySno ? ' (Enquiry #' + enquirySno + ')' : '';
+    var lr = ($('c-lr') && $('c-lr').value.trim()) || '';
+    var texts = {
+      address:
+        'Vanakkam ' +
+        name +
+        sno +
+        ',\n\nPlease share your full delivery address and preferred parcel office so we can confirm packing from ' +
+        brand +
+        '.\n\nThank you.',
+      confirmed:
+        'Vanakkam ' +
+        name +
+        sno +
+        ',\n\nYour order is confirmed. We will update you once it is packed / dispatched from Sivakasi.\n\n— ' +
+        brand,
+      dispatched:
+        'Vanakkam ' +
+        name +
+        sno +
+        ',\n\nYour order has been dispatched.' +
+        (lr ? '\nLR / tracking: ' + lr : '\n(LR number will follow shortly.)') +
+        '\n\n— ' +
+        brand,
+      payment:
+        'Vanakkam ' +
+        name +
+        sno +
+        ',\n\nFriendly reminder: please complete payment for your confirmed order so we can prioritize dispatch.\nAmount payable: ' +
+        money(lastPayable) +
+        '\n\n— ' +
+        brand
+    };
+    var text = texts[kind];
+    if (!text) return;
+    openCustomerWa(text);
+    setMsg($('desk-msg'), 'Template opened on WhatsApp', true);
+  }
+
   function bind() {
     $('bill-unlock').addEventListener('click', unlock);
     $('bill-password').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') unlock();
     });
     $('btn-load').addEventListener('click', loadEnquiry);
+    $('btn-recent').addEventListener('click', function () {
+      loadRecent(false);
+    });
+    $('btn-export-csv').addEventListener('click', exportCsv);
     $('btn-lock').addEventListener('click', function () {
       closeBillPdfViewer();
+      stopWarmPing();
       setUnlocked(false);
       showDesk(false);
       $('bill-password').value = '';
@@ -411,11 +721,33 @@
       renderLines();
     });
     $('btn-preview').addEventListener('click', previewBill);
+    $('btn-packing-slip').addEventListener('click', downloadPackingSlip);
+    $('btn-wa-bill').addEventListener('click', sendBillWhatsApp);
 
-    if ($('c-discount')) {
-      $('c-discount').addEventListener('input', updateSummary);
-      $('c-discount').addEventListener('change', updateSummary);
+    ['c-discount', 'c-packing', 'c-transport'].forEach(function (id) {
+      if ($(id)) {
+        $(id).addEventListener('input', updateSummary);
+        $(id).addEventListener('change', updateSummary);
+      }
+    });
+
+    document.querySelectorAll('[data-wa-tpl]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        waTemplate(btn.getAttribute('data-wa-tpl'));
+      });
+    });
+
+    function onListClick(e) {
+      var btn = e.target.closest('[data-sno]');
+      if (!btn) return;
+      var sno = btn.getAttribute('data-sno');
+      if ($('load-sno')) $('load-sno').value = sno;
+      loadBySno(sno).catch(function (err) {
+        setMsg($('desk-msg'), err.message || 'Load failed');
+      });
     }
+    if ($('bill-pick-list')) $('bill-pick-list').addEventListener('click', onListClick);
+    if ($('bill-recent')) $('bill-recent').addEventListener('click', onListClick);
 
     if ($('bill-pdf-close')) {
       $('bill-pdf-close').addEventListener('click', closeBillPdfViewer);
@@ -425,6 +757,9 @@
     }
     if ($('bill-pdf-download')) {
       $('bill-pdf-download').addEventListener('click', downloadBillFromViewer);
+    }
+    if ($('bill-pdf-wa')) {
+      $('bill-pdf-wa').addEventListener('click', sendBillWhatsApp);
     }
 
     $('bill-lines-body').addEventListener('input', function (e) {
@@ -460,6 +795,7 @@
         lines = [{ name: '', unit: '', qty: 1, price: 0 }];
         renderLines();
       }
+      loadRecent(true);
     } else {
       setUnlocked(false);
       showDesk(false);

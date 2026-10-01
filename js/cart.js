@@ -152,6 +152,54 @@ window.VishCart = (function () {
     return saveCart(cart);
   }
 
+  /** Compact share string: id:qty,id:qty */
+  function encodeShare(cart) {
+    cart = cart || getCart();
+    return Object.values(cart)
+      .map((item) => String(item.id) + ':' + (item.quantity || 1))
+      .join(',');
+  }
+
+  /**
+   * Apply ?cart= share string using resolveProduct(id) → product object.
+   * Returns { cart, added, skipped }.
+   */
+  function applyShare(share, resolveProduct) {
+    const cart = getCart();
+    let added = 0;
+    let skipped = 0;
+    String(share || '')
+      .split(',')
+      .forEach((part) => {
+        const bit = part.trim();
+        if (!bit) return;
+        const sep = bit.lastIndexOf(':');
+        const id = sep >= 0 ? bit.slice(0, sep) : bit;
+        const qty = sep >= 0 ? clampQty(bit.slice(sep + 1)) || 1 : 1;
+        const product = typeof resolveProduct === 'function' ? resolveProduct(id) : null;
+        if (!product || product.active === false) {
+          skipped++;
+          return;
+        }
+        const key = String(product.id);
+        if (cart[key]) {
+          cart[key].quantity = clampQty(cart[key].quantity + qty) || cart[key].quantity;
+        } else {
+          cart[key] = {
+            id: product.id,
+            name: String(product.name || '').slice(0, 120),
+            price: Number(product.price) || 0,
+            originalPrice: Number(product.originalPrice) || 0,
+            unit: String(product.unit || '').slice(0, 40),
+            image: String(product.image || '').slice(0, 200),
+            quantity: qty
+          };
+        }
+        added++;
+      });
+    return { cart: saveCart(cart), added: added, skipped: skipped };
+  }
+
   return {
     getCart: getCart,
     saveCart: saveCart,
@@ -161,6 +209,8 @@ window.VishCart = (function () {
     addItem: addItem,
     setQuantity: setQuantity,
     removeItem: removeItem,
+    encodeShare: encodeShare,
+    applyShare: applyShare,
     MAX_QTY: MAX_QTY
   };
 })();

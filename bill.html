@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=ux3" />
-  <link rel="stylesheet" href="css/bill.css?v=2" />
+  <link rel="stylesheet" href="css/styles.css?v=ux4" />
+  <link rel="stylesheet" href="css/bill.css?v=3" />
 </head>
 <body class="bill-page">
   <div class="festive-bg" aria-hidden="true"></div>
@@ -32,23 +32,33 @@
 
     <section class="bill-desk" id="bill-desk" hidden>
       <h1>Create bill PDF</h1>
-      <p class="bill-hint">Load an enquiry by S.No, edit products/prices, optional discount, preview PDF, then download.</p>
+      <p class="bill-hint">Load by S.No or phone, edit lines &amp; charges, preview PDF, then WhatsApp the customer.</p>
 
       <div class="bill-toolbar">
         <div class="bill-field">
           <label for="load-sno">Enquiry S.No</label>
           <input id="load-sno" inputmode="numeric" placeholder="e.g. 1" />
         </div>
+        <div class="bill-field">
+          <label for="load-phone">Or phone</label>
+          <input id="load-phone" inputmode="tel" placeholder="10-digit mobile" />
+        </div>
         <div class="bill-actions">
-          <button type="button" class="btn-secondary" id="btn-load">Load enquiry</button>
+          <button type="button" class="btn-secondary" id="btn-load">Load</button>
+          <button type="button" class="btn-secondary" id="btn-recent">Recent</button>
+          <button type="button" class="btn-secondary" id="btn-export-csv">CSV</button>
           <button type="button" class="btn-secondary" id="btn-lock">Lock</button>
         </div>
       </div>
       <p class="bill-msg" id="desk-msg" role="status"></p>
 
+      <div class="bill-pick-list" id="bill-pick-list" hidden></div>
+      <div class="bill-recent" id="bill-recent" hidden></div>
+
       <div class="bill-meta-row">
         <span>Bill No: <strong id="bill-no-preview">—</strong></span>
         <span>Enquiry #: <strong id="enquiry-sno-label">—</strong></span>
+        <span>Status: <strong id="enquiry-status-label">—</strong></span>
       </div>
 
       <div class="bill-grid">
@@ -86,9 +96,20 @@
         <label for="c-notes">Extra note on PDF (optional)</label>
         <textarea id="c-notes" placeholder="e.g. Special Diwali offer applied"></textarea>
       </div>
-      <div class="bill-field">
-        <label for="c-discount">Discount amount (optional)</label>
-        <input id="c-discount" type="number" min="0" step="1" placeholder="0" value="" />
+
+      <div class="bill-grid bill-grid-3">
+        <div class="bill-field">
+          <label for="c-discount">Discount ₹ (optional)</label>
+          <input id="c-discount" type="number" min="0" step="1" placeholder="0" value="" />
+        </div>
+        <div class="bill-field">
+          <label for="c-packing">Packing ₹ (optional)</label>
+          <input id="c-packing" type="number" min="0" step="1" placeholder="0" value="" />
+        </div>
+        <div class="bill-field">
+          <label for="c-transport">Transport ₹ (optional)</label>
+          <input id="c-transport" type="number" min="0" step="1" placeholder="0" value="" />
+        </div>
       </div>
 
       <div class="bill-lines">
@@ -120,14 +141,38 @@
           <span>Discount</span>
           <span id="bill-discount-label">− ₹0</span>
         </div>
+        <div class="bill-summary-row">
+          <span>Packing</span>
+          <span id="bill-packing-label">₹0</span>
+        </div>
+        <div class="bill-summary-row">
+          <span>Transport</span>
+          <span id="bill-transport-label">₹0</span>
+        </div>
         <div class="bill-total">
           <span>Amount payable</span>
           <span id="bill-total">₹0</span>
         </div>
       </div>
 
-      <div class="bill-actions">
+      <div class="bill-actions bill-actions-wrap">
         <button type="button" class="btn-primary" id="btn-preview">Preview PDF</button>
+        <button type="button" class="btn-secondary" id="btn-packing-slip">Packing slip</button>
+        <button type="button" class="btn-secondary" id="btn-wa-bill">WhatsApp bill</button>
+      </div>
+
+      <div class="bill-templates">
+        <p class="bill-templates-title">Quick WhatsApp replies</p>
+        <div class="bill-actions bill-actions-wrap">
+          <button type="button" class="btn-secondary" data-wa-tpl="address">Need address</button>
+          <button type="button" class="btn-secondary" data-wa-tpl="confirmed">Order confirmed</button>
+          <button type="button" class="btn-secondary" data-wa-tpl="dispatched">Dispatched</button>
+          <button type="button" class="btn-secondary" data-wa-tpl="payment">Payment reminder</button>
+        </div>
+        <div class="bill-field" style="margin-top:10px">
+          <label for="c-lr">LR / tracking (for Dispatched)</label>
+          <input id="c-lr" placeholder="Optional — pasted into dispatch message" />
+        </div>
       </div>
     </section>
   </main>
@@ -142,6 +187,7 @@
         </div>
         <div class="pdf-viewer-actions">
           <button type="button" class="btn-pdf-optional" id="bill-pdf-download">Download</button>
+          <button type="button" class="btn-pdf-optional" id="bill-pdf-wa">WhatsApp</button>
           <button type="button" class="nav-icon-btn" id="bill-pdf-close" aria-label="Close preview">×</button>
         </div>
       </div>
@@ -151,8 +197,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=bill2" defer></script>
-  <script src="js/pdf.js?v=bill4" defer></script>
-  <script src="js/bill.js?v=bill4" defer></script>
+  <script src="js/config.js?v=bill5" defer></script>
+  <script src="js/pdf.js?v=bill5" defer></script>
+  <script src="js/bill.js?v=bill5" defer></script>
 </body>
 </html>

@@ -1839,6 +1839,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .pack-pricing {
@@ -1856,6 +1857,24 @@ a {
   color: var(--good);
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.pack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-customize-pack {
+  border: 1.5px solid rgba(240, 199, 94, 0.55);
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(240, 199, 94, 0.1);
+  color: #ffe9b0;
+  font-weight: 750;
+  cursor: pointer;
 }
 
 .btn-add-pack {
@@ -2659,3 +2678,84 @@ a {
     display: none;
   }
 }
+
+/* Resume / soft min / toast / share */
+.resume-cart-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px auto 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(240, 199, 94, 0.35);
+  background: rgba(240, 199, 94, 0.1);
+  font-size: 0.88rem;
+}
+
+.resume-cart-chip[hidden] {
+  display: none !important;
+}
+
+.cart-min-warn,
+.sheet-min-warn {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #ffc27a;
+}
+
+.cart-min-warn[hidden],
+.sheet-min-warn[hidden] {
+  display: none !important;
+}
+
+.sheet-share-row {
+  margin: 0 0 12px;
+}
+
+.sheet-share-row .btn-secondary {
+  min-height: 40px;
+  border-radius: 999px;
+  padding: 0 14px;
+  border: 1.5px solid rgba(240, 199, 94, 0.45);
+  background: rgba(240, 199, 94, 0.08);
+  color: #ffe9b0;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.site-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%) translateY(12px);
+  z-index: 120;
+  max-width: min(92vw, 420px);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(20, 12, 10, 0.94);
+  border: 1px solid rgba(240, 199, 94, 0.4);
+  color: #fff4d8;
+  font-size: 0.86rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.site-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.lang-toggle {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sheet-item.is-unavailable {
+  opacity: 0.72;
+}
+

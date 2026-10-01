@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=ux3" />
+  <link rel="stylesheet" href="css/styles.css?v=ux4" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -39,6 +39,7 @@
         </div>
       </div>
       <nav class="header-actions" aria-label="Quick actions">
+        <button type="button" class="nav-link lang-toggle" id="lang-toggle" aria-label="Toggle language">தமிழ்</button>
         <a class="nav-link" href="combos.html">Combos</a>
         <button type="button" class="nav-cta cart-badge-wrap is-idle" id="cart-badge-btn" aria-label="Open enquiry list">
           <span data-icon="cart"></span>
@@ -104,6 +105,11 @@
   <div id="success" class="success shell" hidden>
     <h2>Enquiry ready</h2>
     <p id="success-detail">Enquiry submitted. We will contact you shortly to confirm.</p>
+  </div>
+
+  <div id="resume-cart-chip" class="resume-cart-chip shell" hidden>
+    <span>You have items saved from last time.</span>
+    <button type="button" class="btn-secondary" id="resume-cart-btn">Continue</button>
   </div>
 
   <div class="filter-dock" id="catalog">
@@ -184,6 +190,7 @@
     <div class="cart-bar-text">
       <div class="cart-bar-meta" id="cart-bar-meta">Add items to build your enquiry</div>
       <div class="cart-bar-saved" id="cart-bar-saved" hidden></div>
+      <div class="cart-min-warn" id="cart-min-warn" hidden></div>
     </div>
     <button type="button" class="btn-primary" id="review-btn" disabled>Review</button>
   </div>
@@ -262,6 +269,10 @@
         </div>
         <div class="saved-note" id="sheet-saved" hidden></div>
       </div>
+      <p class="sheet-min-warn" id="sheet-min-warn" hidden></p>
+      <div class="sheet-share-row">
+        <button type="button" class="btn-secondary" id="share-cart-btn">Copy share link</button>
+      </div>
 
       <form id="enquiry-form" class="enquiry-form">
         <h3>Send your enquiry</h3>
@@ -310,12 +321,12 @@
   </div>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js"></script>
+  <script src="js/config.js?v=feat1"></script>
   <script src="data/products.js"></script>
   <script src="data/packs.js"></script>
   <script src="js/icons.js"></script>
-  <script src="js/cart.js?v=harden1"></script>
-  <script src="js/pdf.js?v=harden1"></script>
-  <script src="js/app.js?v=ux1" defer></script>
+  <script src="js/cart.js?v=feat1"></script>
+  <script src="js/pdf.js?v=feat1"></script>
+  <script src="js/app.js?v=feat1" defer></script>
 </body>
 </html>

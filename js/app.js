@@ -158,7 +158,22 @@ window.VishApp = (function () {
     }
 
     if (bar) bar.classList.toggle('is-empty', count === 0);
-    if ($('review-btn')) $('review-btn').disabled = count === 0;
+    if ($('review-btn')) {
+      $('review-btn').disabled = count === 0;
+      if (count > 0) $('review-btn').textContent = t('Enquire', 'Review');
+    }
+
+    const warn = $('cart-min-warn');
+    if (warn) {
+      const note = softMinOrderNote(total);
+      if (note && count > 0) {
+        warn.hidden = false;
+        warn.textContent = note;
+      } else {
+        warn.hidden = true;
+        warn.textContent = '';
+      }
+    }
 
     if (enquiryBtn) {
       enquiryBtn.classList.toggle('is-idle', count === 0);
@@ -246,7 +261,7 @@ window.VishApp = (function () {
 
     const badges =
       (off > 0 && !unavailable ? '<span class="badge-off">' + off + '% off</span>' : '') +
-      (item.limited ? '<span class="badge-limited">Limited</span>' : '');
+      (item.limited ? '<span class="badge-limited">' + t('Limited', 'Limited') + '</span>' : '');
 
     el.innerHTML =
       '<button type="button" class="thumb-btn" data-lightbox="1" aria-label="View larger image of ' +
@@ -288,7 +303,7 @@ window.VishApp = (function () {
     if (unavailable) {
       const sold = document.createElement('span');
       sold.className = 'unavailable-label';
-      sold.textContent = 'Unavailable';
+      sold.textContent = t('Unavailable', 'Unavailable');
       actions.appendChild(sold);
       return el;
     }
@@ -314,7 +329,7 @@ window.VishApp = (function () {
       const add = document.createElement('button');
       add.type = 'button';
       add.className = 'btn btn-add';
-      add.textContent = 'Add';
+      add.textContent = t('Add', 'Add');
       add.addEventListener('click', () => {
         VishCart.addItem(item);
         refreshAfterCartChange();
@@ -433,10 +448,99 @@ window.VishApp = (function () {
   }
 
   function refreshAfterCartChange() {
+    pruneInactiveCartItems();
     renderProducts();
     renderPacks();
     updateCartBar();
     if ($('sheet') && $('sheet').classList.contains('is-open')) renderSheet();
+  }
+
+  function showToast(message) {
+    let el = $('site-toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'site-toast';
+      el.className = 'site-toast';
+      el.setAttribute('role', 'status');
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.classList.add('is-visible');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.classList.remove('is-visible'), 3200);
+  }
+
+  function pruneInactiveCartItems() {
+    const cart = VishCart.getCart();
+    const removed = [];
+    Object.keys(cart).forEach((id) => {
+      const live = liveProduct(id);
+      if (live && live.active === false) {
+        VishCart.removeItem(id);
+        removed.push(live.name || id);
+      }
+    });
+    if (removed.length) {
+      showToast(
+        removed.length === 1
+          ? removed[0] + ' is unavailable — removed from list'
+          : removed.length + ' unavailable items removed from your list'
+      );
+    }
+  }
+
+  function deliveryZoneForPin(pin) {
+    const zones = cfg().deliveryZones || {};
+    const p = String(pin || '');
+    if (p.length < 2) return null;
+    return zones[p.slice(0, 2)] || zones[p.slice(0, 3)] || zones.default || null;
+  }
+
+  function softMinOrderNote(total) {
+    const min = Number(cfg().softMinOrder) || 0;
+    if (!min || total >= min) return '';
+    return (
+      cfg().softMinOrderNote ||
+      'Orders under ' + money(min) + ' may share transport — we will confirm on WhatsApp.'
+    );
+  }
+
+  function t(key, en) {
+    const lang = document.documentElement.lang === 'ta' ? 'ta' : 'en';
+    const map = {
+      Add: { en: 'Add', ta: 'சேர்' },
+      Cart: { en: 'Enquiry', ta: 'விசாரணை' },
+      Enquire: { en: 'Review', ta: 'பார்' },
+      Search: { en: 'Search products', ta: 'தேடு' },
+      Limited: { en: 'Limited', ta: 'வரையறுக்கப்பட்ட' },
+      Unavailable: { en: 'Unavailable', ta: 'கிடைக்கவில்லை' }
+    };
+    const row = map[key];
+    if (!row) return en || key;
+    return row[lang] || row.en || en || key;
+  }
+
+  function applyUiLanguage() {
+    const lang = document.documentElement.lang === 'ta' ? 'ta' : 'en';
+    const search = $('search-input');
+    if (search) {
+      search.placeholder =
+        lang === 'ta' ? 'ஸ்பார்க்லர், பாம், ராக்கெட்…' : 'Search sparklers, bombs, rockets…';
+      const lab = document.querySelector('label[for="search-input"]');
+      if (lab) lab.textContent = t('Search');
+    }
+    const enquiryLabel = $('enquiry-btn-label');
+    if (enquiryLabel) enquiryLabel.textContent = t('Cart');
+    const review = $('review-btn');
+    if (review && !review.disabled) {
+      /* label stays Review / பார் when enabled */
+    }
+    if (review) review.textContent = t('Enquire');
+    const toggle = $('lang-toggle');
+    if (toggle) toggle.textContent = lang === 'ta' ? 'EN' : 'தமிழ்';
+    renderProducts();
+    renderPacks();
+    updateCartBar();
   }
 
   function openLightbox(item) {
@@ -537,7 +641,7 @@ window.VishApp = (function () {
     return { total, mrp, saved: Math.max(0, mrp - total), lines };
   }
 
-  function addPack(pack) {
+  function addPack(pack, openCustomize) {
     const { lines } = packTotals(pack);
     if (!lines.length) {
       alert('This combo has no available products right now.');
@@ -546,6 +650,9 @@ window.VishApp = (function () {
     lines.forEach(({ product, qty }) => VishCart.addItem(product, qty));
     refreshAfterCartChange();
     openSheet();
+    if (openCustomize) {
+      showToast('Combo added — adjust quantities below before submitting');
+    }
   }
 
   function renderPacks() {
@@ -599,9 +706,15 @@ window.VishApp = (function () {
             '</span>'
           : '') +
         '</div>' +
+        '<div class="pack-actions">' +
         '<button type="button" class="btn-add-pack">Add combo</button>' +
+        '<button type="button" class="btn-customize-pack">Customize</button>' +
+        '</div>' +
         '</div>';
-      card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
+      card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack, false));
+      card
+        .querySelector('.btn-customize-pack')
+        .addEventListener('click', () => addPack(pack, true));
       root.appendChild(card);
     });
   }
@@ -615,9 +728,12 @@ window.VishApp = (function () {
     if (daysLeft < 0) {
       return {
         level: 'closed',
-        kicker: 'Season locked',
-        title: 'Enquiry window is closed',
-        text: 'We paused new lists after 25 Oct so remaining Sivakasi dispatches can still move at workable transport rates.'
+        kicker: 'Booking closed',
+        title: 'Online enquiry window is closed',
+        text:
+          'New lists are paused after ' +
+          (cfg().orderDeadline || 'the deadline') +
+          '. WhatsApp us for leftovers or special requests.'
       };
     }
     if (daysLeft <= 2) {
@@ -698,15 +814,17 @@ window.VishApp = (function () {
     } else {
       Object.values(cart).forEach((item) => {
         const live = liveProduct(item.id);
+        const unavailable = live && live.active === false;
         const price = live && live.active !== false ? Number(live.price) || 0 : Number(item.price) || 0;
         const name = live && live.name ? live.name : item.name;
         const unit = live && live.unit ? live.unit : item.unit;
         const row = document.createElement('div');
-        row.className = 'sheet-item';
+        row.className = 'sheet-item' + (unavailable ? ' is-unavailable' : '');
         row.innerHTML =
           '<div class="sheet-item-main">' +
           '<strong>' +
           escapeHtml(name) +
+          (unavailable ? ' <em>(unavailable)</em>' : '') +
           '</strong>' +
           '<span>' +
           escapeHtml(unit) +
@@ -744,6 +862,17 @@ window.VishApp = (function () {
     if ($('sheet-saved')) {
       $('sheet-saved').textContent = saved > 0 ? 'You save ' + money(saved) : '';
       $('sheet-saved').hidden = saved <= 0;
+    }
+    const minEl = $('sheet-min-warn');
+    if (minEl) {
+      const note = softMinOrderNote(total);
+      if (note && VishCart.cartCount(cart) > 0) {
+        minEl.hidden = false;
+        minEl.textContent = note;
+      } else {
+        minEl.hidden = true;
+        minEl.textContent = '';
+      }
     }
   }
 
@@ -869,9 +998,24 @@ window.VishApp = (function () {
         return;
       }
       fillOfficeSelect(entry.PostOffice);
+      const zone = deliveryZoneForPin(pin);
+      const firstPo = entry.PostOffice[0] || {};
+      const place = firstPo.District || firstPo.Block || firstPo.State || '';
+      if (zone) {
+        setPinMeta(
+          (place ? place + ' · ' : '') + zone.label + ' — ' + zone.hint,
+          true
+        );
+      }
     } catch (err) {
       if (token !== pinLookupToken) return;
-      setPinMeta('Pincode saved. Area lookup skipped — we will confirm with you.', false);
+      const zone = deliveryZoneForPin(pin);
+      setPinMeta(
+        zone
+          ? 'Pincode saved. ' + zone.label + ' — ' + zone.hint
+          : 'Pincode saved. Area lookup skipped — we will confirm with you.',
+        false
+      );
     } finally {
       if (abortTimer) clearTimeout(abortTimer);
     }
@@ -1124,6 +1268,73 @@ window.VishApp = (function () {
         searchQuery = e.target.value;
         renderProducts();
       });
+      search.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const grouped = groupedFiltered();
+        let first = null;
+        grouped.forEach((items) => {
+          if (!first) {
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].active !== false) {
+                first = items[i];
+                break;
+              }
+            }
+          }
+        });
+        if (!first) {
+          showToast('No matching product to add');
+          return;
+        }
+        VishCart.addItem(first);
+        refreshAfterCartChange();
+        showToast('Added ' + first.name);
+      });
+    }
+
+    if ($('lang-toggle')) {
+      $('lang-toggle').addEventListener('click', () => {
+        const next = document.documentElement.lang === 'ta' ? 'en' : 'ta';
+        document.documentElement.lang = next;
+        try {
+          localStorage.setItem('vish_lang', next);
+        } catch (err) {}
+        applyUiLanguage();
+      });
+    }
+
+    if ($('share-cart-btn')) {
+      $('share-cart-btn').addEventListener('click', async () => {
+        const share = VishCart.encodeShare();
+        if (!share) {
+          showToast('Add items before sharing');
+          return;
+        }
+        const url =
+          location.origin +
+          location.pathname.replace(/combos\.html$/, 'index.html') +
+          '?cart=' +
+          encodeURIComponent(share);
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+            showToast('Cart link copied');
+          } else {
+            window.prompt('Copy cart link', url);
+          }
+        } catch (err) {
+          window.prompt('Copy cart link', url);
+        }
+      });
+    }
+
+    if ($('resume-cart-btn')) {
+      $('resume-cart-btn').addEventListener('click', () => {
+        openSheet();
+        const chip = $('resume-cart-chip');
+        if (chip) chip.hidden = true;
+      });
     }
 
     if ($('review-btn')) $('review-btn').addEventListener('click', openSheet);
@@ -1257,6 +1468,7 @@ window.VishApp = (function () {
   }
 
   function paintCatalog() {
+    pruneInactiveCartItems();
     updateCategoryLabel();
     renderProducts();
     renderPacks();
@@ -1288,6 +1500,10 @@ window.VishApp = (function () {
   async function init() {
     injectIcons(document);
     hydrateHeader();
+    try {
+      const savedLang = localStorage.getItem('vish_lang');
+      if (savedLang === 'ta' || savedLang === 'en') document.documentElement.lang = savedLang;
+    } catch (err) {}
     bindUi();
     updateUrgency();
     setInterval(updateUrgency, 30000);
@@ -1300,7 +1516,27 @@ window.VishApp = (function () {
       throw new Error('Product data missing');
     }
 
+    const params = new URLSearchParams(location.search);
+    const cartShare = params.get('cart');
+    if (cartShare) {
+      const result = VishCart.applyShare(cartShare, productById);
+      if (result.added) {
+        showToast(
+          'Loaded ' +
+            result.added +
+            ' item(s) from shared link' +
+            (result.skipped ? ' (' + result.skipped + ' unavailable skipped)' : '')
+        );
+      }
+      try {
+        history.replaceState({}, '', location.pathname + location.hash);
+      } catch (err) {}
+    } else if (VishCart.cartCount() > 0 && $('resume-cart-chip')) {
+      $('resume-cart-chip').hidden = false;
+    }
+
     paintCatalog();
+    applyUiLanguage();
     refreshProductsFromSheet();
   }
 

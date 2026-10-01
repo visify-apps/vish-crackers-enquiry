@@ -17,7 +17,8 @@
  * 1. Set ENQUIRY_INGEST_KEY if not already set.
  * 2. Set BILL_PAGE_PASSWORD in Script properties (bill.html asks for this; not stored in site files).
  * 3. Deploy → Manage deployments → Edit → Version: New version → Deploy.
- * 4. Test one enquiry from the website.
+ * 4. Optional: run installDailySummaryTrigger() once for morning summary email.
+ * 5. Test one enquiry from the website.
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -327,6 +328,313 @@ function findEnquiryBySno_(sno) {
   return scan(ENQUIRY_LOG_SHEET) || scan(ENQUIRIES_SHEET);
 }
 
+function normalizePhoneDigits_(phone) {
+  var digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length > 10) digits = digits.slice(-10);
+  return digits;
+}
+
+function phoneEquals_(cell, wantDigits) {
+  var a = normalizePhoneDigits_(cell);
+  var b = normalizePhoneDigits_(wantDigits);
+  return a && b && a === b;
+}
+
+function rowToEnquiry_(sheetName, meta, row, serialOverride) {
+  function cell(names) {
+    var c = headerCol_(meta.map, names);
+    return c ? String(row[c - 1] || '').trim() : '';
+  }
+  var itemsJson = cell(['Items Json', 'ItemsJSON', 'Cart Json', 'Cart']);
+  var cart = {};
+  try {
+    cart = itemsJson ? JSON.parse(itemsJson) : {};
+  } catch (parseErr) {
+    cart = {};
+  }
+  var sno = serialOverride || cell(['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
+  return {
+    serialNo: String(sno || '').trim(),
+    name: cell(['Name']),
+    phone: cell(['Phone']),
+    area: cell(['Area', 'Office', 'Office Name']),
+    city: cell(['City']),
+    state: cell(['State']),
+    pincode: cell(['Pincode', 'Pin code', 'Pin']),
+    address: cell(['Address']),
+    itemsSummary: cell(['Items']),
+    totalPrice: cell(['Total Price', 'Total', 'Amount']),
+    orderStatus: cell(['Order Status']),
+    paymentStatus: cell(['Payment Status']),
+    date: cell(['Date']),
+    time: cell(['Time']),
+    cart: cart,
+    source: sheetName
+  };
+}
+
+function sheetScanBounds_(sh) {
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) lastRow = 500;
+  return Math.min(Math.max(lastRow, 2), 2000);
+}
+
+/** Find all enquiries matching phone (last 10 digits). Log first, then Enquiries. */
+function findEnquiriesByPhone_(phone) {
+  var want = normalizePhoneDigits_(phone);
+  if (want.length !== 10) return [];
+
+  var bySno = {};
+
+  function scan(sheetName) {
+    try {
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+      if (!sh) return;
+      var meta = readEnquiryHeaderMap_(sh);
+      var phoneCol = headerCol_(meta.map, ['Phone']);
+      if (!phoneCol) return;
+      var lastRow = sheetScanBounds_(sh);
+      var phoneVals = sh.getRange(2, phoneCol, lastRow, phoneCol).getDisplayValues();
+      var colCount = Math.max(meta.colCount, 1);
+      for (var r = 0; r < phoneVals.length; r++) {
+        if (!phoneEquals_(phoneVals[r][0], want)) continue;
+        var row = sh.getRange(r + 2, 1, r + 2, colCount).getDisplayValues()[0];
+        var enq = rowToEnquiry_(sheetName, meta, row);
+        if (!enq.serialNo) continue;
+        if (!bySno[enq.serialNo] || sheetName === ENQUIRY_LOG_SHEET) {
+          bySno[enq.serialNo] = enq;
+        }
+      }
+    } catch (err) {
+      Logger.log('findByPhone scan ' + sheetName + ': ' + err);
+    }
+  }
+
+  scan(ENQUIRY_LOG_SHEET);
+  scan(ENQUIRIES_SHEET);
+
+  var list = Object.keys(bySno).map(function (k) {
+    return bySno[k];
+  });
+  list.sort(function (a, b) {
+    return Number(b.serialNo) - Number(a.serialNo);
+  });
+  return list;
+}
+
+/** Recent enquiry summaries for bill desk (from Enquiry_Log). */
+function listRecentEnquiries_(limit) {
+  var max = Math.min(Math.max(Number(limit) || 20, 1), 40);
+  var out = [];
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
+    if (!sh) return out;
+    var meta = readEnquiryHeaderMap_(sh);
+    var lastRow = sh.getLastRow();
+    if (lastRow < 2) return out;
+    var start = Math.max(2, lastRow - max + 1);
+    var colCount = Math.max(meta.colCount, 1);
+    var values = sh.getRange(start, 1, lastRow, colCount).getDisplayValues();
+    for (var i = values.length - 1; i >= 0; i--) {
+      var enq = rowToEnquiry_(ENQUIRY_LOG_SHEET, meta, values[i]);
+      if (!enq.serialNo && !enq.name) continue;
+      out.push({
+        serialNo: enq.serialNo,
+        name: enq.name,
+        phone: enq.phone,
+        totalPrice: enq.totalPrice,
+        date: enq.date,
+        time: enq.time,
+        orderStatus: enq.orderStatus,
+        paymentStatus: enq.paymentStatus
+      });
+      if (out.length >= max) break;
+    }
+  } catch (err) {
+    Logger.log('listRecentEnquiries_: ' + err);
+  }
+  return out;
+}
+
+/** CSV export of Enquiry_Log (optional date filter dd/MM/yyyy IST). */
+function exportEnquiryLogCsv_(dateFilter) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
+  if (!sh) return { csv: '', filename: 'Enquiry_Log-empty.csv', rows: 0 };
+  var meta = readEnquiryHeaderMap_(sh);
+  var lastRow = sh.getLastRow();
+  var wantDate = String(dateFilter || '').trim();
+  var headers = [];
+  for (var h = 0; h < meta.colCount; h++) {
+    headers.push(String(meta.headers[h] || '').trim() || 'Col' + (h + 1));
+  }
+  var lines = [headers.map(csvEscape_).join(',')];
+  var count = 0;
+  if (lastRow >= 2) {
+    var values = sh.getRange(2, 1, lastRow, Math.max(meta.colCount, 1)).getDisplayValues();
+    var dateCol = headerCol_(meta.map, ['Date']);
+    for (var r = 0; r < values.length; r++) {
+      var row = values[r];
+      if (wantDate && dateCol) {
+        if (String(row[dateCol - 1] || '').trim() !== wantDate) continue;
+      }
+      lines.push(row.map(csvEscape_).join(','));
+      count++;
+    }
+  }
+  var stamp = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyyMMdd-HHmm');
+  var filename = wantDate
+    ? 'Enquiry_Log-' + wantDate.replace(/\//g, '-') + '.csv'
+    : 'Enquiry_Log-' + stamp + '.csv';
+  return { csv: lines.join('\n'), filename: filename, rows: count };
+}
+
+function csvEscape_(v) {
+  var s = String(v == null ? '' : v);
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+/** Phones with enquiries in the last N days (for REPEAT flag). */
+function findRecentSerialsByPhone_(phone, withinDays) {
+  var want = normalizePhoneDigits_(phone);
+  if (want.length !== 10) return [];
+  var days = Math.max(1, Number(withinDays) || 7);
+  var cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  var found = [];
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
+    if (!sh) return found;
+    var meta = readEnquiryHeaderMap_(sh);
+    var phoneCol = headerCol_(meta.map, ['Phone']);
+    var snoCol = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
+    var dateCol = headerCol_(meta.map, ['Date']);
+    if (!phoneCol || !snoCol) return found;
+    var lastRow = sheetScanBounds_(sh);
+    var width = Math.max(meta.colCount, 1);
+    var values = sh.getRange(2, 1, lastRow, width).getDisplayValues();
+    for (var r = 0; r < values.length; r++) {
+      var row = values[r];
+      if (!phoneEquals_(row[phoneCol - 1], want)) continue;
+      var sno = String(row[snoCol - 1] || '').trim();
+      if (!sno) continue;
+      if (dateCol) {
+        var dStr = String(row[dateCol - 1] || '').trim();
+        var parsed = parseIstDate_(dStr);
+        if (parsed && parsed < cutoff) continue;
+      }
+      found.push(sno);
+    }
+  } catch (err) {
+    Logger.log('findRecentSerialsByPhone_: ' + err);
+  }
+  return found;
+}
+
+function parseIstDate_(dStr) {
+  // expects dd/MM/yyyy
+  var m = String(dStr || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return null;
+  var d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Time-driven: Apps Script → Triggers → sendDailySummary → Day timer 8am IST.
+ * Or run installDailySummaryTrigger() once from the editor.
+ */
+function sendDailySummary() {
+  var to = notifyEmail();
+  if (!to) return;
+  var today = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'dd/MM/yyyy');
+  var rows = listRecentEnquiries_(200);
+  var todayRows = [];
+  var unpaid = 0;
+  var sum = 0;
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i].date || '').trim() !== today) continue;
+    todayRows.push(rows[i]);
+    var t = Number(String(rows[i].totalPrice || '').replace(/[^\d.]/g, '')) || 0;
+    sum += t;
+    var pay = String(rows[i].paymentStatus || '').toLowerCase();
+    if (pay !== 'paid') unpaid++;
+  }
+  // Prefer full log scan for today's totals if list is capped
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
+    if (sh) {
+      var meta = readEnquiryHeaderMap_(sh);
+      var lastRow = sh.getLastRow();
+      if (lastRow >= 2) {
+        todayRows = [];
+        unpaid = 0;
+        sum = 0;
+        var values = sh.getRange(2, 1, lastRow, Math.max(meta.colCount, 1)).getDisplayValues();
+        var dateCol = headerCol_(meta.map, ['Date']);
+        var totalCol = headerCol_(meta.map, ['Total Price', 'Total', 'Amount']);
+        var payCol = headerCol_(meta.map, ['Payment Status']);
+        var snoCol = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
+        var nameCol = headerCol_(meta.map, ['Name']);
+        for (var r = 0; r < values.length; r++) {
+          var row = values[r];
+          if (!dateCol || String(row[dateCol - 1] || '').trim() !== today) continue;
+          var total = totalCol ? Number(String(row[totalCol - 1] || '').replace(/[^\d.]/g, '')) || 0 : 0;
+          sum += total;
+          var pay = payCol ? String(row[payCol - 1] || '').toLowerCase() : '';
+          if (pay !== 'paid') unpaid++;
+          todayRows.push({
+            serialNo: snoCol ? String(row[snoCol - 1] || '').trim() : '',
+            name: nameCol ? String(row[nameCol - 1] || '').trim() : '',
+            totalPrice: total
+          });
+        }
+      }
+    }
+  } catch (err) {
+    Logger.log('sendDailySummary scan: ' + err);
+  }
+
+  var lines = [];
+  lines.push('Daily summary — ' + today);
+  lines.push('');
+  lines.push('Enquiries today___' + todayRows.length);
+  lines.push('Order value sum___₹' + Math.round(sum));
+  lines.push('Not fully paid___' + unpaid);
+  lines.push('');
+  if (!todayRows.length) {
+    lines.push('(no enquiries today)');
+  } else {
+    lines.push('LIST');
+    for (var j = 0; j < todayRows.length; j++) {
+      var e = todayRows[j];
+      lines.push(
+        '#' +
+          e.serialNo +
+          '___' +
+          (e.name || '-') +
+          '___₹' +
+          (e.totalPrice != null ? e.totalPrice : '')
+      );
+    }
+  }
+  MailApp.sendEmail({
+    to: to,
+    subject: 'VishCrackers daily — ' + today + ' (' + todayRows.length + ' enquiries)',
+    body: lines.join('\n')
+  });
+}
+
+function installDailySummaryTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'sendDailySummary') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger('sendDailySummary').timeBased().everyDays(1).atHour(8).create();
+  Logger.log('Installed daily summary trigger ~8:00 (script timezone)');
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -357,8 +665,55 @@ function doPost(e) {
       return jsonOutput({ status: 'ok', enquiry: found });
     }
 
+    if (data.action === 'findByPhone') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      var matches = findEnquiriesByPhone_(data.phone);
+      if (!matches.length) {
+        return jsonOutput({ status: 'error', message: 'No enquiry for this phone' });
+      }
+      if (matches.length === 1) {
+        return jsonOutput({ status: 'ok', enquiry: matches[0], matches: matches });
+      }
+      return jsonOutput({
+        status: 'ok',
+        matches: matches.map(function (m) {
+          return {
+            serialNo: m.serialNo,
+            name: m.name,
+            phone: m.phone,
+            totalPrice: m.totalPrice,
+            date: m.date,
+            time: m.time,
+            orderStatus: m.orderStatus
+          };
+        })
+      });
+    }
 
+    if (data.action === 'listRecent') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      return jsonOutput({
+        status: 'ok',
+        enquiries: listRecentEnquiries_(data.limit || 20)
+      });
+    }
 
+    if (data.action === 'exportCsv') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      var exported = exportEnquiryLogCsv_(data.date || '');
+      return jsonOutput({
+        status: 'ok',
+        csv: exported.csv,
+        filename: exported.filename,
+        rows: exported.rows
+      });
+    }
 
     var honeypot = String(data.website || data.company || data.url || '').trim();
     if (honeypot && /https?:\/\//i.test(honeypot)) {
@@ -395,6 +750,8 @@ function doPost(e) {
         return jsonOutput({ status: 'error', message: priced.error });
       }
 
+      var priorSnos = findRecentSerialsByPhone_(contact.phone, 7);
+
       var when = istParts_(data.submittedAt);
       var saved = saveEnquiryRows_({
         date: when.date,
@@ -421,11 +778,11 @@ function doPost(e) {
       SpreadsheetApp.flush();
 
       try {
-        queueEnquiryEmail(contact, priced, submissionId, saved.serialNo);
+        queueEnquiryEmail(contact, priced, submissionId, saved.serialNo, priorSnos);
       } catch (mailErr) {
         Logger.log('Enquiry mail queue failed: ' + mailErr);
         try {
-          sendEnquiryEmail(contact, priced, submissionId, saved.serialNo);
+          sendEnquiryEmail(contact, priced, submissionId, saved.serialNo, priorSnos);
         } catch (inlineErr) {
           Logger.log('Inline enquiry mail failed: ' + inlineErr);
         }
@@ -436,7 +793,9 @@ function doPost(e) {
         total: priced.total,
         saved: priced.saved,
         serialNo: saved.serialNo,
-        uiSynced: !!saved.uiOk
+        uiSynced: !!saved.uiOk,
+        repeat: priorSnos.length > 0,
+        priorSerialNos: priorSnos
       });
     } finally {
       lock.releaseLock();
@@ -477,7 +836,7 @@ function notifyEmail() {
  * Save mail payload and schedule a near-immediate flush.
  * Keeps doPost fast so the website does not hang or show a false network error.
  */
-function queueEnquiryEmail(contact, priced, submissionId, serialNo) {
+function queueEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
   var item = {
     contact: contact,
     priced: {
@@ -487,6 +846,7 @@ function queueEnquiryEmail(contact, priced, submissionId, serialNo) {
     },
     submissionId: submissionId || '',
     serialNo: serialNo,
+    priorSnos: priorSnos || []
   };
 
   var props = PropertiesService.getScriptProperties();
@@ -531,7 +891,13 @@ function flushEnquiryMailQueue() {
       var item = queue[i];
       if (!item || !item.contact) continue;
       try {
-        sendEnquiryEmail(item.contact, item.priced || {}, item.submissionId, item.serialNo);
+        sendEnquiryEmail(
+          item.contact,
+          item.priced || {},
+          item.submissionId,
+          item.serialNo,
+          item.priorSnos || []
+        );
       } catch (mailErr) {
         Logger.log('Queued enquiry mail failed: ' + mailErr);
         leftover.push(item);
@@ -602,11 +968,12 @@ function testNotifyEmail() {
 /**
  * Owner email — pack list by category, ___ separators, no product ids.
  */
-function sendEnquiryEmail(contact, priced, submissionId, serialNo) {
+function sendEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
   var to = notifyEmail();
   if (!to) return;
 
   var built = buildCategorizedLists_(priced.cart || {});
+  var isRepeat = priorSnos && priorSnos.length > 0;
   var subject =
     'VishCrackers - New Order [Id : ' +
     serialNo +
@@ -614,10 +981,14 @@ function sendEnquiryEmail(contact, priced, submissionId, serialNo) {
     contact.name +
     ', ' +
     priced.total +
-    ']';
+    ']' +
+    (isRepeat ? ' REPEAT' : '');
 
   var lines = [];
-  lines.push('New enquiry');
+  lines.push(isRepeat ? 'New enquiry (REPEAT phone)' : 'New enquiry');
+  if (isRepeat) {
+    lines.push('Prior S.Nos (7 days)___' + priorSnos.join(', '));
+  }
   lines.push('');
   lines.push('Name___' + contact.name);
   lines.push('Phone___' + contact.phone);
