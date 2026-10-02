@@ -1,9 +1,11 @@
 /* Vish Fireworks — hardened cart (localStorage treated as untrusted) */
 window.VishCart = (function () {
   const CART_KEY = 'vish_cart_v3';
+  const COMBOS_KEY = 'vish_added_combos_v1';
   const LEGACY_KEYS = ['vish_cart_v2'];
   const MAX_QTY = 999;
   let memoryFallback = null;
+  let combosFallback = null;
 
   function clampQty(n) {
     const q = parseInt(n, 10);
@@ -80,12 +82,77 @@ window.VishCart = (function () {
 
   function clearCart() {
     memoryFallback = {};
+    combosFallback = {};
     try {
       if (window.localStorage) {
         localStorage.removeItem(CART_KEY);
+        localStorage.removeItem(COMBOS_KEY);
         LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
       }
     } catch (e) {}
+  }
+
+  function readAddedCombos() {
+    if (combosFallback && typeof combosFallback === 'object') return { ...combosFallback };
+    try {
+      if (!window.localStorage) return {};
+      const raw = localStorage.getItem(COMBOS_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+      const out = {};
+      Object.keys(parsed).forEach((id) => {
+        if (parsed[id]) out[String(id)] = true;
+      });
+      return out;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveAddedCombos(map) {
+    const out = {};
+    Object.keys(map || {}).forEach((id) => {
+      if (map[id]) out[String(id)] = true;
+    });
+    combosFallback = out;
+    try {
+      if (window.localStorage) {
+        if (Object.keys(out).length) localStorage.setItem(COMBOS_KEY, JSON.stringify(out));
+        else localStorage.removeItem(COMBOS_KEY);
+      }
+    } catch (e) {}
+    return out;
+  }
+
+  function hasCombo(packId) {
+    if (packId == null || packId === '') return false;
+    return !!readAddedCombos()[String(packId)];
+  }
+
+  function markComboAdded(packId) {
+    if (packId == null || packId === '') return readAddedCombos();
+    const map = readAddedCombos();
+    map[String(packId)] = true;
+    return saveAddedCombos(map);
+  }
+
+  /** Drop combo marks when none of that combo's products remain in the cart. */
+  function pruneAddedCombos(packs) {
+    const cart = getCart();
+    const map = readAddedCombos();
+    const list = Array.isArray(packs) ? packs : [];
+    const next = {};
+    Object.keys(map).forEach((packId) => {
+      const pack = list.find((p) => String(p.id) === String(packId));
+      if (!pack) return;
+      const stillThere = (pack.items || []).some((row) => {
+        const line = cart[String(row.id)];
+        return line && line.quantity > 0;
+      });
+      if (stillThere) next[packId] = true;
+    });
+    return saveAddedCombos(next);
   }
 
   function cartCount(cart) {
@@ -213,6 +280,9 @@ window.VishCart = (function () {
     removeItem: removeItem,
     encodeShare: encodeShare,
     applyShare: applyShare,
+    hasCombo: hasCombo,
+    markComboAdded: markComboAdded,
+    pruneAddedCombos: pruneAddedCombos,
     MAX_QTY: MAX_QTY
   };
 })();

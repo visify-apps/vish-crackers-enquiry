@@ -162,10 +162,10 @@ window.VishApp = (function () {
 
     const warn = $('cart-min-warn');
     if (warn) {
-      const note = softMinOrderNote(total);
-      if (note && count > 0) {
+      const status = minOrderStatus(total);
+      if (status && count > 0) {
         warn.hidden = false;
-        warn.textContent = note;
+        warn.textContent = status.short;
       } else {
         warn.hidden = true;
         warn.textContent = '';
@@ -446,6 +446,9 @@ window.VishApp = (function () {
 
   function refreshAfterCartChange() {
     pruneInactiveCartItems();
+    if (typeof VishCart.pruneAddedCombos === 'function') {
+      VishCart.pruneAddedCombos(window.PACKS_DATA || []);
+    }
     renderProducts();
     renderPacks();
     updateCartBar();
@@ -493,15 +496,16 @@ window.VishApp = (function () {
     return zones[p.slice(0, 2)] || zones[p.slice(0, 3)] || zones.default || null;
   }
 
-  function softMinOrderNote(total) {
+  function minOrderStatus(total) {
     const min = Number(cfg().softMinOrder) || 0;
-    if (!min || total >= min) return '';
-    return (
-      cfg().softMinOrderNote ||
-      'Orders under ' +
-        money(min) +
-        ' will be reviewed first and confirmed only after we check with you on WhatsApp.'
-    );
+    if (!min || total <= 0 || total >= min) return null;
+    const need = Math.max(0, Math.ceil(min - total));
+    return {
+      min: min,
+      need: need,
+      pct: Math.max(4, Math.min(100, Math.round((total / min) * 100))),
+      short: 'Add ' + money(need) + ' more to reach ' + money(min)
+    };
   }
 
   function openLightbox(item) {
@@ -608,8 +612,15 @@ window.VishApp = (function () {
       alert('This combo has no available products right now.');
       return;
     }
+    const already = pack.id != null && VishCart.hasCombo(pack.id);
     lines.forEach(({ product, qty }) => VishCart.addItem(product, qty));
+    if (pack.id != null) VishCart.markComboAdded(pack.id);
     refreshAfterCartChange();
+    showToast(
+      already
+        ? 'Another set of ' + (pack.name || 'this combo') + ' added'
+        : (pack.name || 'Combo') + ' added to enquiry'
+    );
     openSheet();
   }
 
@@ -652,7 +663,7 @@ window.VishApp = (function () {
         escapeHtml(
           isKids
             ? 'Soft colour & kids items only — no bombs, no heavy sound. You can change the list after adding.'
-            : 'Combos start at our ₹2,000 soft minimum and go up to ~₹20,000. Add one, then customise freely.'
+            : 'Combos from ₹2,000 to about ₹20,000. Add one, then customise freely.'
         ) +
         '</p>';
       block.appendChild(heading);
@@ -665,10 +676,24 @@ window.VishApp = (function () {
         const theme = String(pack.theme || 'starter')
           .toLowerCase()
           .replace(/[^a-z0-9-]/g, '');
+        const already = pack.id != null && VishCart.hasCombo(pack.id);
         const card = document.createElement('article');
         card.className =
-          'pack-card pack-theme-' + theme + (isKids ? ' pack-card-kids' : '');
+          'pack-card pack-theme-' +
+          theme +
+          (isKids ? ' pack-card-kids' : '') +
+          (already ? ' pack-card-added' : '');
         card.dataset.theme = theme;
+        const itemLines = lines
+          .map(
+            (l) =>
+              '<li><span>' +
+              escapeHtml(l.product.name) +
+              '</span><span>×' +
+              l.qty +
+              '</span></li>'
+          )
+          .join('');
         card.innerHTML =
           '<div class="pack-atmosphere" aria-hidden="true">' +
           '<span class="pack-burst"></span>' +
@@ -686,19 +711,6 @@ window.VishApp = (function () {
           escapeHtml(pack.tagline || '') +
           '</p>' +
           '</div>' +
-          '<ul class="pack-items">' +
-          lines
-            .map(
-              (l) =>
-                '<li><span>' +
-                escapeHtml(l.product.name) +
-                '</span><span>×' +
-                l.qty +
-                '</span></li>'
-            )
-            .join('') +
-          '</ul>' +
-          '<p class="pack-customize-hint">After adding, you can change quantities or remove items from Enquiry.</p>' +
           '<div class="pack-foot">' +
           '<div class="pack-pricing">' +
           '<strong class="price">' +
@@ -712,10 +724,40 @@ window.VishApp = (function () {
               '</span>'
             : '') +
           '</div>' +
-          '<button type="button" class="btn-add-pack">Add combo</button>' +
+          '<button type="button" class="btn-add-pack' +
+          (already ? ' is-added' : '') +
+          '">' +
+          (already ? 'Add another set' : 'Add combo') +
+          '</button>' +
+          '</div>' +
+          '<button type="button" class="pack-details-toggle" aria-expanded="false">' +
+          '<span class="pack-details-label">' +
+          'View ' +
+          lines.length +
+          (lines.length === 1 ? ' item' : ' items') +
+          '</span>' +
+          '<span class="pack-details-chevron" aria-hidden="true">' +
+          (window.VishIcons ? VishIcons.svg('chevron') : '▾') +
+          '</span>' +
+          '</button>' +
+          '<div class="pack-details">' +
+          '<div class="pack-details-inner">' +
+          '<ul class="pack-items">' +
+          itemLines +
+          '</ul>' +
+          '<p class="pack-customize-hint">After adding, change quantities or remove items from Enquiry.</p>' +
+          '</div>' +
           '</div>' +
           '</div>';
-        card.querySelector('.btn-add-pack').addEventListener('click', () => addPack(pack));
+        const addBtn = card.querySelector('.btn-add-pack');
+        if (addBtn) addBtn.addEventListener('click', () => addPack(pack));
+        const toggle = card.querySelector('.pack-details-toggle');
+        if (toggle) {
+          toggle.addEventListener('click', () => {
+            const open = card.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+          });
+        }
         grid.appendChild(card);
       });
 
@@ -869,24 +911,35 @@ window.VishApp = (function () {
       $('sheet-saved').hidden = saved <= 0;
     }
     const minEl = $('sheet-min-warn');
+    const minLabel = $('sheet-min-label');
+    const minBar = $('sheet-min-bar');
+    const status = minOrderStatus(total);
     if (minEl) {
-      const note = softMinOrderNote(total);
-      if (note && VishCart.cartCount(cart) > 0) {
+      if (status && VishCart.cartCount(cart) > 0) {
         minEl.hidden = false;
-        minEl.textContent = note;
+        if (minLabel) minLabel.textContent = status.short;
+        if (minBar) minBar.style.width = status.pct + '%';
       } else {
         minEl.hidden = true;
-        minEl.textContent = '';
+        if (minLabel) minLabel.textContent = '';
+        if (minBar) minBar.style.width = '0%';
       }
     }
+    const clearBtn = $('clear-cart-btn');
+    if (clearBtn) clearBtn.hidden = VishCart.cartCount(cart) === 0;
+    const tools = document.querySelector('.sheet-tools');
+    if (tools) tools.hidden = VishCart.cartCount(cart) === 0;
   }
 
   function openSheet() {
     renderSheet();
-    $('sheet').classList.add('is-open');
-    $('sheet').setAttribute('aria-hidden', 'false');
+    const sheet = $('sheet');
+    if (!sheet) return;
+    sheet.classList.add('is-open');
+    sheet.setAttribute('aria-hidden', 'false');
     document.body.classList.add('sheet-open');
-    if (VishCart.cartCount() > 0 && $('customer-name')) $('customer-name').focus();
+    const panel = sheet.querySelector('.sheet-panel');
+    if (panel) panel.scrollTop = 0;
   }
 
   function closeSheet() {
@@ -1300,6 +1353,17 @@ window.VishApp = (function () {
       });
     }
 
+    if ($('clear-cart-btn')) {
+      $('clear-cart-btn').addEventListener('click', () => {
+        if (VishCart.cartCount() === 0) return;
+        const ok = window.confirm('Clear your entire enquiry list?');
+        if (!ok) return;
+        VishCart.clearCart();
+        refreshAfterCartChange();
+        showToast('Enquiry list cleared');
+      });
+    }
+
     if ($('resume-cart-btn')) {
       $('resume-cart-btn').addEventListener('click', () => {
         openSheet();
@@ -1311,13 +1375,27 @@ window.VishApp = (function () {
     if ($('review-btn')) $('review-btn').addEventListener('click', openSheet);
     if ($('cart-badge-btn')) {
       $('cart-badge-btn').addEventListener('click', () => {
-        if (VishCart.cartCount() === 0) return;
+        if (VishCart.cartCount() === 0) {
+          showToast('Add a combo or products first');
+          return;
+        }
         openSheet();
       });
     }
     if ($('close-sheet')) $('close-sheet').addEventListener('click', closeSheet);
     if ($('sheet-backdrop')) $('sheet-backdrop').addEventListener('click', closeSheet);
     if ($('enquiry-form')) $('enquiry-form').addEventListener('submit', submitEnquiry);
+
+    const browseLink = $('sheet-browse-link');
+    if (browseLink) {
+      browseLink.addEventListener('click', (e) => {
+        if (isPacksPage()) return;
+        e.preventDefault();
+        closeSheet();
+        const catalog = $('catalog') || document.getElementById('product-list');
+        if (catalog) catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
 
     const pinInput = $('customer-pincode');
     if (pinInput) {

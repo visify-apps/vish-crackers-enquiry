@@ -11,10 +11,10 @@ window.SITE_CONFIG = {
   orderDeadline: '25 October 2026',
   /* Used for countdown (local midnight end of this day) */
   orderDeadlineISO: '2026-10-25',
-  /* Soft warning only — does not block enquiry */
+  /* Suggested enquiry total — does not block submit */
   softMinOrder: 2000,
   softMinOrderNote:
-    'Orders under ₹2,000 will be reviewed first and confirmed only after we check the list with you on WhatsApp.',
+    'Lists under ₹2,000 are confirmed on WhatsApp after we review them with you.',
   /* First 2–3 digits of pincode → zone hint after lookup */
   deliveryZones: {
     '62': {

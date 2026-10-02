@@ -6,8 +6,13 @@
   <title>Combos | Vish Fireworks Store</title>
   <meta name="description" content="Ready Diwali and kids soft-colour combos from Vish Fireworks Store. Add in one tap, then change quantities before enquiry." />
   <meta name="theme-color" content="#140c0a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Vish Crackers" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta property="og:title" content="Combos | Vish Fireworks Store" />
   <meta property="og:description" content="Ready Diwali and kids soft-colour combos from Vish Fireworks Store." />
   <meta property="og:type" content="website" />
@@ -19,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=combo3" />
+  <link rel="stylesheet" href="css/styles.css?v=a2hs2" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body class="page-packs">
@@ -49,10 +54,11 @@
   </header>
 
   <section class="hero shell">
-    <p class="legal-chip">Min ₹2,000 · Fully editable after add</p>
+    <p class="legal-chip">From ₹2,000 · Fully editable after add</p>
     <p class="eyebrow">Skip the long browse</p>
     <h2 class="hero-title">Ready combos from ₹2,000 to ₹20,000.</h2>
     <p class="hero-sub">Each combo is a starting cart. After you add it, change quantities, remove items, or add more from the catalogue — then send your enquiry.</p>
+    <p class="hero-delivery-note">Delivery to your parcel / courier office — not doorstep.</p>
   </section>
 
   <main class="shell packs-page">
@@ -94,7 +100,12 @@
     <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
       <div class="sheet-head">
         <h2 id="sheet-title">Your enquiry</h2>
-        <button type="button" class="nav-icon-btn" id="close-sheet" aria-label="Close"><span data-icon="close"></span></button>
+        <div class="sheet-head-actions">
+          <button type="button" class="nav-icon-btn sheet-clear-btn" id="clear-cart-btn" aria-label="Clear enquiry list" title="Clear list" hidden>
+            <span data-icon="trash"></span>
+          </button>
+          <button type="button" class="nav-icon-btn" id="close-sheet" aria-label="Close"><span data-icon="close"></span></button>
+        </div>
       </div>
       <div class="sheet-main" id="sheet-main">
       <div id="sheet-items" class="sheet-items"></div>
@@ -105,17 +116,35 @@
         </div>
         <div class="saved-note" id="sheet-saved" hidden></div>
       </div>
-      <p class="sheet-min-warn" id="sheet-min-warn" hidden></p>
-      <div class="sheet-share-row">
-        <button type="button" class="btn-secondary" id="share-cart-btn">Copy share link</button>
+
+      <div class="sheet-progress" id="sheet-min-warn" hidden>
+        <div class="sheet-progress-track" aria-hidden="true">
+          <span class="sheet-progress-bar" id="sheet-min-bar"></span>
+        </div>
+        <p class="sheet-progress-label" id="sheet-min-label"></p>
       </div>
+
+      <div class="sheet-tools">
+        <a class="sheet-tool" id="sheet-browse-link" href="index.html#catalog">
+          <span data-icon="plus"></span>
+          <span class="sheet-tool-copy">
+            <strong>Add more</strong>
+            <small>From catalogue</small>
+          </span>
+        </a>
+        <button type="button" class="sheet-tool" id="share-cart-btn">
+          <span data-icon="share"></span>
+          <span class="sheet-tool-copy">
+            <strong>Share</strong>
+            <small>Copy list link</small>
+          </span>
+        </button>
+      </div>
+
       <form id="enquiry-form" class="enquiry-form">
-        <h3>Send your enquiry</h3>
-        <p class="form-help">
-          We deliver to your <strong>preferred parcel / courier office</strong> — not doorstep.
-          Door delivery of fireworks is generally not accepted in India for safety / transport rules.
-          After dispatch, tracking and the exact office location will be shared with you.
-        </p>
+        <div class="enquiry-form-head">
+          <h3>Send your enquiry</h3>
+        </div>
         <div class="field">
           <label for="customer-name">Full name *</label>
           <input id="customer-name" name="name" required autocomplete="name" />
@@ -160,7 +189,10 @@
     <span id="urgency-kicker"></span><span id="urgency-title"></span><span id="urgency-text"></span>
     <span id="cd-days"></span><span id="cd-hours"></span><span id="cd-mins"></span><span id="urgency-progress"></span>
   </div>
-  <div id="success" hidden><p id="success-detail"></p></div>
+  <div id="success" class="success shell" hidden>
+    <h2>Enquiry ready</h2>
+    <p id="success-detail">Enquiry submitted. We will contact you shortly to confirm.</p>
+  </div>
   <span id="biz-address" hidden></span><span id="biz-phone" hidden></span>
   <span id="biz-deadline" hidden></span><span id="biz-delivery" hidden></span>
   <button id="download-pricelist" hidden></button>
@@ -180,12 +212,13 @@
   <span id="catalog-status" hidden></span>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=feat3"></script>
+  <script src="js/config.js?v=combo18"></script>
   <script src="data/products.js?v=feat3"></script>
-  <script src="data/packs.js?v=combo3"></script>
-  <script src="js/icons.js?v=feat3"></script>
-  <script src="js/cart.js?v=feat3"></script>
-  <script src="js/pdf.js?v=feat3"></script>
-  <script src="js/app.js?v=combo3" defer></script>
+  <script src="data/packs.js?v=combo18"></script>
+  <script src="js/icons.js?v=combo18"></script>
+  <script src="js/cart.js?v=combo7"></script>
+  <script src="js/pdf.js?v=combo18"></script>
+  <script src="js/app.js?v=combo18" defer></script>
+  <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

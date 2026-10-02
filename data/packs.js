@@ -1,4 +1,4 @@
-/* Combo packs — ₹2,000–₹20,000 ladder (matches soft min order).
+/* Combo packs — ₹2,000–₹20,000 ladder (matches suggested min order).
    Kids & soft colour first; Diwali combos below.
    Combos are starting carts only: customers can add/remove/change qty after adding. */
 window.PACKS_DATA = [
@@ -111,7 +111,7 @@ window.PACKS_DATA = [
     section: 'One-tap Diwali combos',
     name: 'Starter Combo',
     tagline:
-      'From ₹2,000 soft minimum — complete small cart (sound, bijili, sparkler, ground, night & mini sky). Edit anything after adding.',
+      'From ₹2,000 minimum — complete small cart (sound, bijili, sparkler, ground, night & mini sky). Edit anything after adding.',
     badge: 'From min · ~₹2,100',
     items: [
       { id: 3, qty: 4 },

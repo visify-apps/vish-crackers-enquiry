@@ -20,6 +20,7 @@
  * 4. Test one enquiry from the website.
  * 5. Profit analysis (seller PDF cost vs your sell price):
  *    Run setupProfitSheets() once, then rebuildProfitAnalysis() after any price change.
+ *    New enquiries also append to Enquiry_Profit (Sell total + Profit total per enquiry).
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -28,6 +29,8 @@ var ENQUIRIES_SHEET = 'Enquiries';
 var ENQUIRY_LOG_SHEET = 'Enquiry_Log';
 /** Buy vs sell profit (Products × PDF seller costs in SELLER_COST_SEED) */
 var PROFIT_ANALYSIS_SHEET = 'Profit_Analysis';
+/** One row per enquiry — total profit from Profit_Analysis × qty */
+var ENQUIRY_PROFIT_SHEET = 'Enquiry_Profit';
 var PROFIT_HEADERS = [
   'id',
   'category',
@@ -36,6 +39,16 @@ var PROFIT_HEADERS = [
   'Selling price',
   'Profit rupees',
   'Profit percent'
+];
+var ENQUIRY_PROFIT_HEADERS = [
+  'Sl.No',
+  'Date',
+  'Time',
+  'Name',
+  'Phone',
+  'Sell total',
+  'Profit total',
+  'Missing cost items'
 ];
 var MAX_CART_ITEMS = 120;
 var MAX_BODY_CHARS = 80000;
@@ -688,6 +701,20 @@ function doPost(e) {
         itemsJson: JSON.stringify(priced.cart),
         submissionId: submissionId
       });
+
+      try {
+        appendEnquiryProfitRow_({
+          serialNo: saved.serialNo,
+          date: when.date,
+          time: when.time,
+          name: contact.name,
+          phone: contact.phone,
+          sellTotal: priced.total,
+          cart: priced.cart
+        });
+      } catch (profitErr) {
+        Logger.log('Enquiry_Profit append failed: ' + profitErr);
+      }
 
       if (submissionId) markSubmission(submissionId);
       rateLimitBump(contact.phone);
@@ -1542,9 +1569,11 @@ function matchSellerCost_(product, sellerByKey, sellerBySno, usedKeys) {
  */
 function setupProfitSheets() {
   rebuildProfitAnalysis();
+  ensureEnquiryProfitSheet_();
   try {
     SpreadsheetApp.getUi().alert(
       'Profit_Analysis ready.\n\nColumns: id, category, name, Buying price, Selling price, Profit rupees, Profit percent.\n' +
+        'Enquiry_Profit logs one row per enquiry (Sell total + Profit total).\n' +
         'Re-run rebuildProfitAnalysis() after you change Products prices.'
     );
   } catch (e) {
@@ -1586,11 +1615,195 @@ function rebuildProfitAnalysis() {
   }
 }
 
+function ensureEnquiryProfitSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(ENQUIRY_PROFIT_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(ENQUIRY_PROFIT_SHEET);
+    sheet.appendRow(ENQUIRY_PROFIT_HEADERS);
+    sheet.setFrozenRows(1);
+  } else if (sheet.getLastRow() === 0) {
+    sheet.appendRow(ENQUIRY_PROFIT_HEADERS);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/**
+ * Map product id → { buy, sell, profit, name } from Profit_Analysis.
+ * Missing / blank buying price → treat buy as sell (profit 0).
+ */
+function loadProfitByProductId_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PROFIT_ANALYSIS_SHEET);
+  var map = {};
+  if (!sh || sh.getLastRow() < 2) return map;
+
+  var values = sh.getDataRange().getValues();
+  var headers = values[0];
+  var idx = {};
+  for (var h = 0; h < headers.length; h++) {
+    idx[normalizeHeader_(headers[h])] = h;
+  }
+
+  function findCol_(names) {
+    for (var i = 0; i < names.length; i++) {
+      var key = normalizeHeader_(names[i]);
+      if (idx[key] != null) return idx[key];
+    }
+    return null;
+  }
+
+  var idCol = findCol_(['id', 'product id', 'pid', 'sno', 's.no']);
+  var nameCol = findCol_(['name', 'product', 'item']);
+  var buyCol = findCol_([
+    'buying price',
+    'buy price',
+    'buyer price',
+    'cost',
+    'cost price',
+    'purchase price',
+    'seller cost'
+  ]);
+  var sellCol = findCol_([
+    'selling price',
+    'sell price',
+    'sale price',
+    'price',
+    'mrp sell'
+  ]);
+  var profitCol = findCol_([
+    'profit rupees',
+    'profit rs',
+    'profit ₹',
+    'profit',
+    'profit amount',
+    'margin'
+  ]);
+  if (idCol == null) {
+    Logger.log('Profit_Analysis: no id column. Headers=' + headers.join('|'));
+    return map;
+  }
+
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var idRaw = row[idCol];
+    if (idRaw === '' || idRaw == null) continue;
+    // Sheets may store 162 or "162" or 162.0 — normalize to integer string when numeric
+    var idNum = Number(idRaw);
+    var id = !isNaN(idNum) && String(idRaw).trim() !== ''
+      ? String(Math.round(idNum))
+      : String(idRaw).trim();
+    if (!id) continue;
+
+    var buyRaw = buyCol != null ? row[buyCol] : '';
+    var sellRaw = sellCol != null ? row[sellCol] : '';
+    var sell = Number(sellRaw);
+    if (isNaN(sell)) sell = 0;
+
+    var buyNum = Number(buyRaw);
+    var hasBuy =
+      buyRaw !== '' &&
+      buyRaw != null &&
+      String(buyRaw).trim() !== '' &&
+      !isNaN(buyNum);
+
+    var profit = 0;
+    var missingBuy = !hasBuy;
+    if (hasBuy) {
+      // Always sell − buy (do not trust blank Profit column — Number('') === 0 in JS)
+      profit = Math.round((sell - buyNum) * 100) / 100;
+    } else {
+      // Assume buying = selling → profit 0
+      profit = 0;
+    }
+
+    var entry = {
+      name: nameCol != null ? String(row[nameCol] || '') : '',
+      buy: hasBuy ? buyNum : sell,
+      sell: sell,
+      profit: profit,
+      missingBuy: missingBuy
+    };
+    map[id] = entry;
+    // Also index original string form if different
+    var rawKey = String(idRaw).trim();
+    if (rawKey && rawKey !== id) map[rawKey] = entry;
+  }
+  return map;
+}
+
+/**
+ * Σ (unit profit × qty). Missing buy cost → profit 0 and listed in notes.
+ */
+function computeEnquiryProfit_(cart) {
+  var profitMap = loadProfitByProductId_();
+  var totalProfit = 0;
+  var missing = [];
+  var ids = Object.keys(cart || {});
+
+  for (var i = 0; i < ids.length; i++) {
+    var key = String(ids[i]);
+    var line = cart[ids[i]] || {};
+    var qty = Math.max(1, Number(line.quantity) || 1);
+    var name = String(line.name || '').trim() || key;
+    var lineId = line.id != null && line.id !== '' ? String(line.id).trim() : key;
+    var lineIdNorm = !isNaN(Number(lineId)) ? String(Math.round(Number(lineId))) : lineId;
+
+    var entry =
+      profitMap[lineIdNorm] ||
+      profitMap[lineId] ||
+      profitMap[key] ||
+      profitMap[!isNaN(Number(key)) ? String(Math.round(Number(key))) : key];
+
+    var unitProfit = 0;
+    var noteMissing = false;
+
+    if (!entry) {
+      unitProfit = 0;
+      noteMissing = true;
+    } else {
+      unitProfit = Number(entry.profit);
+      if (isNaN(unitProfit)) unitProfit = 0;
+      if (entry.missingBuy) noteMissing = true;
+    }
+
+    totalProfit += unitProfit * qty;
+    if (noteMissing) missing.push(lineIdNorm + ':' + name);
+  }
+
+  return {
+    profitTotal: Math.round(totalProfit * 100) / 100,
+    missingNote: missing.length ? missing.join('; ') : '',
+    matched: Object.keys(profitMap).length
+  };
+}
+
+function appendEnquiryProfitRow_(info) {
+  var sheet = ensureEnquiryProfitSheet_();
+  var computed = computeEnquiryProfit_(info.cart || {});
+  if (computed.matched === 0) {
+    Logger.log(
+      'Enquiry_Profit: Profit_Analysis returned 0 products — check sheet name/headers'
+    );
+  }
+  sheet.appendRow([
+    info.serialNo,
+    info.date || '',
+    info.time || '',
+    info.name || '',
+    info.phone || '',
+    Number(info.sellTotal) || 0,
+    computed.profitTotal,
+    computed.missingNote
+  ]);
+}
+
 function onOpen() {
   try {
     SpreadsheetApp.getUi()
       .createMenu('Vish Profit')
       .addItem('Setup / rebuild Profit_Analysis', 'rebuildProfitAnalysis')
+      .addItem('Ensure Enquiry_Profit sheet', 'ensureEnquiryProfitSheet_')
       .addToUi();
   } catch (e) {
     /* headless */
