@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=a2hs2" />
+  <link rel="stylesheet" href="css/styles.css?v=lane12" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body class="page-packs">
@@ -56,15 +56,15 @@
   <section class="hero shell">
     <p class="legal-chip">From ₹2,000 · Fully editable after add</p>
     <p class="eyebrow">Skip the long browse</p>
-    <h2 class="hero-title">Ready combos from ₹2,000 to ₹20,000.</h2>
-    <p class="hero-sub">Each combo is a starting cart. After you add it, change quantities, remove items, or add more from the catalogue — then send your enquiry.</p>
+    <h2 class="hero-title">Combos for your planned night.</h2>
+    <p class="hero-sub">Only the list you planned is shown. Add a combo, customise, then send your enquiry.</p>
     <p class="hero-delivery-note">Delivery to your parcel / courier office — not doorstep.</p>
   </section>
 
   <main class="shell packs-page">
     <div id="packs-list" class="packs-list"></div>
-    <p class="catalog-note packs-customize-note"><strong>Customisable:</strong> Add a combo → open Enquiry → change qty, delete lines, or browse the catalogue to add more.</p>
-    <p class="catalog-note">Need something custom from scratch? <a href="index.html#catalog">Browse the full catalogue</a>.</p>
+    <p class="catalog-note packs-customize-note" id="packs-lane-note"><strong>One list per enquiry.</strong> <button type="button" class="link-action" data-why-two-lists="1">Why two lists?</button></p>
+    <p class="catalog-note">Need something custom? <a href="index.html#catalog">Browse this list’s catalogue</a>.</p>
   </main>
 
   <footer class="sivakasi-seal">
@@ -132,13 +132,6 @@
             <small>From catalogue</small>
           </span>
         </a>
-        <button type="button" class="sheet-tool" id="share-cart-btn">
-          <span data-icon="share"></span>
-          <span class="sheet-tool-copy">
-            <strong>Share</strong>
-            <small>Copy list link</small>
-          </span>
-        </button>
       </div>
 
       <form id="enquiry-form" class="enquiry-form">
@@ -212,13 +205,17 @@
   <span id="catalog-status" hidden></span>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=combo18"></script>
-  <script src="data/products.js?v=feat3"></script>
-  <script src="data/packs.js?v=combo18"></script>
-  <script src="js/icons.js?v=combo18"></script>
-  <script src="js/cart.js?v=combo7"></script>
-  <script src="js/pdf.js?v=combo18"></script>
-  <script src="js/app.js?v=combo18" defer></script>
+  <script src="js/config.js?v=lane1"></script>
+  <script src="data/products.js?v=lane1"></script>
+  <script src="data/products-ignite.js?v=lane1"></script>
+  <script src="data/packs.js?v=lane1"></script>
+  <script src="js/icons.js?v=lane1"></script>
+  <script src="js/cart.js?v=lane1"></script>
+  <script src="js/lane.js?v=lane12"></script>
+  <script src="js/dialog.js?v=lane12"></script>
+  <script src="js/night-ui.js?v=lane12"></script>
+  <script src="js/pdf.js?v=lane1"></script>
+  <script src="js/app.js?v=lane12" defer></script>
   <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

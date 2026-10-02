@@ -677,7 +677,11 @@ window.VishPdf = (function () {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
     doc.setTextColor(COLORS.goldSoft[0], COLORS.goldSoft[1], COLORS.goldSoft[2]);
-    doc.text('Full Price List  |  Sivakasi  |  Enquiry only', margin, 54);
+    doc.text(
+      safeText(config.priceListSubtitle || 'Full Price List  |  Sivakasi  |  Enquiry only'),
+      margin,
+      54
+    );
     doc.setFontSize(9);
     doc.text(
       safeText(config.ownerName + '  ' + config.phone + '  |  Generated ' + new Date().toLocaleDateString('en-IN')),

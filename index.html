@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=a2hs2" />
+  <link rel="stylesheet" href="css/styles.css?v=lane12" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -56,9 +56,9 @@
 
   <section class="hero shell hero-combined" id="urgency-banner" aria-live="polite">
     <p class="legal-chip">Enquiry only · From ₹2,000</p>
-    <p class="eyebrow">Fastest way to enquire</p>
-    <h2 class="hero-title">Start with a ready combo.</h2>
-    <p class="hero-sub">One tap adds a full cart from ₹2,000–₹20,000. Change quantities anytime — then confirm on WhatsApp.</p>
+    <p class="eyebrow">Plan your Diwali night</p>
+    <h2 class="hero-title">Start with a night that fits your place.</h2>
+    <p class="hero-sub">Answer two quick scene questions — we open the matching list. One enquiry = one list.</p>
     <p class="hero-delivery-note">Delivery to your parcel / courier office — not doorstep.</p>
 
     <div class="hero-combo-panel">
@@ -66,21 +66,10 @@
         <span data-icon="package"></span>
         <span class="featured-copy">
           <strong>Open ready combos</strong>
-          <small>Kids · Family · Society · Mega</small>
+          <small>Matched to your answers</small>
         </span>
       </a>
-      <div class="hero-combo-jumps" role="group" aria-label="Combo sections">
-        <a class="combo-jump" href="combos.html#kids-combos">
-          <span class="combo-jump-label">Kids & soft</span>
-          <span class="combo-jump-meta">No bombs</span>
-        </a>
-        <a class="combo-jump" href="combos.html#diwali-combos">
-          <span class="combo-jump-label">Diwali combos</span>
-          <span class="combo-jump-meta">₹2,000–₹20,000</span>
-        </a>
-      </div>
-      <p class="hero-combo-note">Customisable after adding a combo</p>
-
+      <p class="hero-combo-note">Customisable after adding · Clear list to switch</p>
     </div>
 
     <div class="hero-more-links">
@@ -110,11 +99,6 @@
     <p id="success-detail">Enquiry submitted. We will contact you shortly to confirm.</p>
   </div>
 
-  <div id="resume-cart-chip" class="resume-cart-chip shell" hidden>
-    <span>You have items saved from last time.</span>
-    <button type="button" class="btn-secondary" id="resume-cart-btn">Continue</button>
-  </div>
-
   <div class="filter-dock" id="catalog">
     <div class="shell filter-inner">
       <div class="search-field">
@@ -140,7 +124,8 @@
     <div id="product-list">
       <p class="empty-state">Loading catalogue…</p>
     </div>
-    <p class="catalog-note">Photos are for reference and may differ slightly from the packed item.</p>
+    <p class="catalog-note" id="catalog-vendor-note" hidden></p>
+    <p class="catalog-note">Photos are for reference and may differ slightly from the packed item. Prefer a ready night? <a href="combos.html">See combos</a>.</p>
   </main>
 
   <section class="visit-block shell" id="store-info" aria-labelledby="visit-title">
@@ -293,13 +278,6 @@
             <small>From catalogue</small>
           </span>
         </a>
-        <button type="button" class="sheet-tool" id="share-cart-btn">
-          <span data-icon="share"></span>
-          <span class="sheet-tool-copy">
-            <strong>Share</strong>
-            <small>Copy list link</small>
-          </span>
-        </button>
       </div>
 
       <form id="enquiry-form" class="enquiry-form">
@@ -346,13 +324,17 @@
   </div>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=combo13"></script>
-  <script src="data/products.js?v=feat3"></script>
-  <script src="data/packs.js?v=combo13"></script>
-  <script src="js/icons.js?v=combo11"></script>
-  <script src="js/cart.js?v=combo7"></script>
-  <script src="js/pdf.js?v=combo13"></script>
-  <script src="js/app.js?v=combo13" defer></script>
+  <script src="js/config.js?v=lane1"></script>
+  <script src="data/products.js?v=lane1"></script>
+  <script src="data/products-ignite.js?v=lane1"></script>
+  <script src="data/packs.js?v=lane1"></script>
+  <script src="js/icons.js?v=lane1"></script>
+  <script src="js/cart.js?v=lane1"></script>
+  <script src="js/lane.js?v=lane12"></script>
+  <script src="js/dialog.js?v=lane12"></script>
+  <script src="js/night-ui.js?v=lane12"></script>
+  <script src="js/pdf.js?v=lane1"></script>
+  <script src="js/app.js?v=lane12" defer></script>
   <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

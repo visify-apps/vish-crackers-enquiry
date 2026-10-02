@@ -1,5 +1,7 @@
 window.VishApp = (function () {
   const cfg = () => window.SITE_CONFIG;
+  let sriProductsData = [];
+  let igniteProductsData = [];
   let productsData = [];
   let activeCategory = 'all';
   let searchQuery = '';
@@ -80,12 +82,77 @@ window.VishApp = (function () {
     if (callBtn) callBtn.href = 'tel:' + cfg().phone;
   }
 
-  function allProducts() {
-    return productsData.flatMap((cat) =>
-      cat.items
+  function tagVendor(categories, vendor) {
+    return (categories || []).map((cat) => ({
+      category: cat.category,
+      vendor: vendor,
+      items: (cat.items || []).map((item) => ({ ...item, vendor: vendor }))
+    }));
+  }
+
+  function flattenCatalog(categories) {
+    return (categories || []).flatMap((cat) =>
+      (cat.items || [])
         .filter((i) => i.active !== false)
-        .map((item) => ({ ...item, category: cat.category }))
+        .map((item) => ({ ...item, category: cat.category, vendor: item.vendor || cat.vendor || 'sri' }))
     );
+  }
+
+  function catalogForVendor(vendor) {
+    if (vendor === 'ignite') return igniteProductsData;
+    return sriProductsData;
+  }
+
+  function syncActiveCatalog() {
+    const vendor = activeVendor();
+    productsData = catalogForVendor(vendor);
+    return productsData;
+  }
+
+  function activeVendor() {
+    const fromCart = VishCart.getVendor();
+    if (fromCart) return fromCart;
+    if (window.VishLane) {
+      const lane = VishLane.getLane();
+      if (lane) return VishLane.laneToVendor(lane) || 'ignite';
+    }
+    return 'ignite';
+  }
+
+  function activeLaneId() {
+    if (window.VishLane) {
+      const lane = VishLane.getLane();
+      if (lane) return lane;
+      return VishLane.vendorToLane(activeVendor());
+    }
+    return activeVendor() === 'sri' ? 'fullvariety' : 'bestvalue';
+  }
+
+  function vendorLockMessage(lockedVendor) {
+    const lane =
+      window.VishLane && VishLane.vendorToLane(lockedVendor)
+        ? VishLane.getMeta(VishLane.vendorToLane(lockedVendor))
+        : null;
+    const name =
+      lane ? lane.short : lockedVendor === 'ignite' ? 'Family nights at home' : 'Soft nights with kids · Open-ground shows';
+    return (
+      'Your enquiry is on “' +
+      name +
+      '”. Clear the list and tap Plan again to switch.'
+    );
+  }
+
+  function allProducts() {
+    return flattenCatalog(productsData);
+  }
+
+  function productById(id) {
+    const all = flattenCatalog(sriProductsData).concat(flattenCatalog(igniteProductsData));
+    return all.find((p) => String(p.id) === String(id)) || null;
+  }
+
+  function productByIdInCatalog(categories, id) {
+    return flattenCatalog(categories).find((p) => String(p.id) === String(id)) || null;
   }
 
   function filteredProducts() {
@@ -111,13 +178,6 @@ window.VishApp = (function () {
     return map;
   }
 
-  function productById(id) {
-    return (
-      allProducts().find((p) => String(p.id) === String(id)) ||
-      productsData.flatMap((c) => c.items).find((p) => String(p.id) === String(id))
-    );
-  }
-
   function updateCategoryLabel() {
     const label = $('category-current-label');
     if (!label) return;
@@ -139,12 +199,15 @@ window.VishApp = (function () {
       badge.hidden = count === 0;
     }
     if (meta) {
+      const locked = activeVendor();
+      const metaLane = window.VishLane ? VishLane.getMeta(VishLane.vendorToLane(locked)) : null;
+      const lockBit = metaLane ? ' · ' + metaLane.short : '';
       meta.textContent =
         count === 0
           ? isPacksPage()
             ? 'Add a combo to start'
             : 'Add items to build your enquiry'
-          : count + (count === 1 ? ' item' : ' items') + ' · ' + money(total);
+          : count + (count === 1 ? ' item' : ' items') + ' · ' + money(total) + lockBit;
     }
 
     if (savedEl) {
@@ -328,7 +391,15 @@ window.VishApp = (function () {
       add.className = 'btn btn-add';
       add.textContent = 'Add';
       add.addEventListener('click', () => {
-        VishCart.addItem(item);
+        if (window.VishLane && !VishLane.getLane()) {
+          VishLane.setLane(VishLane.vendorToLane(item.vendor || activeVendor()));
+          if (window.VishNightUI) VishNightUI.paintBanner();
+        }
+        const result = VishCart.addItem(item);
+        if (result && result.ok === false) {
+          notify(vendorLockMessage(result.vendor));
+          return;
+        }
         refreshAfterCartChange();
       });
       actions.appendChild(add);
@@ -445,6 +516,7 @@ window.VishApp = (function () {
   }
 
   function refreshAfterCartChange() {
+    syncActiveCatalog();
     pruneInactiveCartItems();
     if (typeof VishCart.pruneAddedCombos === 'function') {
       VishCart.pruneAddedCombos(window.PACKS_DATA || []);
@@ -452,7 +524,28 @@ window.VishApp = (function () {
     renderProducts();
     renderPacks();
     updateCartBar();
+    updateCatalogVendorNote();
+    if (window.VishNightUI) VishNightUI.paintBanner();
     if ($('sheet') && $('sheet').classList.contains('is-open')) renderSheet();
+  }
+
+  function updateCatalogVendorNote() {
+    const note = $('catalog-vendor-note');
+    if (!note) return;
+    const meta = window.VishLane ? VishLane.getMeta(activeLaneId()) : null;
+    if (!meta || !VishLane.getLane()) {
+      note.hidden = true;
+      note.innerHTML = '';
+      return;
+    }
+    note.hidden = false;
+    const locked = VishCart.cartCount() > 0;
+    note.innerHTML =
+      (locked
+        ? 'Enquiry locked to “' + escapeHtml(meta.short) + '”. '
+        : 'Showing “' + escapeHtml(meta.short) + '” for this visit. ') +
+      '<button type="button" class="link-action" data-plan-again="1">Plan again</button>' +
+      ' to switch.';
   }
 
   function showToast(message) {
@@ -541,14 +634,17 @@ window.VishApp = (function () {
     priceListPreviewFilename = '';
   }
 
-  function openPriceListViewer() {
-    if (!productsData.length) {
-      alert('Catalogue is still loading. Please try again in a moment.');
+  function openPriceListViewerForCatalog(catalog, subtitle) {
+    if (!catalog || !catalog.length) {
+      notify('Catalogue is still loading. Please try again in a moment.');
       return;
     }
     try {
       closePdfViewer();
-      const preview = VishPdf.createPriceListPreview(productsData, cfg());
+      const preview = VishPdf.createPriceListPreview(catalog, {
+        ...cfg(),
+        priceListSubtitle: subtitle || 'Price list  |  Sivakasi  |  Enquiry only'
+      });
       priceListPreviewUrl = preview.url;
       priceListPreviewFilename = preview.filename;
       const frame = $('pdf-viewer-frame');
@@ -559,17 +655,34 @@ window.VishApp = (function () {
       injectIcons(viewer);
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Could not create PDF. Please refresh and try again.');
+      notify(err.message || 'Could not create PDF. Please refresh and try again.');
     }
   }
 
+  function openPriceListViewer() {
+    if (window.VishNightUI) {
+      VishNightUI.openPdfChooser((laneId) => {
+        const meta = VishLane.getMeta(laneId);
+        const vendor = VishLane.laneToVendor(laneId);
+        openPriceListViewerForCatalog(
+          catalogForVendor(vendor),
+          (meta && meta.pdfLabel ? meta.pdfLabel + '  |  Sivakasi  |  Enquiry only' : null)
+        );
+      });
+      return;
+    }
+    openPriceListViewerForCatalog(productsData, null);
+  }
+
   function downloadPriceListFromViewer() {
-    if (!productsData.length) return;
+    if (!priceListPreviewUrl) return;
     try {
-      VishPdf.downloadPriceListPdf(productsData, cfg());
+      const a = document.createElement('a');
+      a.href = priceListPreviewUrl;
+      a.download = priceListPreviewFilename || 'vish-price-list.pdf';
+      a.click();
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Could not download PDF.');
     }
   }
 
@@ -595,8 +708,9 @@ window.VishApp = (function () {
     let total = 0;
     let mrp = 0;
     const lines = [];
+    const catalog = catalogForVendor(pack.vendor === 'ignite' ? 'ignite' : 'sri');
     (pack.items || []).forEach((row) => {
-      const product = productById(row.id);
+      const product = productByIdInCatalog(catalog, row.id) || productById(row.id);
       if (!product || product.active === false) return;
       const qty = row.qty || 1;
       total += product.price * qty;
@@ -607,30 +721,199 @@ window.VishApp = (function () {
   }
 
   function addPack(pack) {
-    const { lines } = packTotals(pack);
-    if (!lines.length) {
-      alert('This combo has no available products right now.');
+    const runAdd = function () {
+      const vendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
+      const afterLane = function () {
+        const lock = VishCart.ensureVendor(vendor);
+        if (!lock.ok) {
+          notify(vendorLockMessage(lock.vendor));
+          return;
+        }
+        const { lines } = packTotals(pack);
+        if (!lines.length) {
+          notify('This combo has no available products right now.');
+          return;
+        }
+        for (let i = 0; i < lines.length; i++) {
+          const result = VishCart.addItem(lines[i].product, lines[i].qty);
+          if (result && result.ok === false) {
+            notify(vendorLockMessage(result.vendor));
+            refreshAfterCartChange();
+            return;
+          }
+        }
+        if (pack.id != null) VishCart.markComboAdded(pack.id);
+        refreshAfterCartChange();
+        showToast((pack.name || 'Combo') + ' added to enquiry');
+        openSheet();
+      };
+
+      if (window.VishLane) {
+        const laneVendor = VishLane.laneToVendor(VishLane.getLane());
+        if (laneVendor && laneVendor !== vendor) {
+          const p = VishNightUI.requestClearAndSwitch(VishLane.vendorToLane(vendor));
+          Promise.resolve(p).then(function (switched) {
+            if (switched) afterLane();
+          });
+          return;
+        }
+        if (!VishLane.getLane()) {
+          VishLane.setLane(VishLane.vendorToLane(vendor));
+          if (window.VishNightUI) VishNightUI.paintBanner();
+        }
+      }
+      afterLane();
+    };
+
+    const already = pack.id != null && VishCart.hasCombo(pack.id);
+    if (already) {
+      const ask = window.VishDialog
+        ? VishDialog.confirm({
+            kicker: 'Already added',
+            title: 'Add another set of this combo?',
+            body:
+              '“' +
+              (pack.name || 'This combo') +
+              '” is already in your enquiry. Adding again will put another full set of its items into the list.',
+            confirmLabel: 'Add another set',
+            cancelLabel: 'Not now'
+          })
+        : Promise.resolve(true);
+      ask.then(function (ok) {
+        if (ok) runAdd();
+      });
       return;
     }
-    const already = pack.id != null && VishCart.hasCombo(pack.id);
-    lines.forEach(({ product, qty }) => VishCart.addItem(product, qty));
-    if (pack.id != null) VishCart.markComboAdded(pack.id);
-    refreshAfterCartChange();
-    showToast(
-      already
-        ? 'Another set of ' + (pack.name || 'this combo') + ' added'
-        : (pack.name || 'Combo') + ' added to enquiry'
+    runAdd();
+  }
+
+  function notify(message) {
+    if (window.VishDialog) {
+      VishDialog.notice({ title: 'Quick note', body: String(message || '') });
+      return;
+    }
+    showToast(message);
+  }
+
+  function sectionBlurb(sectionName) {
+    if (/kids magic/i.test(sectionName)) {
+      return 'Touchable, peacock & kids favourites — fullest soft variety. Edit only within this list after adding.';
+    }
+    if (/soft colour/i.test(sectionName)) {
+      return 'No bombs · colour & sparklers. Edit with matching soft items after adding.';
+    }
+    if (/open ground/i.test(sectionName)) {
+      return 'True open-yard finales (setout-class sky). Open yards only — not for flats.';
+    }
+    if (/family diwali/i.test(sectionName)) {
+      return 'Complete Diwali packs from ₹2,000. Add one, then customise from this list.';
+    }
+    return 'Add one combo, then customise freely within this list.';
+  }
+
+  function sectionTone(sectionName) {
+    if (/kids magic|soft colour/i.test(sectionName)) return 'kids';
+    if (/open ground/i.test(sectionName)) return 'ground';
+    return 'night';
+  }
+
+  function packPhotosOn() {
+    try {
+      return sessionStorage.getItem('vish_pack_photos_v2') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function setPackPhotosOn(on) {
+    try {
+      sessionStorage.removeItem('vish_pack_photos_v1');
+      if (on) sessionStorage.setItem('vish_pack_photos_v2', '1');
+      else sessionStorage.removeItem('vish_pack_photos_v2');
+    } catch (e) {}
+    syncPackPhotosUi();
+  }
+
+  function syncPackPhotosUi() {
+    const on = packPhotosOn();
+    document.body.classList.toggle('packs-show-photos', on);
+    document.querySelectorAll('.pack-photos-toggle').forEach((btn) => {
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.textContent = on ? 'Hide photos' : 'Show photos';
+    });
+  }
+
+  function packPhotosToggleHtml() {
+    const on = packPhotosOn();
+    return (
+      '<button type="button" class="pack-photos-toggle" data-pack-photos="1" aria-pressed="' +
+      (on ? 'true' : 'false') +
+      '">' +
+      (on ? 'Hide photos' : 'Show photos') +
+      '</button>'
     );
-    openSheet();
+  }
+
+  function packItemLinesHtml(lines) {
+    return (lines || [])
+      .map((l) => {
+        const src = safeImageSrc(l.product && l.product.image);
+        return (
+          '<li>' +
+          '<img class="pack-item-photo" src="' +
+          src +
+          '" alt="" loading="lazy" width="40" height="40" />' +
+          '<span class="pack-item-name">' +
+          escapeHtml(l.product.name) +
+          '</span>' +
+          '<span class="pack-item-qty">×' +
+          l.qty +
+          '</span>' +
+          '</li>'
+        );
+      })
+      .join('');
+  }
+
+  function updatePacksLaneNote() {
+    const note = $('packs-lane-note');
+    if (!note) return;
+    const meta = window.VishLane && VishLane.getLane() ? VishLane.getMeta(VishLane.getLane()) : null;
+    const why =
+      ' <button type="button" class="link-action" data-why-two-lists="1">Why two lists?</button>';
+    if (!meta) {
+      note.innerHTML = '<strong>One list per enquiry.</strong>' + why;
+      return;
+    }
+    const locked = VishCart.cartCount() > 0;
+    note.innerHTML =
+      '<strong>' +
+      (locked ? 'Enquiry locked to' : 'Showing') +
+      ' “' +
+      escapeHtml(meta.short) +
+      '”.</strong> ' +
+      '<button type="button" class="link-action" data-plan-again="1">Plan again</button>' +
+      ' to switch.' +
+      why;
   }
 
   function renderPacks() {
     const root = $('packs-list');
     if (!root) return;
-    const packs = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
+    updatePacksLaneNote();
+    document.body.classList.toggle('packs-show-photos', packPhotosOn());
+    const oldBar = $('packs-toolbar');
+    if (oldBar) oldBar.remove();
+    const allPacks = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
+    const vendor = activeVendor();
+    const packs = allPacks.filter((pack) => {
+      const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
+      return packVendor === vendor;
+    });
     root.innerHTML = '';
     if (!packs.length) {
-      root.innerHTML = '<p class="empty-state">No combos yet.</p>';
+      root.innerHTML =
+        '<p class="empty-state">No combos for this list yet. <button type="button" class="link-action" data-plan-again="1">Plan again</button> to switch.</p>';
       return;
     }
 
@@ -641,18 +924,32 @@ window.VishApp = (function () {
       bySection.get(key).push(pack);
     });
 
+    const preferred = [
+      'Soft colour nights',
+      'Kids magic nights',
+      'Family Diwali nights',
+      'Open ground finales'
+    ];
     const sectionOrder = Array.from(bySection.keys()).sort((a, b) => {
-      const aKids = /kids|soft colour|no bombs/i.test(a) ? 0 : 1;
-      const bKids = /kids|soft colour|no bombs/i.test(b) ? 0 : 1;
-      return aKids - bKids;
+      const ai = preferred.indexOf(a);
+      const bi = preferred.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
     });
 
     sectionOrder.forEach((sectionName) => {
       const sectionPacks = bySection.get(sectionName) || [];
-      const isKids = /kids|soft colour|no bombs/i.test(sectionName);
+      const tone = sectionTone(sectionName);
       const block = document.createElement('section');
-      block.className = 'packs-section' + (isKids ? ' packs-section-kids' : ' packs-section-night');
-      block.id = isKids ? 'kids-combos' : 'diwali-combos';
+      block.className =
+        'packs-section' +
+        (tone === 'kids' ? ' packs-section-kids' : '') +
+        (tone === 'ground' ? ' packs-section-ground' : '') +
+        (tone === 'night' ? ' packs-section-night' : '');
+      block.id =
+        tone === 'kids' ? 'kids-combos' : tone === 'ground' ? 'ground-combos' : 'diwali-combos';
       const heading = document.createElement('div');
       heading.className = 'packs-section-head';
       heading.innerHTML =
@@ -660,11 +957,7 @@ window.VishApp = (function () {
         escapeHtml(sectionName) +
         '</h2>' +
         '<p>' +
-        escapeHtml(
-          isKids
-            ? 'Soft colour & kids items only — no bombs, no heavy sound. You can change the list after adding.'
-            : 'Combos from ₹2,000 to about ₹20,000. Add one, then customise freely.'
-        ) +
+        escapeHtml(sectionBlurb(sectionName)) +
         '</p>';
       block.appendChild(heading);
 
@@ -677,23 +970,15 @@ window.VishApp = (function () {
           .toLowerCase()
           .replace(/[^a-z0-9-]/g, '');
         const already = pack.id != null && VishCart.hasCombo(pack.id);
+        const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
         const card = document.createElement('article');
         card.className =
           'pack-card pack-theme-' +
           theme +
-          (isKids ? ' pack-card-kids' : '') +
+          (tone === 'kids' ? ' pack-card-kids' : '') +
           (already ? ' pack-card-added' : '');
         card.dataset.theme = theme;
-        const itemLines = lines
-          .map(
-            (l) =>
-              '<li><span>' +
-              escapeHtml(l.product.name) +
-              '</span><span>×' +
-              l.qty +
-              '</span></li>'
-          )
-          .join('');
+        card.dataset.vendor = packVendor;
         card.innerHTML =
           '<div class="pack-atmosphere" aria-hidden="true">' +
           '<span class="pack-burst"></span>' +
@@ -742,10 +1027,13 @@ window.VishApp = (function () {
           '</button>' +
           '<div class="pack-details">' +
           '<div class="pack-details-inner">' +
+          '<div class="pack-details-tools">' +
+          packPhotosToggleHtml() +
+          '</div>' +
           '<ul class="pack-items">' +
-          itemLines +
+          packItemLinesHtml(lines) +
           '</ul>' +
-          '<p class="pack-customize-hint">After adding, change quantities or remove items from Enquiry.</p>' +
+          '<p class="pack-customize-hint">After adding, change quantities or add more from this list only.</p>' +
           '</div>' +
           '</div>' +
           '</div>';
@@ -859,6 +1147,18 @@ window.VishApp = (function () {
     if (VishCart.cartCount(cart) === 0) {
       list.innerHTML = '<p class="empty-state">Your enquiry list is empty.</p>';
     } else {
+      const locked = activeVendor();
+      const metaLane = window.VishLane ? VishLane.getMeta(VishLane.vendorToLane(locked)) : null;
+      if (metaLane) {
+        const banner = document.createElement('p');
+        banner.className = 'catalog-vendor-note';
+        banner.style.marginBottom = '10px';
+        banner.textContent =
+          'This enquiry is “' +
+          metaLane.short +
+          '” — add more only from this list. Clear list & Plan again to switch.';
+        list.appendChild(banner);
+      }
       Object.values(cart).forEach((item) => {
         const live = liveProduct(item.id);
         const unavailable = live && live.active === false;
@@ -1229,6 +1529,7 @@ window.VishApp = (function () {
       saved: totals.saved,
       submissionId: submissionId,
       submittedAt: new Date().toISOString(),
+      fulfillVendor: activeVendor() || 'sri',
       website: '',
       ingestKey: cfg().enquiryIngestKey || '',
       userAgent: navigator.userAgent || ''
@@ -1285,12 +1586,14 @@ window.VishApp = (function () {
     VishPdf.openWhatsApp(cfg(), waText);
 
     VishCart.clearCart();
+    if (window.VishLane) VishLane.clearLane();
     updateCartBar();
     renderProducts();
     renderPacks();
     hideEnquiryConfirm();
     closeSheet();
     showSuccess(true, wantPdf, false);
+    if (window.VishNightUI) VishNightUI.paintBanner();
     if ($('enquiry-form')) $('enquiry-form').reset();
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();
@@ -1328,47 +1631,25 @@ window.VishApp = (function () {
       });
     }
 
-    if ($('share-cart-btn')) {
-      $('share-cart-btn').addEventListener('click', async () => {
-        const share = VishCart.encodeShare();
-        if (!share) {
-          showToast('Add items before sharing');
-          return;
-        }
-        const url =
-          location.origin +
-          location.pathname.replace(/combos\.html$/, 'index.html') +
-          '?cart=' +
-          encodeURIComponent(share);
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(url);
-            showToast('Cart link copied');
-          } else {
-            window.prompt('Copy cart link', url);
-          }
-        } catch (err) {
-          window.prompt('Copy cart link', url);
-        }
-      });
-    }
-
     if ($('clear-cart-btn')) {
       $('clear-cart-btn').addEventListener('click', () => {
         if (VishCart.cartCount() === 0) return;
-        const ok = window.confirm('Clear your entire enquiry list?');
-        if (!ok) return;
-        VishCart.clearCart();
-        refreshAfterCartChange();
-        showToast('Enquiry list cleared');
-      });
-    }
-
-    if ($('resume-cart-btn')) {
-      $('resume-cart-btn').addEventListener('click', () => {
-        openSheet();
-        const chip = $('resume-cart-chip');
-        if (chip) chip.hidden = true;
+        const ask = window.VishDialog
+          ? VishDialog.confirm({
+              kicker: 'Enquiry list',
+              title: 'Clear your entire enquiry?',
+              body: 'All items will be removed from this list.',
+              confirmLabel: 'Clear list',
+              cancelLabel: 'Keep items'
+            })
+          : Promise.resolve(true);
+        ask.then(function (ok) {
+          if (!ok) return;
+          VishCart.clearCart();
+          if (window.VishLane) VishLane.clearLane();
+          refreshAfterCartChange();
+          showToast('Enquiry list cleared');
+        });
       });
     }
 
@@ -1473,6 +1754,30 @@ window.VishApp = (function () {
 
     wireWhatsAppFloat();
 
+    document.addEventListener('click', (e) => {
+      const plan = e.target.closest('[data-plan-again]');
+      if (plan) {
+        e.preventDefault();
+        if (window.VishNightUI) VishNightUI.requestPlanAgain();
+        return;
+      }
+      if (e.target.closest('#why-two-lists-btn') || e.target.closest('[data-why-two-lists]')) {
+        e.preventDefault();
+        if (window.VishDialog) {
+          VishDialog.notice({
+            kicker: 'Two lists',
+            title: 'Why two lists?',
+            body: window.VishLane ? VishLane.WHY_TWO_LISTS : 'We keep two lists so packing stays simple.'
+          });
+        }
+        return;
+      }
+      if (e.target.closest('[data-pack-photos]')) {
+        e.preventDefault();
+        setPackPhotosOn(!packPhotosOn());
+      }
+    });
+
     const lbClose = $('lightbox-close');
     const lb = $('lightbox');
     if (lbClose) lbClose.addEventListener('click', closeLightbox);
@@ -1488,6 +1793,7 @@ window.VishApp = (function () {
         closeLightbox();
         closeCategoryPicker();
         closePdfViewer();
+        if (window.VishNightUI) VishNightUI.hidePdfChooser();
       }
     });
   }
@@ -1509,19 +1815,24 @@ window.VishApp = (function () {
   }
 
   function useLocalProducts() {
-    if (Array.isArray(window.PRODUCTS_DATA) && window.PRODUCTS_DATA.length) {
-      productsData = window.PRODUCTS_DATA;
-      return true;
-    }
-    return false;
+    const sri = Array.isArray(window.PRODUCTS_DATA) ? window.PRODUCTS_DATA : [];
+    const ignite = Array.isArray(window.PRODUCTS_IGNITE_DATA) ? window.PRODUCTS_IGNITE_DATA : [];
+    if (!sri.length) return false;
+    sriProductsData = tagVendor(sri, 'sri');
+    igniteProductsData = tagVendor(ignite, 'ignite');
+    syncActiveCatalog();
+    return true;
   }
 
   function paintCatalog() {
+    syncActiveCatalog();
     pruneInactiveCartItems();
     updateCategoryLabel();
     renderProducts();
     renderPacks();
     updateCartBar();
+    updateCatalogVendorNote();
+    if (window.VishNightUI) VishNightUI.paintBanner();
     injectIcons(document);
   }
 
@@ -1540,7 +1851,8 @@ window.VishApp = (function () {
       });
       const data = await res.json();
       if (data && Array.isArray(data.products) && data.products.length) {
-        productsData = data.products;
+        sriProductsData = tagVendor(data.products, 'sri');
+        syncActiveCatalog();
         paintCatalog();
       }
     } catch (err) {
@@ -1565,37 +1877,32 @@ window.VishApp = (function () {
       throw new Error('Product data missing');
     }
 
-    const params = new URLSearchParams(location.search);
-    const cartShare = params.get('cart');
-    if (cartShare) {
-      const existingCount = VishCart.cartCount();
-      let apply = true;
-      if (existingCount > 0) {
-        apply = window.confirm(
-          'You already have ' +
-            existingCount +
-            ' item(s) in your enquiry list.\n\nReplace them with the shared cart?'
-        );
-      }
-      if (apply) {
-        const result = VishCart.applyShare(cartShare, productById, { replace: true });
-        if (result.added) {
-          showToast(
-            'Loaded ' +
-              result.added +
-              ' item(s) from shared link' +
-              (result.skipped ? ' (' + result.skipped + ' unavailable skipped)' : '')
-          );
+    if (window.VishNightUI) {
+      VishNightUI.setCallbacks({
+        onLaneChanged: function () {
+          paintCatalog();
         }
-      } else {
-        showToast('Kept your existing enquiry list');
+      });
+      // Legacy cart without lane: infer from vendor or product ids
+      if (!VishLane.getLane() && VishCart.cartCount() > 0) {
+        let v = VishCart.getVendor();
+        if (!v) {
+          const first = Object.values(VishCart.getCart())[0];
+          const n = Number(first && first.id);
+          v = Number.isFinite(n) && n >= 10000 ? 'ignite' : 'sri';
+          VishCart.setVendor(v);
+        }
+        VishLane.setLane(VishLane.vendorToLane(v));
       }
-      try {
-        history.replaceState({}, '', location.pathname + location.hash);
-      } catch (err) {}
-    } else if (VishCart.cartCount() > 0 && $('resume-cart-chip')) {
-      $('resume-cart-chip').hidden = false;
+      VishNightUI.ensureGate();
     }
+
+    // Share-cart links removed for dual-lane model — ignore legacy ?cart=
+    try {
+      if (new URLSearchParams(location.search).has('cart')) {
+        history.replaceState({}, '', location.pathname + location.hash);
+      }
+    } catch (err) {}
 
     paintCatalog();
     refreshProductsFromSheet();

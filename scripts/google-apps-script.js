@@ -21,9 +21,21 @@
  * 5. Profit analysis (seller PDF cost vs your sell price):
  *    Run setupProfitSheets() once, then rebuildProfitAnalysis() after any price change.
  *    New enquiries also append to Enquiry_Profit (Sell total + Profit total per enquiry).
+ * 6. Ignite price list → Products_v2: run seedProductsV2() (Vish Profit menu).
  */
 
 var PRODUCTS_SHEET = 'Products';
+var PRODUCTS_V2_SHEET = 'Products_v2';
+var PRODUCTS_V2_HEADERS = [
+  'id',
+  'category',
+  'name',
+  'originalPrice',
+  'price',
+  'sellingPrice',
+  'active',
+  'limited'
+];
 var ENQUIRIES_SHEET = 'Enquiries';
 /** Plain backup tab — always writable even when Enquiries is a Google Table */
 var ENQUIRY_LOG_SHEET = 'Enquiry_Log';
@@ -679,6 +691,10 @@ function doPost(e) {
         return jsonOutput({ status: 'error', message: priced.error });
       }
 
+      var fulfillVendor =
+        String(data.fulfillVendor || '').toLowerCase() === 'ignite' ? 'ignite' : 'sri';
+      var fulfillLabel = fulfillVendor === 'ignite' ? 'Ignite' : 'Sri';
+
       var priorSnos = findRecentSerialsByPhone_(contact.phone, 7);
 
       var when = istParts_(data.submittedAt);
@@ -687,11 +703,14 @@ function doPost(e) {
         time: when.time,
         name: contact.name,
         phone: contact.phone,
-        area: contact.officeName || '',
+        area:
+          'Fulfill:' +
+          fulfillLabel +
+          (contact.officeName ? ' · ' + contact.officeName : ''),
         city: contact.city || '',
         state: contact.state || '',
         pincode: contact.pincode,
-        items: itemsSummaryText_(priced),
+        items: '[' + fulfillLabel + '] ' + itemsSummaryText_(priced),
         totalPrice: priced.total,
         address: '',
         orderStatus: 'UnderEnquiry',
@@ -1123,33 +1142,78 @@ function validateEnquiry(data) {
 
 function loadProductPriceMap() {
   var map = {};
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRODUCTS_SHEET);
-  if (!sheet) return map;
-  var values = sheet.getDataRange().getValues();
-  if (values.length < 2) return map;
-  var headers = values[0];
-  var idIdx = headers.indexOf('id');
-  var priceIdx = headers.indexOf('price');
-  var mrpIdx = headers.indexOf('originalPrice');
-  var nameIdx = headers.indexOf('name');
-  var unitIdx = headers.indexOf('unit');
-  var activeIdx = headers.indexOf('active');
-  var catIdx = headers.indexOf('category');
-  if (idIdx < 0 || priceIdx < 0) return map;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(PRODUCTS_SHEET);
+  if (sheet) {
+    var values = sheet.getDataRange().getValues();
+    if (values.length >= 2) {
+      var headers = values[0];
+      var idIdx = headers.indexOf('id');
+      var priceIdx = headers.indexOf('price');
+      var mrpIdx = headers.indexOf('originalPrice');
+      var nameIdx = headers.indexOf('name');
+      var unitIdx = headers.indexOf('unit');
+      var activeIdx = headers.indexOf('active');
+      var catIdx = headers.indexOf('category');
+      if (idIdx >= 0 && priceIdx >= 0) {
+        values.slice(1).forEach(function (row) {
+          var id = String(row[idIdx]);
+          var active = activeIdx < 0 ? true : row[activeIdx];
+          if (String(active).toLowerCase() === 'false' || active === false || active === 0) return;
+          map[id] = {
+            id: row[idIdx],
+            name: nameIdx >= 0 ? String(row[nameIdx] || '') : '',
+            unit: unitIdx >= 0 ? String(row[unitIdx] || '') : '',
+            category: catIdx >= 0 ? String(row[catIdx] || 'Other') : 'Other',
+            price: Number(row[priceIdx]) || 0,
+            originalPrice: mrpIdx >= 0 ? Number(row[mrpIdx]) || 0 : Number(row[priceIdx]) || 0,
+            vendor: 'sri'
+          };
+        });
+      }
+    }
+  }
 
-  values.slice(1).forEach(function (row) {
-    var id = String(row[idIdx]);
-    var active = activeIdx < 0 ? true : row[activeIdx];
-    if (String(active).toLowerCase() === 'false' || active === false || active === 0) return;
-    map[id] = {
-      id: row[idIdx],
-      name: nameIdx >= 0 ? String(row[nameIdx] || '') : '',
-      unit: unitIdx >= 0 ? String(row[unitIdx] || '') : '',
-      category: catIdx >= 0 ? String(row[catIdx] || 'Other') : 'Other',
-      price: Number(row[priceIdx]) || 0,
-      originalPrice: mrpIdx >= 0 ? Number(row[mrpIdx]) || 0 : Number(row[priceIdx]) || 0
-    };
-  });
+  /** Ignite Products_v2 — site ids are 10000 + sheet id; sell from sellingPrice */
+  var v2 = ss.getSheetByName(PRODUCTS_V2_SHEET);
+  if (v2) {
+    var v2values = v2.getDataRange().getValues();
+    if (v2values.length >= 2) {
+      var h2 = v2values[0];
+      var iId = h2.indexOf('id');
+      var iSell = h2.indexOf('sellingPrice');
+      var iPrice = h2.indexOf('price');
+      var iMrp = h2.indexOf('originalPrice');
+      var iName = h2.indexOf('name');
+      var iActive = h2.indexOf('active');
+      var iCat = h2.indexOf('category');
+      if (iId >= 0 && (iSell >= 0 || iPrice >= 0)) {
+        v2values.slice(1).forEach(function (row) {
+          var sourceId = Number(row[iId]);
+          if (!sourceId) return;
+          var active = iActive < 0 ? true : row[iActive];
+          if (String(active).toLowerCase() === 'false' || active === false || active === 0) return;
+          var sell =
+            iSell >= 0 && row[iSell] !== '' && row[iSell] != null
+              ? Number(row[iSell]) || 0
+              : Number(row[iPrice]) || 0;
+          if (!sell) return;
+          var mrp =
+            iMrp >= 0 && row[iMrp] !== '' && row[iMrp] != null ? Number(row[iMrp]) || sell : sell;
+          var sid = String(10000 + sourceId);
+          map[sid] = {
+            id: 10000 + sourceId,
+            name: iName >= 0 ? String(row[iName] || '') : '',
+            unit: '1 Pack',
+            category: iCat >= 0 ? String(row[iCat] || 'Other') : 'Other',
+            price: sell,
+            originalPrice: mrp || sell,
+            vendor: 'ignite'
+          };
+        });
+      }
+    }
+  }
   return map;
 }
 
@@ -1798,12 +1862,194 @@ function appendEnquiryProfitRow_(info) {
   ]);
 }
 
+/**
+ * Ignite Crackers price list → Products_v2.
+ * originalPrice & price left empty; PDF rate goes in sellingPrice.
+ * No unit / image columns (not in source PDF).
+ * Run from sheet menu: Vish Profit → Seed Products_v2 (Ignite)
+ * or run seedProductsV2() in the Apps Script editor.
+ */
+function seedProductsV2() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(PRODUCTS_V2_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(PRODUCTS_V2_SHEET);
+  } else {
+    sheet.clear();
+  }
+  sheet.appendRow(PRODUCTS_V2_HEADERS);
+  var values = PRODUCTS_V2_SEED.map(function (row) {
+    return row.slice();
+  });
+  if (values.length) {
+    sheet.getRange(2, 1, values.length, PRODUCTS_V2_HEADERS.length).setValues(values);
+  }
+  sheet.setFrozenRows(1);
+  try {
+    SpreadsheetApp.getUi().alert(
+      'Products_v2 ready',
+      values.length +
+        ' Ignite items written. originalPrice & price are empty; sellingPrice has the list rate.',
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  } catch (e) {
+    /* headless */
+  }
+}
+
+/** [id, category, name, originalPrice, price, sellingPrice, active, limited] */
+var PRODUCTS_V2_SEED = [
+  [1, 'Chakras', 'CHAKKAR BIG (10PCS)', '', '', 35, true, false],
+  [2, 'Chakras', 'CHAKKAR BIG (25 PCS)', '', '', 75, true, false],
+  [3, 'Chakras', 'CHAKKAR SPECIAL', '', '', 69, true, false],
+  [4, 'Chakras', 'CHAKKAR DELUXE', '', '', 127, true, false],
+  [5, 'Chakras', 'DISCO / TAITANIC WHEEL CHAKKAR', '', '', 75, true, false],
+  [6, 'Chakras', 'WHIZLING WHEEL CHAKKAR', '', '', 98, true, false],
+  [7, 'Chakras', 'TREND / LOTUS WHEEL CHAKKAR', '', '', 156, true, false],
+  [8, 'Flower Pots', 'FLOWER POT SMALL', '', '', 52, true, false],
+  [9, 'Flower Pots', 'FLOWER POT BIG', '', '', 64, true, false],
+  [10, 'Flower Pots', 'FLOWER POT SPECIAL', '', '', 75, true, false],
+  [11, 'Flower Pots', 'FLOWER POT ASHOKA', '', '', 98, true, false],
+  [12, 'Flower Pots', 'FLOWER POT DELUXE (5 PCS)', '', '', 170, true, false],
+  [13, 'Flower Pots', 'FLOWER POT SUPER (2PCS)', '', '', 81, true, false],
+  [14, 'Flower Pots', 'COLOUR KOTI / GYPSY', '', '', 173, true, false],
+  [15, 'Flower Pots', 'MEGA COLOUR KOTI DELUXE', '', '', 288, true, false],
+  [16, 'Lakshmi Crackers', '2.75" KURUVI CRACKERS', '', '', 10, true, false],
+  [17, 'Lakshmi Crackers', '3.5" LAKSHMI CRACKERS', '', '', 13, true, false],
+  [18, 'Lakshmi Crackers', '3.5" PARROT CRACKERS', '', '', 15, true, false],
+  [19, 'Lakshmi Crackers', '4" LAKSHMI CRACKERS', '', '', 18, true, false],
+  [20, 'Lakshmi Crackers', '4" PARROT CRACKERS', '', '', 18, true, false],
+  [21, 'Lakshmi Crackers', '4" DELUXE LAKSHMI', '', '', 29, true, false],
+  [22, 'Lakshmi Crackers', '4" SUPER DELUXE LAKSHMI', '', '', 33, true, false],
+  [23, 'Lakshmi Crackers', 'GOLD LAKSHMI MEGA', '', '', 35, true, false],
+  [24, 'Lakshmi Crackers', '5" PAGUBALI / VIKRAM CRACKERS', '', '', 41, true, false],
+  [25, 'Lakshmi Crackers', '6" JOKER / LAXMI CRACKERS', '', '', 52, true, false],
+  [26, 'Twinkling Star / Pencil Items', '1.5" TWINKLING STAR', '', '', 29, true, false],
+  [27, 'Twinkling Star / Pencil Items', '4" TWINKLING STAR', '', '', 75, true, false],
+  [28, 'Twinkling Star / Pencil Items', 'POP CART PENCIL', '', '', 173, true, false],
+  [29, 'Twinkling Star / Pencil Items', 'ELECTRIC STONE', '', '', 12, true, false],
+  [30, 'Twinkling Star / Pencil Items', 'MAGIC POPS', '', '', 12, true, false],
+  [31, 'Twinkling Star / Pencil Items', 'ZEE BOOMBA', '', '', 12, true, false],
+  [32, 'Twinkling Star / Pencil Items', 'KIT KAT SHOWERS', '', '', 29, true, false],
+  [33, 'Bomb Items', 'BULLET BOMB CRACKERS', '', '', 29, true, false],
+  [34, 'Bomb Items', 'HYDRO BOMB CRACKERS', '', '', 52, true, false],
+  [35, 'Bomb Items', 'KING OF KING BOMB CRACKERS', '', '', 87, true, false],
+  [36, 'Bomb Items', 'CLASSIC BOMB CRACKERS', '', '', 98, true, false],
+  [37, 'Bomb Items', 'HOLLY WOOD / DIGITAL / AGNI BOMB', '', '', 242, true, false],
+  [38, 'Bomb Items', 'GANGA JAMUNA CRACKERS', '', '', 64, true, false],
+  [39, 'Bomb Items', '1/4 KG PAPER BOMB CRACKERS', '', '', 58, true, false],
+  [40, 'Bomb Items', '1/2 KG PAPER BOMB CRACKERS', '', '', 115, true, false],
+  [41, 'Bomb Items', '1 KG PAPER BOMB CRACKERS', '', '', 230, true, false],
+  [42, 'Wala Crackers', '100 WALA CRACKERS', '', '', 46, true, false],
+  [43, 'Wala Crackers', '1 K WALA CRACKERS - NORMAL', '', '', 190, true, false],
+  [44, 'Wala Crackers', '2 K WALA CRACKERS - NORMAL', '', '', 370, true, false],
+  [45, 'Wala Crackers', '5 K WALA CRACKERS - NORMAL', '', '', 920, true, false],
+  [46, 'Wala Crackers', '10 K WALA CRACKERS - NORMAL', '', '', 1840, true, false],
+  [47, 'Wala Crackers', '1 K WALA CRACKERS - PREMIUM', '', '', 330, true, false],
+  [48, 'Wala Crackers', '2 K WALA CRACKERS - PREMIUM', '', '', 660, true, false],
+  [49, 'Wala Crackers', '5 K WALA CRACKERS - PREMIUM', '', '', 1600, true, false],
+  [50, 'Wala Crackers', '10 K WALA CRACKERS - PREMIUM', '', '', 3200, true, false],
+  [51, 'Bijili Crackers', 'RED BIJILI CRACKERS (50 PCS)', '', '', 17, true, false],
+  [52, 'Bijili Crackers', 'STRIPPED BIJILI (50 PCS) CRACKERS', '', '', 18, true, false],
+  [53, 'Bijili Crackers', 'RED BIJILI (100 PCS) CRACKERS', '', '', 32, true, false],
+  [54, 'Bijili Crackers', 'STRIPPED BIJILI (100 PCS) CRACKERS', '', '', 34, true, false],
+  [55, 'Rockets', 'MEGA WHIZLING ROCKET BOMB', '', '', 184, true, false],
+  [56, 'Colour Crackling', 'BUTTERFLY COLOUR CHANGING', '', '', 81, true, false],
+  [57, 'Colour Crackling', 'BIG SHOWER / KURKUREY', '', '', 69, true, false],
+  [58, 'Colour Crackling', 'PENTA COLOUR FANCY', '', '', 150, true, false],
+  [59, 'Colour Crackling', 'PHOTO FLASH (5 PCS) FUNCTION', '', '', 75, true, false],
+  [60, 'Colour Crackling', 'BAMBARAM (10 PCS) FUNCTION', '', '', 110, true, false],
+  [61, 'Colour Crackling', 'SMOKE COLOUR FUNCTION', '', '', 173, true, false],
+  [62, 'Colour Crackling', 'PEACOCK FUNCTION MEDIUM', '', '', 161, true, false],
+  [63, 'Colour Crackling', 'PEACOCK FUNCTION BADA', '', '', 391, true, false],
+  [64, 'Colour Crackling', 'MINI SIREN (5 PCS) ALARM SOUND', '', '', 144, true, false],
+  [65, 'Colour Crackling', 'SIREN (2 PCS) ALARM SOUND', '', '', 138, true, false],
+  [66, 'Colour Crackling', 'SIREN (3 PCS) ALARM SOUND', '', '', 184, true, false],
+  [67, 'Colour Crackling', 'MONEY PAPER VEDI / MILLIONAIRES', '', '', 213, true, false],
+  [68, 'Amazing Fountain', 'RED SUN (5 PCS) (10 VARIETIES)', '', '', 173, true, false],
+  [69, 'Amazing Fountain', 'TIN SMALL SIZE - 7UP, MANGO', '', '', 92, true, false],
+  [70, 'Amazing Fountain', 'TIN BIG SIZE - NUTS, DRAGON', '', '', 156, true, false],
+  [71, 'Amazing Fountain', 'STAR SHOW (RED & GREEN)', '', '', 173, true, false],
+  [72, 'Amazing Fountain', 'WHITE CRACKLING FUNCTION', '', '', 173, true, false],
+  [73, 'Amazing Fountain', 'TIO / KIO / SEO / MIO - TESCO', '', '', 173, true, false],
+  [74, 'Amazing Fountain', 'KING CRACKLING MEGA', '', '', 253, true, false],
+  [75, 'Amazing Fountain', 'WONDER 3 IN 1 CRACKLING MEGA', '', '', 253, true, false],
+  [76, 'Amazing Fountain', 'TRI COLOUR FOUNTAIN (5 PCS)', '', '', 299, true, false],
+  [77, 'Amazing Fountain', 'SELFIE STICK FLASH (5 PCS)', '', '', 144, true, false],
+  [78, 'Amazing Fountain', 'HELICOPTER (5 PCS) SKY FLY', '', '', 104, true, false],
+  [79, 'Amazing Fountain', 'DRONE (5 PCS) SKY FLY', '', '', 161, true, false],
+  [80, 'Amazing Fountain', 'FEATHER - SMALL PEACOCK', '', '', 98, true, false],
+  [81, 'Amazing Fountain', 'COLOUR RAIN / GOLDEN RAISE', '', '', 98, true, false],
+  [82, 'Amazing Fountain', 'LOLLY POP - LONG STICK', '', '', 242, true, false],
+  [83, 'Fancy Items', 'CHOTTA FANCY - SKY SHOT', '', '', 41, true, false],
+  [84, 'Fancy Items', '3 BITS FANCY (3 PCS) (5 VARIETIES)', '', '', 196, true, false],
+  [85, 'Fancy Items', 'STAR WORLD (5 PCS) (5 VARIETIES)', '', '', 184, true, false],
+  [86, 'Fancy Items', '2.5" FANCY (1 PCS) (10 VARIETIES)', '', '', 115, true, false],
+  [87, 'Fancy Items', '2.75" FANCY (1 PCS) (6 VARIETIES)', '', '', 202, true, false],
+  [88, 'Fancy Items', '3 PCS FANCY (3 PCS) (6 VARIETIES)', '', '', 265, true, false],
+  [89, 'Fancy Items', '3.5" FANCY (1 PCS) (6 VARIETIES)', '', '', 265, true, false],
+  [90, 'Fancy Items', '5" FANCY (1 PCS) (6 VARIETIES)', '', '', 350, true, false],
+  [91, 'Fancy Items', '5" FANCY (2 PCS) (6 VARIETIES)', '', '', 700, true, false],
+  [92, 'Fancy Items', '6" FANCY (2 PCS) (4 VARIETIES)', '', '', 800, true, false],
+  [93, 'Sky Shot Fancy', '7 SHOT (5 PCS)', '', '', 127, true, false],
+  [94, 'Sky Shot Fancy', '12 SHOT STAR BOMB', '', '', 144, true, false],
+  [95, 'Sky Shot Fancy', '12 SHOT BIG MULTI COLOUR', '', '', 259, true, false],
+  [96, 'Sky Shot Fancy', '25 SHOT LONG SIZE RAIDER', '', '', 259, true, false],
+  [97, 'Sky Shot Fancy', '30 SHOT MULTI COLOUR', '', '', 430, true, false],
+  [98, 'Sky Shot Fancy', '60 SHOT MULTI COLOUR', '', '', 860, true, false],
+  [99, 'Sky Shot Fancy', '120 SHOT MULTI COLOUR', '', '', 1725, true, false],
+  [100, 'Sky Shot Fancy', '240 SHOT MULTI COLOUR', '', '', 3335, true, false],
+  [101, 'Sparklers', '7CM ELECTRIC SPARKLERS', '', '', 9, true, false],
+  [102, 'Sparklers', '7CM COLOUR SPARKLERS', '', '', 10, true, false],
+  [103, 'Sparklers', '7CM GREEN SPARKLERS', '', '', 12, true, false],
+  [104, 'Sparklers', '7CM RED SPARKLERS', '', '', 15, true, false],
+  [105, 'Sparklers', '10CM ELECTRIC SPARKLERS', '', '', 16, true, false],
+  [106, 'Sparklers', '10CM COLOUR SPARKLERS', '', '', 17, true, false],
+  [107, 'Sparklers', '10CM GREEN SPARKLERS', '', '', 18, true, false],
+  [108, 'Sparklers', '10CM RED SPARKLERS', '', '', 22, true, false],
+  [109, 'Sparklers', '12CM ELECTRIC SPARKLERS', '', '', 24, true, false],
+  [110, 'Sparklers', '12CM COLOUR SPARKLERS', '', '', 25, true, false],
+  [111, 'Sparklers', '12CM GREEN SPARKLERS', '', '', 27, true, false],
+  [112, 'Sparklers', '12CM RED SPARKLERS', '', '', 31, true, false],
+  [113, 'Sparklers', '15CM ELECTRIC SPARKLERS', '', '', 41, true, false],
+  [114, 'Sparklers', '15CM COLOUR SPARKLERS', '', '', 42, true, false],
+  [115, 'Sparklers', '15CM GREEN SPARKLERS', '', '', 44, true, false],
+  [116, 'Sparklers', '15CM RED SPARKLERS', '', '', 49, true, false],
+  [117, 'Sparklers', '30CM ELECTRIC SPARKLERS', '', '', 41, true, false],
+  [118, 'Sparklers', '30CM COLOUR SPARKLERS', '', '', 42, true, false],
+  [119, 'Sparklers', '30CM GREEN SPARKLERS', '', '', 44, true, false],
+  [120, 'Sparklers', '30CM RED SPARKLERS', '', '', 49, true, false],
+  [121, 'Sparklers', '40CM ELECTRIC SPARKLERS', '', '', 124, true, false],
+  [122, 'Sparklers', '40CM COLOUR SPARKLERS', '', '', 140, true, false],
+  [123, 'Sparklers', '50CM ELECTRIC SPARKLERS', '', '', 152, true, false],
+  [124, 'Sparklers', '50CM COLOUR SPARKLERS', '', '', 163, true, false],
+  [125, 'Colour Matches', 'ORDINARY MATCHES', '', '', 12, true, false],
+  [126, 'Colour Matches', 'JAMES BOND COLOUR MATCHES', '', '', 96, true, false],
+  [127, 'Colour Matches', 'CLASSIC COLOUR MATCHES', '', '', 140, true, false],
+  [128, 'Colour Matches', 'JACKE JOHN VOLOUT MATCH - 5BOX', '', '', 146, true, false],
+  [129, 'Colour Matches', 'LAPTOP COLOUR MATCHES - 10 BOX', '', '', 280, true, false],
+  [130, 'Colour Matches', 'ROLL CAP ITEMS', '', '', 68, true, false],
+  [131, 'Colour Matches', 'SNAKE SERPHANT SMALL', '', '', 17, true, false],
+  [132, 'Colour Matches', 'SNAKE SERPHANT BIG', '', '', 28, true, false],
+  [133, 'Gift Boxes', '17 ITEMS GIFT BOX', '', '', 299, true, false],
+  [134, 'Gift Boxes', '20 ITEMS GIFT BOX', '', '', 345, true, false],
+  [135, 'Gift Boxes', '25 ITEMS GIFT BOX', '', '', 420, true, false],
+  [136, 'Gift Boxes', '30 ITEMS GIFT BOX', '', '', 480, true, false],
+  [137, 'Gift Boxes', '35 ITEMS GIFT BOX', '', '', 575, true, false],
+  [138, 'Gift Boxes', '40 ITEMS GIFT BOX', '', '', 799, true, false],
+  [139, 'Gift Boxes', '50 ITEMS GIFT BOX', '', '', 899, true, false],
+  [140, 'Gift Boxes', 'VIP GIFT BOX', '', '', 1149, true, false],
+  [141, 'Best Combo', 'Kids Combo', '', '', 3999, true, false],
+  [142, 'Best Combo', 'Special Combo', '', '', 4999, true, false]
+];
+
 function onOpen() {
   try {
     SpreadsheetApp.getUi()
       .createMenu('Vish Profit')
       .addItem('Setup / rebuild Profit_Analysis', 'rebuildProfitAnalysis')
       .addItem('Ensure Enquiry_Profit sheet', 'ensureEnquiryProfitSheet_')
+      .addItem('Seed Products_v2 (Ignite)', 'seedProductsV2')
       .addToUi();
   } catch (e) {
     /* headless */

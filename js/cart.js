@@ -2,10 +2,13 @@
 window.VishCart = (function () {
   const CART_KEY = 'vish_cart_v3';
   const COMBOS_KEY = 'vish_added_combos_v1';
+  const VENDOR_KEY = 'vish_cart_vendor_v1';
   const LEGACY_KEYS = ['vish_cart_v2'];
   const MAX_QTY = 999;
+  const VENDORS = { sri: true, ignite: true };
   let memoryFallback = null;
   let combosFallback = null;
+  let vendorFallback = null;
 
   function clampQty(n) {
     const q = parseInt(n, 10);
@@ -17,6 +20,7 @@ window.VishCart = (function () {
     if (!item || typeof item !== 'object') return null;
     const quantity = clampQty(item.quantity != null ? item.quantity : item.qty);
     if (!quantity) return null;
+    const vendor = normalizeVendor(item.vendor);
     return {
       id: item.id != null ? item.id : id,
       name: String(item.name || '').slice(0, 120),
@@ -24,7 +28,8 @@ window.VishCart = (function () {
       originalPrice: Number(item.originalPrice) || 0,
       unit: String(item.unit || '').slice(0, 40),
       image: String(item.image || '').slice(0, 200),
-      quantity: quantity
+      quantity: quantity,
+      vendor: vendor || undefined
     };
   }
 
@@ -80,13 +85,67 @@ window.VishCart = (function () {
     return normalized;
   }
 
+  function normalizeVendor(v) {
+    const s = String(v || '').toLowerCase();
+    return VENDORS[s] ? s : '';
+  }
+
+  function getVendor() {
+    if (vendorFallback === 'sri' || vendorFallback === 'ignite') return vendorFallback;
+    try {
+      if (!window.localStorage) return '';
+      return normalizeVendor(localStorage.getItem(VENDOR_KEY));
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setVendor(vendor) {
+    const v = normalizeVendor(vendor);
+    vendorFallback = v || null;
+    try {
+      if (!window.localStorage) return v;
+      if (v) localStorage.setItem(VENDOR_KEY, v);
+      else localStorage.removeItem(VENDOR_KEY);
+    } catch (e) {}
+    return v;
+  }
+
+  function clearVendor() {
+    return setVendor('');
+  }
+
+  /**
+   * Lock cart to a vendor. Returns { ok, vendor, reason }.
+   * Empty cart may switch freely; non-empty cart cannot mix vendors.
+   */
+  function ensureVendor(vendor, options) {
+    options = options || {};
+    const next = normalizeVendor(vendor);
+    if (!next) return { ok: false, vendor: getVendor(), reason: 'invalid-vendor' };
+    const current = getVendor();
+    const count = cartCount();
+    if (!current || count === 0) {
+      setVendor(next);
+      return { ok: true, vendor: next, reason: '' };
+    }
+    if (current === next) return { ok: true, vendor: current, reason: '' };
+    if (options.force) {
+      setVendor(next);
+      return { ok: true, vendor: next, reason: 'forced' };
+    }
+    return { ok: false, vendor: current, reason: 'vendor-lock' };
+  }
+
   function clearCart() {
     memoryFallback = {};
     combosFallback = {};
+    vendorFallback = null;
     try {
       if (window.localStorage) {
         localStorage.removeItem(CART_KEY);
         localStorage.removeItem(COMBOS_KEY);
+        localStorage.removeItem(VENDOR_KEY);
         LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
       }
     } catch (e) {}
@@ -184,6 +243,11 @@ window.VishCart = (function () {
 
   function addItem(product, qty) {
     if (!product || product.id == null) return getCart();
+    const productVendor = normalizeVendor(product.vendor) || 'sri';
+    const lock = ensureVendor(productVendor);
+    if (!lock.ok) {
+      return { cart: getCart(), ok: false, reason: lock.reason, vendor: lock.vendor };
+    }
     qty = clampQty(qty == null ? 1 : qty) || 1;
     const cart = getCart();
     const id = String(product.id);
@@ -197,10 +261,12 @@ window.VishCart = (function () {
         originalPrice: Number(product.originalPrice) || 0,
         unit: String(product.unit || '').slice(0, 40),
         image: String(product.image || '').slice(0, 200),
-        quantity: qty
+        quantity: qty,
+        vendor: productVendor
       };
     }
-    return saveCart(cart);
+    saveCart(cart);
+    return { cart: getCart(), ok: true, reason: '', vendor: productVendor };
   }
 
   function setQuantity(id, quantity) {
@@ -210,13 +276,17 @@ window.VishCart = (function () {
     const q = clampQty(quantity);
     if (!q) delete cart[key];
     else cart[key].quantity = q;
-    return saveCart(cart);
+    const saved = saveCart(cart);
+    if (cartCount(saved) === 0) clearVendor();
+    return saved;
   }
 
   function removeItem(id) {
     const cart = getCart();
     delete cart[String(id)];
-    return saveCart(cart);
+    const saved = saveCart(cart);
+    if (cartCount(saved) === 0) clearVendor();
+    return saved;
   }
 
   /** Compact share string: id:qty,id:qty */
@@ -234,12 +304,15 @@ window.VishCart = (function () {
   function applyShare(share, resolveProduct, options) {
     options = options || {};
     const replace = !!options.replace;
+    if (replace) clearCart();
     const cart = replace ? {} : getCart();
     let added = 0;
     let skipped = 0;
+    let blocked = false;
     String(share || '')
       .split(',')
       .forEach((part) => {
+        if (blocked) return;
         const bit = part.trim();
         if (!bit) return;
         const sep = bit.lastIndexOf(':');
@@ -250,23 +323,15 @@ window.VishCart = (function () {
           skipped++;
           return;
         }
-        const key = String(product.id);
-        if (cart[key]) {
-          cart[key].quantity = clampQty(cart[key].quantity + qty) || cart[key].quantity;
-        } else {
-          cart[key] = {
-            id: product.id,
-            name: String(product.name || '').slice(0, 120),
-            price: Number(product.price) || 0,
-            originalPrice: Number(product.originalPrice) || 0,
-            unit: String(product.unit || '').slice(0, 40),
-            image: String(product.image || '').slice(0, 200),
-            quantity: qty
-          };
+        const result = addItem(product, qty);
+        if (result && result.ok === false) {
+          blocked = true;
+          skipped++;
+          return;
         }
         added++;
       });
-    return { cart: saveCart(cart), added: added, skipped: skipped, replaced: replace };
+    return { cart: getCart(), added: added, skipped: skipped, replaced: replace, blocked: blocked };
   }
 
   return {
@@ -283,6 +348,10 @@ window.VishCart = (function () {
     hasCombo: hasCombo,
     markComboAdded: markComboAdded,
     pruneAddedCombos: pruneAddedCombos,
+    getVendor: getVendor,
+    setVendor: setVendor,
+    clearVendor: clearVendor,
+    ensureVendor: ensureVendor,
     MAX_QTY: MAX_QTY
   };
 })();
