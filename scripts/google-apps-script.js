@@ -1,12 +1,17 @@
 /**
  * Vish Fireworks Store — Google Apps Script (hardened v3 — order sheet)
  *
+ * SOURCE OF TRUTH:
+ *   Enquiries = the only enquiry / order book (website submit + bill desk read).
+ *   Enquiry_Log is obsolete — do not dual-write. After redeploy + a test enquiry
+ *   loads correctly on /bill, you may delete the Enquiry_Log tab manually.
+ *
  * SECURITY:
  * 1. Sheet sharing = Restricted (only you). NEVER "Anyone with the link".
  * 2. Deploy → Web app: Execute as Me, Who has access: Anyone.
  * 3. Set Script property ENQUIRY_INGEST_KEY to the same value as js/config.js enquiryIngestKey.
  * 4. Optional: Script property NOTIFY_EMAIL (defaults to visifyapps@gmail.com).
- * 5. Never returns Enquiries rows.
+ * 5. Bill desk reads enquiry rows only with BILL_PAGE_PASSWORD (not public).
  *
  * SHEET UI:
  * Keep your formatted Enquiries Google Table as-is (dropdowns / colors).
@@ -17,11 +22,13 @@
  * 1. Set ENQUIRY_INGEST_KEY if not already set.
  * 2. Set BILL_PAGE_PASSWORD in Script properties (bill.html asks for this; not stored in site files).
  * 3. Deploy → Manage deployments → Edit → Version: New version → Deploy.
- * 4. Test one enquiry from the website.
- * 5. Profit analysis (seller PDF cost vs your sell price):
- *    Run setupProfitSheets() once, then rebuildProfitAnalysis() after any price change.
- *    New enquiries also append to Enquiry_Profit (Sell total + Profit total per enquiry).
- * 6. Ignite price list → Products_v2: run seedProductsV2() (Vish Profit menu).
+ * 4. Test one enquiry from the website → confirm row in Enquiries.
+ * 5. Change Order Status in Enquiries → Load that S.No on /bill → status matches.
+ * 6. Confirm bill lines load (needs Items Json on the Enquiries row).
+ * 7. Only then delete Enquiry_Log if you still have that tab.
+ * 8. Profit analysis: run setupProfitSheets() once, then rebuildProfitAnalysis()
+ *    after price changes. New enquiries also append to Enquiry_Profit.
+ * 9. Ignite price list → Products_v2: run seedProductsV2() (Vish Profit menu).
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -36,9 +43,8 @@ var PRODUCTS_V2_HEADERS = [
   'active',
   'limited'
 ];
+/** Sole enquiry / order book — website writes here; bill desk reads here only */
 var ENQUIRIES_SHEET = 'Enquiries';
-/** Plain backup tab — always writable even when Enquiries is a Google Table */
-var ENQUIRY_LOG_SHEET = 'Enquiry_Log';
 /** Buy vs sell profit (Products × PDF seller costs in SELLER_COST_SEED) */
 var PROFIT_ANALYSIS_SHEET = 'Profit_Analysis';
 /** One row per enquiry — total profit from Profit_Analysis × qty */
@@ -79,7 +85,8 @@ var ORDER_STATUSES = [
 ];
 var PAYMENT_STATUSES = ['Paid', 'Partially Paid', 'Pending'];
 
-var LOG_HEADERS = [
+/** Expected Enquiries columns (matched by header name; order may differ on your table) */
+var ENQUIRY_HEADERS = [
   'Sl.No',
   'Date',
   'Time',
@@ -97,7 +104,8 @@ var LOG_HEADERS = [
   'Paid Amount',
   'WhatsApp',
   'Items Json',
-  'Submission Id'
+  'Submission Id',
+  'Fulfill Vendor'
 ];
 
 function setupSheet() {
@@ -118,7 +126,8 @@ function setupSheet() {
     ]);
   }
 
-  ensureEnquiryLogSheet_();
+  ensureEnquiriesSheet_();
+  ensureEnquiriesBillColumns_();
 
   var sheet1 = ss.getSheetByName('Sheet1');
   if (sheet1 && ss.getSheets().length > 1) {
@@ -126,23 +135,46 @@ function setupSheet() {
   }
 }
 
-function ensureEnquiryLogSheet_() {
+/** Enquiries tab only — never recreate / wipe an existing beautified table. */
+function ensureEnquiriesSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(ENQUIRY_LOG_SHEET);
+  var sheet = ss.getSheetByName(ENQUIRIES_SHEET);
   if (!sheet) {
-    sheet = ss.insertSheet(ENQUIRY_LOG_SHEET);
-    sheet.appendRow(LOG_HEADERS);
+    sheet = ss.insertSheet(ENQUIRIES_SHEET);
+    sheet.appendRow(ENQUIRY_HEADERS);
     sheet.setFrozenRows(1);
   } else if (sheet.getLastRow() === 0) {
-    sheet.appendRow(LOG_HEADERS);
+    sheet.appendRow(ENQUIRY_HEADERS);
     sheet.setFrozenRows(1);
   }
   return sheet;
 }
 
+/** Append missing bill-critical headers on Enquiries (does not reorder existing cols). */
+function ensureEnquiryColumn_(sheet, headerNames, writeAs) {
+  var meta = readEnquiryHeaderMap_(sheet);
+  if (headerCol_(meta.map, headerNames)) return sheet;
+  var col = Math.max(meta.colCount, 0) + 1;
+  sheet.getRange(1, col).setValue(writeAs);
+  return sheet;
+}
+
+function ensureEnquiriesBillColumns_() {
+  var sheet = ensureEnquiriesSheet_();
+  ensureEnquiryColumn_(sheet, ['Items Json', 'ItemsJSON', 'Cart Json', 'Cart'], 'Items Json');
+  ensureEnquiryColumn_(
+    sheet,
+    ['Fulfill Vendor', 'Fulfill', 'Vendor', 'Source Vendor'],
+    'Fulfill Vendor'
+  );
+  ensureEnquiryColumn_(sheet, ['Submission Id', 'SubmissionID', 'Ref'], 'Submission Id');
+  return sheet;
+}
+
 /** Read header row → { normalizedName: columnIndex1Based } */
 function readEnquiryHeaderMap_(sheet) {
-  var headers = sheet.getRange(1, 1, 1, 20).getDisplayValues()[0];
+  var lastCol = Math.max(sheet.getLastColumn(), ENQUIRY_HEADERS.length, 24);
+  var headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
   var map = {};
   var colCount = 0;
   for (var c = 0; c < headers.length; c++) {
@@ -151,7 +183,7 @@ function readEnquiryHeaderMap_(sheet) {
     var key = normalizeHeader_(raw);
     if (key && map[key] == null) map[key] = c + 1;
   }
-  if (colCount < 1) colCount = LOG_HEADERS.length;
+  if (colCount < 1) colCount = ENQUIRY_HEADERS.length;
   return { map: map, colCount: colCount, headers: headers };
 }
 
@@ -197,12 +229,60 @@ function rowFromHeaderMap_(map, colCount, fields) {
   put(['WhatsApp', 'Whatsapp', 'WA'], fields.whatsapp);
   put(['Items Json', 'ItemsJSON', 'Cart Json', 'Cart'], fields.itemsJson);
   put(['Submission Id', 'SubmissionID', 'Ref'], fields.submissionId);
+  put(['Fulfill Vendor', 'Fulfill', 'Vendor', 'Source Vendor'], fields.fulfillVendor);
 
   var row = [];
   for (var c = 1; c <= colCount; c++) {
     row.push(valuesByCol[c] != null ? valuesByCol[c] : '');
   }
   return row;
+}
+
+/** Normalize vendor id from sheet / payload / legacy Area·Items tags. */
+function normalizeFulfillVendor_(value) {
+  var s = String(value || '')
+    .trim()
+    .toLowerCase();
+  if (s === 'ignite' || s.indexOf('ignite') === 0) return 'ignite';
+  if (s === 'sri' || s.indexOf('sri') === 0) return 'sri';
+  return '';
+}
+
+function fulfillLabel_(vendor) {
+  return vendor === 'ignite' ? 'Ignite' : vendor === 'sri' ? 'Sri' : '';
+}
+
+/** Strip legacy “Fulfill:Ignite · ” prefix so Area stays hub-only for bills. */
+function cleanAreaHub_(area) {
+  return String(area || '')
+    .replace(/^Fulfill\s*:\s*(Ignite|Sri)\s*[·\-–—]\s*/i, '')
+    .replace(/^Fulfill\s*:\s*(Ignite|Sri)\s*/i, '')
+    .trim();
+}
+
+/**
+ * Resolve fulfill vendor for bill desk:
+ * 1) dedicated column  2) Area “Fulfill:…”  3) Items “[Ignite]”  4) cart id ≥ 10000
+ */
+function resolveFulfillVendor_(cellVendor, area, itemsSummary, cart) {
+  var fromCell = normalizeFulfillVendor_(cellVendor);
+  if (fromCell) return fromCell;
+
+  var areaStr = String(area || '');
+  var areaMatch = areaStr.match(/Fulfill\s*:\s*(Ignite|Sri)/i);
+  if (areaMatch) return normalizeFulfillVendor_(areaMatch[1]);
+
+  var itemsStr = String(itemsSummary || '');
+  var itemsMatch = itemsStr.match(/^\s*\[(Ignite|Sri)\]/i);
+  if (itemsMatch) return normalizeFulfillVendor_(itemsMatch[1]);
+
+  var keys = Object.keys(cart || {});
+  for (var i = 0; i < keys.length; i++) {
+    var n = Number(keys[i]);
+    if (!isNaN(n) && n >= 10000) return 'ignite';
+  }
+  if (keys.length) return 'sri';
+  return '';
 }
 
 function nextSerialNumber_() {
@@ -227,7 +307,6 @@ function nextSerialNumber_() {
   }
 
   scanSheet(ENQUIRIES_SHEET);
-  scanSheet(ENQUIRY_LOG_SHEET);
 
   var next = Math.max(fromProp, fromSheets) + 1;
   if (next < 1) next = 1;
@@ -239,33 +318,25 @@ function rememberSerial_(serialNo) {
 }
 
 /**
- * 1) Always write plain Enquiry_Log (reliable)
- * 2) Also try Enquiries Table via appendRow (keeps pretty UI in sync)
+ * Append one enquiry to Enquiries only (sole source of truth).
+ * Throws if the Enquiries tab is missing or append fails.
  */
 function saveEnquiryRows_(fields) {
   var serialNo = nextSerialNumber_();
   fields.serialNo = serialNo;
 
-  var logSheet = ensureEnquiryLogSheet_();
-  var logMeta = readEnquiryHeaderMap_(logSheet);
-  var logRow = rowFromHeaderMap_(logMeta.map, Math.max(logMeta.colCount, LOG_HEADERS.length), fields);
-  logSheet.appendRow(logRow);
+  var sheet = ensureEnquiriesBillColumns_();
+  var meta = readEnquiryHeaderMap_(sheet);
+  var row = rowFromHeaderMap_(meta.map, Math.max(meta.colCount, ENQUIRY_HEADERS.length), fields);
 
-  var uiOk = false;
   try {
-    var uiSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
-    if (uiSheet) {
-      var uiMeta = readEnquiryHeaderMap_(uiSheet);
-      var uiRow = rowFromHeaderMap_(uiMeta.map, uiMeta.colCount, fields);
-      uiSheet.appendRow(uiRow);
-      uiOk = true;
-    }
+    sheet.appendRow(row);
   } catch (e) {
-    Logger.log('Enquiries Table append failed (log still saved): ' + e);
+    throw new Error('Could not save to Enquiries sheet: ' + e);
   }
 
   rememberSerial_(serialNo);
-  return { serialNo: serialNo, uiOk: uiOk };
+  return { serialNo: serialNo, uiOk: true };
 }
 
 function doGet(e) {
@@ -292,77 +363,39 @@ function snoEquals_(cell, want) {
   return !isNaN(na) && !isNaN(nb) && na === nb;
 }
 
-/**
- * Find enquiry by S.No.
- * Prefer Enquiry_Log (plain sheet + Items Json). Enquiries Table can throw on
- * large getRange — always catch so Log still works.
- */
+/** Find enquiry by S.No. on Enquiries only (sole source of truth). */
 function findEnquiryBySno_(sno) {
   var want = String(sno || '').trim();
   if (!want) return null;
 
-  function scan(sheetName) {
-    try {
-      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-      if (!sh) return null;
-      var meta = readEnquiryHeaderMap_(sh);
-      var snoCol = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
-      if (!snoCol) return null;
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+    if (!sh) return null;
+    var meta = readEnquiryHeaderMap_(sh);
+    var snoCol = headerCol_(meta.map, ['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
+    if (!snoCol) return null;
 
-      var lastRow = sh.getLastRow();
-      if (lastRow < 2) lastRow = 500; // Tables sometimes report lastRow=1 wrongly
-      lastRow = Math.min(Math.max(lastRow, 2), 2000);
+    var lastRow = sheetScanBounds_(sh);
 
-      // Fast path: only S.No column, then load the matching row
-      var snoVals = sh.getRange(2, snoCol, lastRow, snoCol).getDisplayValues();
-      var matchAt = -1;
-      for (var r = 0; r < snoVals.length; r++) {
-        if (snoEquals_(snoVals[r][0], want)) {
-          matchAt = r;
-          break;
-        }
+    // Fast path: only S.No column, then load the matching row
+    var snoVals = sh.getRange(2, snoCol, lastRow, snoCol).getDisplayValues();
+    var matchAt = -1;
+    for (var r = 0; r < snoVals.length; r++) {
+      if (snoEquals_(snoVals[r][0], want)) {
+        matchAt = r;
+        break;
       }
-      if (matchAt < 0) return null;
-
-      var rowIndex = matchAt + 2;
-      var colCount = Math.max(meta.colCount, 1);
-      var row = sh.getRange(rowIndex, 1, rowIndex, colCount).getDisplayValues()[0];
-
-      function cell(names) {
-        var c = headerCol_(meta.map, names);
-        return c ? String(row[c - 1] || '').trim() : '';
-      }
-      var itemsJson = cell(['Items Json', 'ItemsJSON', 'Cart Json', 'Cart']);
-      var cart = {};
-      try {
-        cart = itemsJson ? JSON.parse(itemsJson) : {};
-      } catch (parseErr) {
-        cart = {};
-      }
-      return {
-        serialNo: want,
-        name: cell(['Name']),
-        phone: cell(['Phone']),
-        area: cell(['Area', 'Office', 'Office Name']),
-        city: cell(['City']),
-        state: cell(['State']),
-        pincode: cell(['Pincode', 'Pin code', 'Pin']),
-        address: cell(['Address']),
-        itemsSummary: cell(['Items']),
-        totalPrice: cell(['Total Price', 'Total', 'Amount']),
-        orderStatus: cell(['Order Status']),
-        paymentStatus: cell(['Payment Status']),
-        cart: cart,
-        source: sheetName
-      };
-    } catch (err) {
-      Logger.log('findEnquiry scan ' + sheetName + ': ' + err);
-      return null;
     }
-  }
+    if (matchAt < 0) return null;
 
-  // Log first (reliable + has Items Json), then pretty Enquiries table
-  return scan(ENQUIRY_LOG_SHEET) || scan(ENQUIRIES_SHEET);
+    var rowIndex = matchAt + 2;
+    var colCount = Math.max(meta.colCount, 1);
+    var row = sh.getRange(rowIndex, 1, rowIndex, colCount).getDisplayValues()[0];
+    return rowToEnquiry_(ENQUIRIES_SHEET, meta, row, want);
+  } catch (err) {
+    Logger.log('findEnquiryBySno_ Enquiries: ' + err);
+    return null;
+  }
 }
 
 function normalizePhoneDigits_(phone) {
@@ -390,21 +423,31 @@ function rowToEnquiry_(sheetName, meta, row, serialOverride) {
     cart = {};
   }
   var sno = serialOverride || cell(['Sl.No', 'S.No', 'S No', 'Serial No', 'Sno']);
+  var rawArea = cell(['Area', 'Office', 'Office Name']);
+  var itemsSummary = cell(['Items']);
+  var fulfillVendor = resolveFulfillVendor_(
+    cell(['Fulfill Vendor', 'Fulfill', 'Vendor', 'Source Vendor']),
+    rawArea,
+    itemsSummary,
+    cart
+  );
   return {
     serialNo: String(sno || '').trim(),
     name: cell(['Name']),
     phone: cell(['Phone']),
-    area: cell(['Area', 'Office', 'Office Name']),
+    area: cleanAreaHub_(rawArea),
     city: cell(['City']),
     state: cell(['State']),
     pincode: cell(['Pincode', 'Pin code', 'Pin']),
     address: cell(['Address']),
-    itemsSummary: cell(['Items']),
+    itemsSummary: itemsSummary,
     totalPrice: cell(['Total Price', 'Total', 'Amount']),
     orderStatus: cell(['Order Status']),
     paymentStatus: cell(['Payment Status']),
     date: cell(['Date']),
     time: cell(['Time']),
+    fulfillVendor: fulfillVendor,
+    fulfillLabel: fulfillLabel_(fulfillVendor),
     cart: cart,
     source: sheetName
   };
@@ -416,39 +459,31 @@ function sheetScanBounds_(sh) {
   return Math.min(Math.max(lastRow, 2), 2000);
 }
 
-/** Find all enquiries matching phone (last 10 digits). Log first, then Enquiries. */
+/** Find all enquiries matching phone (last 10 digits) on Enquiries only. */
 function findEnquiriesByPhone_(phone) {
   var want = normalizePhoneDigits_(phone);
   if (want.length !== 10) return [];
 
   var bySno = {};
-
-  function scan(sheetName) {
-    try {
-      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-      if (!sh) return;
-      var meta = readEnquiryHeaderMap_(sh);
-      var phoneCol = headerCol_(meta.map, ['Phone']);
-      if (!phoneCol) return;
-      var lastRow = sheetScanBounds_(sh);
-      var phoneVals = sh.getRange(2, phoneCol, lastRow, phoneCol).getDisplayValues();
-      var colCount = Math.max(meta.colCount, 1);
-      for (var r = 0; r < phoneVals.length; r++) {
-        if (!phoneEquals_(phoneVals[r][0], want)) continue;
-        var row = sh.getRange(r + 2, 1, r + 2, colCount).getDisplayValues()[0];
-        var enq = rowToEnquiry_(sheetName, meta, row);
-        if (!enq.serialNo) continue;
-        if (!bySno[enq.serialNo] || sheetName === ENQUIRY_LOG_SHEET) {
-          bySno[enq.serialNo] = enq;
-        }
-      }
-    } catch (err) {
-      Logger.log('findByPhone scan ' + sheetName + ': ' + err);
+  try {
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+    if (!sh) return [];
+    var meta = readEnquiryHeaderMap_(sh);
+    var phoneCol = headerCol_(meta.map, ['Phone']);
+    if (!phoneCol) return [];
+    var lastRow = sheetScanBounds_(sh);
+    var phoneVals = sh.getRange(2, phoneCol, lastRow, phoneCol).getDisplayValues();
+    var colCount = Math.max(meta.colCount, 1);
+    for (var r = 0; r < phoneVals.length; r++) {
+      if (!phoneEquals_(phoneVals[r][0], want)) continue;
+      var row = sh.getRange(r + 2, 1, r + 2, colCount).getDisplayValues()[0];
+      var enq = rowToEnquiry_(ENQUIRIES_SHEET, meta, row);
+      if (!enq.serialNo) continue;
+      bySno[enq.serialNo] = enq;
     }
+  } catch (err) {
+    Logger.log('findEnquiriesByPhone_ Enquiries: ' + err);
   }
-
-  scan(ENQUIRY_LOG_SHEET);
-  scan(ENQUIRIES_SHEET);
 
   var list = Object.keys(bySno).map(function (k) {
     return bySno[k];
@@ -459,21 +494,20 @@ function findEnquiriesByPhone_(phone) {
   return list;
 }
 
-/** Recent enquiry summaries for bill desk (from Enquiry_Log). */
+/** Recent enquiry summaries for bill desk (from Enquiries). */
 function listRecentEnquiries_(limit) {
   var max = Math.min(Math.max(Number(limit) || 20, 1), 40);
   var out = [];
   try {
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
     if (!sh) return out;
     var meta = readEnquiryHeaderMap_(sh);
-    var lastRow = sh.getLastRow();
-    if (lastRow < 2) return out;
+    var lastRow = sheetScanBounds_(sh);
     var start = Math.max(2, lastRow - max + 1);
     var colCount = Math.max(meta.colCount, 1);
     var values = sh.getRange(start, 1, lastRow, colCount).getDisplayValues();
     for (var i = values.length - 1; i >= 0; i--) {
-      var enq = rowToEnquiry_(ENQUIRY_LOG_SHEET, meta, values[i]);
+      var enq = rowToEnquiry_(ENQUIRIES_SHEET, meta, values[i]);
       if (!enq.serialNo && !enq.name) continue;
       out.push({
         serialNo: enq.serialNo,
@@ -483,7 +517,9 @@ function listRecentEnquiries_(limit) {
         date: enq.date,
         time: enq.time,
         orderStatus: enq.orderStatus,
-        paymentStatus: enq.paymentStatus
+        paymentStatus: enq.paymentStatus,
+        fulfillVendor: enq.fulfillVendor,
+        fulfillLabel: enq.fulfillLabel
       });
       if (out.length >= max) break;
     }
@@ -493,10 +529,10 @@ function listRecentEnquiries_(limit) {
   return out;
 }
 
-/** CSV export of Enquiry_Log (optional date filter dd/MM/yyyy IST). */
+/** CSV export of Enquiries (optional date filter dd/MM/yyyy IST). */
 function exportEnquiryLogCsv_(dateFilter) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
-  if (!sh) return { csv: '', filename: 'Enquiry_Log-empty.csv', rows: 0 };
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
+  if (!sh) return { csv: '', filename: 'Enquiries-empty.csv', rows: 0 };
   var meta = readEnquiryHeaderMap_(sh);
   var lastRow = sh.getLastRow();
   var wantDate = String(dateFilter || '').trim();
@@ -520,8 +556,8 @@ function exportEnquiryLogCsv_(dateFilter) {
   }
   var stamp = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyyMMdd-HHmm');
   var filename = wantDate
-    ? 'Enquiry_Log-' + wantDate.replace(/\//g, '-') + '.csv'
-    : 'Enquiry_Log-' + stamp + '.csv';
+    ? 'Enquiries-' + wantDate.replace(/\//g, '-') + '.csv'
+    : 'Enquiries-' + stamp + '.csv';
   return { csv: lines.join('\n'), filename: filename, rows: count };
 }
 
@@ -540,7 +576,7 @@ function findRecentSerialsByPhone_(phone, withinDays) {
   cutoff.setDate(cutoff.getDate() - days);
   var found = [];
   try {
-    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRY_LOG_SHEET);
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ENQUIRIES_SHEET);
     if (!sh) return found;
     var meta = readEnquiryHeaderMap_(sh);
     var phoneCol = headerCol_(meta.map, ['Phone']);
@@ -627,7 +663,9 @@ function doPost(e) {
             totalPrice: m.totalPrice,
             date: m.date,
             time: m.time,
-            orderStatus: m.orderStatus
+            orderStatus: m.orderStatus,
+            fulfillVendor: m.fulfillVendor,
+            fulfillLabel: m.fulfillLabel
           };
         })
       });
@@ -692,8 +730,10 @@ function doPost(e) {
       }
 
       var fulfillVendor =
-        String(data.fulfillVendor || '').toLowerCase() === 'ignite' ? 'ignite' : 'sri';
-      var fulfillLabel = fulfillVendor === 'ignite' ? 'Ignite' : 'Sri';
+        normalizeFulfillVendor_(data.fulfillVendor) ||
+        resolveFulfillVendor_('', '', '', priced.cart) ||
+        'sri';
+      var fulfillLabel = fulfillLabel_(fulfillVendor) || 'Sri';
 
       var priorSnos = findRecentSerialsByPhone_(contact.phone, 7);
 
@@ -703,10 +743,7 @@ function doPost(e) {
         time: when.time,
         name: contact.name,
         phone: contact.phone,
-        area:
-          'Fulfill:' +
-          fulfillLabel +
-          (contact.officeName ? ' · ' + contact.officeName : ''),
+        area: contact.officeName || '',
         city: contact.city || '',
         state: contact.state || '',
         pincode: contact.pincode,
@@ -718,7 +755,8 @@ function doPost(e) {
         paidAmount: '',
         whatsapp: 'https://wa.me/91' + contact.phone,
         itemsJson: JSON.stringify(priced.cart),
-        submissionId: submissionId
+        submissionId: submissionId,
+        fulfillVendor: fulfillLabel
       });
 
       try {
@@ -740,11 +778,11 @@ function doPost(e) {
       SpreadsheetApp.flush();
 
       try {
-        queueEnquiryEmail(contact, priced, submissionId, saved.serialNo, priorSnos);
+        queueEnquiryEmail(contact, priced, submissionId, saved.serialNo, priorSnos, fulfillLabel);
       } catch (mailErr) {
         Logger.log('Enquiry mail queue failed: ' + mailErr);
         try {
-          sendEnquiryEmail(contact, priced, submissionId, saved.serialNo, priorSnos);
+          sendEnquiryEmail(contact, priced, submissionId, saved.serialNo, priorSnos, fulfillLabel);
         } catch (inlineErr) {
           Logger.log('Inline enquiry mail failed: ' + inlineErr);
         }
@@ -755,6 +793,7 @@ function doPost(e) {
         total: priced.total,
         saved: priced.saved,
         serialNo: saved.serialNo,
+        fulfillVendor: fulfillVendor,
         uiSynced: !!saved.uiOk,
         repeat: priorSnos.length > 0,
         priorSerialNos: priorSnos
@@ -798,7 +837,7 @@ function notifyEmail() {
  * Save mail payload and schedule a near-immediate flush.
  * Keeps doPost fast so the website does not hang or show a false network error.
  */
-function queueEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
+function queueEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos, fulfillLabel) {
   var item = {
     contact: contact,
     priced: {
@@ -808,7 +847,8 @@ function queueEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
     },
     submissionId: submissionId || '',
     serialNo: serialNo,
-    priorSnos: priorSnos || []
+    priorSnos: priorSnos || [],
+    fulfillLabel: fulfillLabel || ''
   };
 
   var props = PropertiesService.getScriptProperties();
@@ -858,7 +898,8 @@ function flushEnquiryMailQueue() {
           item.priced || {},
           item.submissionId,
           item.serialNo,
-          item.priorSnos || []
+          item.priorSnos || [],
+          item.fulfillLabel || ''
         );
       } catch (mailErr) {
         Logger.log('Queued enquiry mail failed: ' + mailErr);
@@ -930,12 +971,16 @@ function testNotifyEmail() {
 /**
  * Owner email — pack list by category, ___ separators, no product ids.
  */
-function sendEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
+function sendEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos, fulfillLabel) {
   var to = notifyEmail();
   if (!to) return;
 
   var built = buildCategorizedLists_(priced.cart || {});
   var isRepeat = priorSnos && priorSnos.length > 0;
+  var fulfill =
+    fulfillLabel ||
+    fulfillLabel_(resolveFulfillVendor_('', '', '', (priced && priced.cart) || {})) ||
+    'Sri';
   var subject =
     'VishCrackers - New Order [Id : ' +
     serialNo +
@@ -943,6 +988,8 @@ function sendEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
     contact.name +
     ', ' +
     priced.total +
+    ', →' +
+    fulfill +
     ']' +
     (isRepeat ? ' REPEAT' : '');
 
@@ -952,6 +999,7 @@ function sendEnquiryEmail(contact, priced, submissionId, serialNo, priorSnos) {
     lines.push('Prior S.Nos (7 days)___' + priorSnos.join(', '));
   }
   lines.push('');
+  lines.push('Send enquiry to___' + fulfill + ' Crackers');
   lines.push('Name___' + contact.name);
   lines.push('Phone___' + contact.phone);
   lines.push('Pincode___' + contact.pincode);
@@ -1595,6 +1643,61 @@ function readProductsFlat_() {
   return out;
 }
 
+/**
+ * Ignite Products_v2 → site ids (10000 + sheet id).
+ * Buying = buyingPrice column (your Ignite cost); sell = sellingPrice.
+ */
+function readIgniteProductsFlat_() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRODUCTS_V2_SHEET);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var idx = {};
+  for (var h = 0; h < headers.length; h++) {
+    idx[normalizeHeader_(headers[h])] = h;
+  }
+  function col_(names) {
+    for (var i = 0; i < names.length; i++) {
+      var k = normalizeHeader_(names[i]);
+      if (idx[k] != null) return idx[k];
+    }
+    return -1;
+  }
+  var idCol = col_(['id', 'product id', 'sno']);
+  var catCol = col_(['category']);
+  var nameCol = col_(['name', 'product', 'item']);
+  var buyCol = col_(['buyingprice', 'buying price', 'buy price', 'cost', 'purchase price']);
+  var sellCol = col_(['sellingprice', 'selling price', 'sell price', 'price']);
+  var activeCol = col_(['active']);
+  if (idCol < 0 || nameCol < 0) return [];
+
+  var out = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var sourceId = Number(row[idCol]);
+    if (!sourceId) continue;
+    if (activeCol >= 0) {
+      var active = row[activeCol];
+      if (String(active).toLowerCase() === 'false' || active === false || active === 0) continue;
+    }
+    var buyRaw = buyCol >= 0 ? row[buyCol] : '';
+    var sellRaw = sellCol >= 0 ? row[sellCol] : '';
+    var buy = buyRaw === '' || buyRaw == null ? '' : Number(buyRaw);
+    if (buy !== '' && isNaN(buy)) buy = '';
+    var sell = Number(sellRaw) || 0;
+    out.push({
+      id: 10000 + sourceId,
+      sourceId: sourceId,
+      category: catCol >= 0 ? String(row[catCol] || 'Other') : 'Other',
+      name: String(row[nameCol] || ''),
+      buy: buy,
+      sell: sell,
+      vendor: 'ignite'
+    });
+  }
+  return out;
+}
+
 function matchSellerCost_(product, sellerByKey, sellerBySno, usedKeys) {
   var key = product.key;
   if (key && sellerByKey[key] && !usedKeys[key]) {
@@ -1636,9 +1739,11 @@ function setupProfitSheets() {
   ensureEnquiryProfitSheet_();
   try {
     SpreadsheetApp.getUi().alert(
-      'Profit_Analysis ready.\n\nColumns: id, category, name, Buying price, Selling price, Profit rupees, Profit percent.\n' +
-        'Enquiry_Profit logs one row per enquiry (Sell total + Profit total).\n' +
-        'Re-run rebuildProfitAnalysis() after you change Products prices.'
+      'Profit_Analysis ready.\n\n' +
+        'Sri: Products × PDF seller costs.\n' +
+        'Ignite: Products_v2 buyingPrice / sellingPrice (ids 10001+).\n' +
+        'Enquiry_Profit logs one row per enquiry.\n' +
+        'Re-run rebuildProfitAnalysis() after price changes.'
     );
   } catch (e) {
     /* headless */
@@ -1646,7 +1751,9 @@ function setupProfitSheets() {
 }
 
 /**
- * Rebuild Profit_Analysis only. Buying price comes from SELLER_COST_SEED (Sri Crackers PDF).
+ * Rebuild Profit_Analysis:
+ * - Sri Products × SELLER_COST_SEED (PDF)
+ * - Ignite Products_v2 × buyingPrice / sellingPrice (site ids 10000+)
  */
 function rebuildProfitAnalysis() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1668,6 +1775,18 @@ function rebuildProfitAnalysis() {
       buy === '' || !sell ? '' : Math.round(((sell - buy) / sell) * 10000) / 100;
     return [p.id, p.category, p.name, buy, sell, profit, pct];
   });
+
+  // Ignite rows — buy/sell already on Products_v2; id = 10000 + sheet id
+  var ignite = readIgniteProductsFlat_();
+  for (var i = 0; i < ignite.length; i++) {
+    var ig = ignite[i];
+    var igBuy = ig.buy === '' || ig.buy == null ? '' : ig.buy;
+    var igSell = ig.sell || 0;
+    var igProfit = igBuy === '' ? '' : Math.round((igSell - igBuy) * 100) / 100;
+    var igPct =
+      igBuy === '' || !igSell ? '' : Math.round(((igSell - igBuy) / igSell) * 10000) / 100;
+    rows.push([ig.id, ig.category, ig.name, igBuy, igSell, igProfit, igPct]);
+  }
 
   var sh = ss.getSheetByName(PROFIT_ANALYSIS_SHEET);
   if (!sh) sh = ss.insertSheet(PROFIT_ANALYSIS_SHEET);
@@ -1694,10 +1813,33 @@ function ensureEnquiryProfitSheet_() {
 }
 
 /**
- * Map product id → { buy, sell, profit, name } from Profit_Analysis.
+ * Map product id → { buy, sell, profit, name } from Profit_Analysis,
+ * then fill any gaps from Products_v2 (Ignite 10000+ ids).
  * Missing / blank buying price → treat buy as sell (profit 0).
  */
 function loadProfitByProductId_() {
+  var map = loadProfitFromAnalysisSheet_();
+  var ignite = readIgniteProductsFlat_();
+  for (var i = 0; i < ignite.length; i++) {
+    var ig = ignite[i];
+    var id = String(ig.id);
+    if (map[id] && !map[id].missingBuy) continue;
+    var hasBuy = ig.buy !== '' && ig.buy != null && !isNaN(Number(ig.buy));
+    var buyNum = hasBuy ? Number(ig.buy) : Number(ig.sell) || 0;
+    var sell = Number(ig.sell) || 0;
+    var profit = hasBuy ? Math.round((sell - buyNum) * 100) / 100 : 0;
+    map[id] = {
+      name: ig.name || '',
+      buy: buyNum,
+      sell: sell,
+      profit: profit,
+      missingBuy: !hasBuy
+    };
+  }
+  return map;
+}
+
+function loadProfitFromAnalysisSheet_() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PROFIT_ANALYSIS_SHEET);
   var map = {};
   if (!sh || sh.getLastRow() < 2) return map;

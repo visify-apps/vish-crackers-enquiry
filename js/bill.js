@@ -5,6 +5,7 @@
   var lines = [];
   var enquirySno = '';
   var enquiryStatus = '';
+  var fulfillVendor = '';
   var billPreviewUrl = '';
   var billPreviewFilename = '';
   var billPreviewMeta = null;
@@ -170,6 +171,7 @@
     Object.keys(cart || {}).forEach(function (id) {
       var item = cart[id] || {};
       out.push({
+        id: id,
         name: item.name || '',
         unit: item.unit || '',
         qty: Number(item.quantity) || 1,
@@ -177,6 +179,88 @@
       });
     });
     return out;
+  }
+
+  function cleanAreaHub(area) {
+    return String(area || '')
+      .replace(/^Fulfill\s*:\s*(Ignite|Sri)\s*[·\-–—]\s*/i, '')
+      .replace(/^Fulfill\s*:\s*(Ignite|Sri)\s*/i, '')
+      .trim();
+  }
+
+  function inferFulfillFromCart(cart) {
+    var keys = Object.keys(cart || {});
+    for (var i = 0; i < keys.length; i++) {
+      var item = cart[keys[i]] || {};
+      var v = String(item.vendor || '').toLowerCase();
+      if (v === 'ignite' || v === 'sri') return v;
+      var n = Number(item.id != null ? item.id : keys[i]);
+      if (!isNaN(n) && n >= 10000) return 'ignite';
+    }
+    if (keys.length) return 'sri';
+    return '';
+  }
+
+  function resolveFulfillVendor(enq) {
+    var fromApi = String((enq && (enq.fulfillVendor || enq.fulfillLabel)) || '')
+      .trim()
+      .toLowerCase();
+    if (fromApi.indexOf('ignite') === 0) return 'ignite';
+    if (fromApi.indexOf('sri') === 0) return 'sri';
+
+    var area = String((enq && enq.area) || '');
+    var areaMatch = area.match(/Fulfill\s*:\s*(Ignite|Sri)/i);
+    if (areaMatch) {
+      return String(areaMatch[1]).toLowerCase() === 'ignite' ? 'ignite' : 'sri';
+    }
+
+    var items = String((enq && enq.itemsSummary) || '');
+    var itemsMatch = items.match(/^\s*\[(Ignite|Sri)\]/i);
+    if (itemsMatch) {
+      return String(itemsMatch[1]).toLowerCase() === 'ignite' ? 'ignite' : 'sri';
+    }
+
+    return inferFulfillFromCart((enq && enq.cart) || {});
+  }
+
+  function fulfillDisplay(vendor) {
+    if (vendor === 'ignite') {
+      return {
+        label: 'Ignite Crackers',
+        hint: 'Place / pack this order against the Ignite price list (home & house curated set).'
+      };
+    }
+    if (vendor === 'sri') {
+      return {
+        label: 'Sri Crackers',
+        hint: 'Place / pack this order against the Sri price list (kids & open-sky curated set).'
+      };
+    }
+    return {
+      label: 'Unknown — check Items / cart ids',
+      hint: 'Could not detect vendor. Prefer Ignite if product ids are 10001+, else Sri.'
+    };
+  }
+
+  function paintFulfillNote(vendor) {
+    fulfillVendor = vendor || '';
+    var note = $('bill-fulfill-note');
+    var nameEl = $('bill-fulfill-vendor');
+    var hintEl = $('bill-fulfill-hint');
+    if (!note || !nameEl) return;
+    if (!fulfillVendor && !enquirySno) {
+      note.hidden = true;
+      note.classList.remove('is-ignite', 'is-sri');
+      nameEl.textContent = '—';
+      if (hintEl) hintEl.textContent = '';
+      return;
+    }
+    var info = fulfillDisplay(fulfillVendor);
+    note.hidden = false;
+    note.classList.toggle('is-ignite', fulfillVendor === 'ignite');
+    note.classList.toggle('is-sri', fulfillVendor === 'sri');
+    nameEl.textContent = info.label;
+    if (hintEl) hintEl.textContent = info.hint;
   }
 
   function fetchWithTimeout(url, options, ms) {
@@ -255,7 +339,7 @@
     $('c-name').value = enq.name || '';
     $('c-phone').value = enq.phone || '';
     $('c-pincode').value = enq.pincode || '';
-    $('c-area').value = enq.area || '';
+    $('c-area').value = cleanAreaHub(enq.area || '');
     $('c-city').value = enq.city || '';
     $('c-state').value = enq.state || '';
     $('c-address').value = enq.address || '';
@@ -267,6 +351,7 @@
     if (!lines.length) {
       lines = [{ name: '', unit: '', qty: 1, price: 0 }];
     }
+    paintFulfillNote(resolveFulfillVendor(enq));
     renderLines();
     hidePickList();
     hideRecent();
@@ -314,6 +399,9 @@
             escapeHtml(m.date || '') +
             (m.totalPrice ? ' · ₹' + escapeHtml(String(m.totalPrice)) : '') +
             (m.orderStatus ? ' · ' + escapeHtml(m.orderStatus) : '') +
+            (m.fulfillLabel || m.fulfillVendor
+              ? ' · → ' + escapeHtml(m.fulfillLabel || (m.fulfillVendor === 'ignite' ? 'Ignite' : 'Sri'))
+              : '') +
             '</span></button>'
           );
         })
@@ -365,7 +453,20 @@
       return;
     }
     applyEnquiry(data.enquiry);
-    setMsg($('desk-msg'), 'Loaded #' + enquirySno + ' from ' + (data.enquiry.source || 'sheet'), true);
+    var src = String((data.enquiry && data.enquiry.source) || '').trim();
+    if (src && src !== 'Enquiries') {
+      setMsg(
+        $('desk-msg'),
+        'Loaded #' +
+          enquirySno +
+          ' from ' +
+          src +
+          ' — Apps Script still on old version. Paste google-apps-script.js and Deploy → New version.',
+        false
+      );
+    } else {
+      setMsg($('desk-msg'), 'Loaded #' + enquirySno + ' from Enquiries', true);
+    }
   }
 
   async function loadEnquiry() {
@@ -459,7 +560,7 @@
       var blob = new Blob([data.csv || ''], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = data.filename || 'Enquiry_Log.csv';
+      a.download = data.filename || 'Enquiries.csv';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -715,6 +816,10 @@
       stopWarmPing();
       setUnlocked(false);
       showDesk(false);
+      enquirySno = '';
+      enquiryStatus = '';
+      fulfillVendor = '';
+      paintFulfillNote('');
       $('bill-password').value = '';
     });
     $('btn-add-line').addEventListener('click', function () {

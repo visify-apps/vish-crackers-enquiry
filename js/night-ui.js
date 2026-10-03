@@ -4,6 +4,8 @@ window.VishNightUI = (function () {
   let step = 'place';
   let place = '';
   let who = '';
+  let budget = '';
+  let vibe = '';
   let pdfChooser = null;
   let bannerEl = null;
   let onLaneChanged = null;
@@ -45,45 +47,39 @@ window.VishNightUI = (function () {
       '<div class="pdf-lane-chooser-backdrop" data-pdf-close="1"></div>' +
       '<div class="pdf-lane-chooser-panel" role="dialog" aria-modal="true" aria-labelledby="pdf-chooser-title">' +
       '<p class="eyebrow">Price list PDF</p>' +
-      '<h2 id="pdf-chooser-title">Which list do you need?</h2>' +
-      '<p class="pdf-lane-why">Each enquiry uses one list — pick the PDF that matches.</p>' +
+      '<h2 id="pdf-chooser-title">Your curated price list</h2>' +
+      '<p class="pdf-lane-why">This PDF matches the same curated selection you’re browsing.</p>' +
       '<div class="pdf-lane-actions">' +
-      '<button type="button" class="btn-hero featured" data-pdf-lane="bestvalue">' +
-      '<span class="featured-copy"><strong>For family nights at home</strong><small>Flats and house courtyards</small></span>' +
-      '</button>' +
-      '<button type="button" class="btn-hero featured" data-pdf-lane="fullvariety">' +
-      '<span class="featured-copy"><strong>For soft nights with kids, or open-ground shows</strong><small>Soft kids favourites and big-sky finales</small></span>' +
+      '<button type="button" class="btn-hero featured" data-pdf-continue="1">' +
+      '<span class="featured-copy"><strong>Open price list</strong><small>Same curated order as the site</small></span>' +
       '</button>' +
       '</div>' +
       '<div class="night-result-links">' +
-      '<button type="button" class="night-soft-link" data-night-why="1">Why two lists?</button>' +
       '<button type="button" class="btn-dialog btn-dialog-cancel pdf-lane-cancel" data-pdf-close="1">Cancel</button>' +
       '</div>' +
       '</div>';
     document.body.appendChild(pdfChooser);
     pdfChooser.addEventListener('click', (e) => {
-      if (e.target.closest('[data-night-why]')) {
-        if (window.VishDialog) {
-          VishDialog.notice({
-            kicker: 'Two lists',
-            title: 'Why two lists?',
-            body: window.VishLane ? VishLane.WHY_TWO_LISTS : ''
-          });
-        }
-        return;
-      }
       const close = e.target.closest('[data-pdf-close]');
       if (close) {
         hidePdfChooser();
         return;
       }
-      const btn = e.target.closest('[data-pdf-lane]');
-      if (!btn) return;
-      const lane = btn.getAttribute('data-pdf-lane');
+      if (!e.target.closest('[data-pdf-continue]')) return;
       hidePdfChooser();
+      const lane = window.VishLane ? VishLane.getLane() || 'bestvalue' : 'bestvalue';
       if (typeof pdfChooser._onPick === 'function') pdfChooser._onPick(lane);
     });
     return pdfChooser;
+  }
+
+  function showMatchHelp() {
+    if (!window.VishDialog) return;
+    VishDialog.notice({
+      kicker: 'Quick match',
+      title: 'How we match your celebration',
+      body: window.VishLane ? VishLane.MATCH_HELP : ''
+    });
   }
 
   function escapeHtml(value) {
@@ -158,16 +154,14 @@ window.VishNightUI = (function () {
     el.innerHTML =
       '<div class="lane-sticky-inner shell">' +
       '<div class="lane-sticky-copy">' +
-      '<span class="lane-sticky-label">Enquiry locked to</span>' +
-      '<strong class="lane-sticky-name">' +
-      escapeHtml(meta.short) +
-      '</strong>' +
+      '<span class="lane-sticky-label">Curated for you</span>' +
+      '<strong class="lane-sticky-name">Products in a curated order</strong>' +
       '</div>' +
-      '<button type="button" class="btn-secondary lane-sticky-plan" data-lane-plan="1">Plan again</button>' +
+      '<button type="button" class="btn-secondary lane-sticky-plan" data-lane-plan="1">Edit preferences</button>' +
       '</div>';
     el.onclick = (e) => {
       if (e.target.closest('[data-lane-plan]')) {
-        requestPlanAgain();
+        requestEditPreferences();
       }
     };
 
@@ -179,43 +173,35 @@ window.VishNightUI = (function () {
     }, 5000);
   }
 
-  /** Drop a planned lane after reload if nothing is in the enquiry yet. */
-  function reconcileLaneForVisit() {
-    if (!window.VishLane || !window.VishCart) return;
-    if (VishCart.cartCount() > 0) return;
-    try {
-      const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
-      if (nav && nav.type === 'reload') {
-        VishLane.clearLane();
-      }
-    } catch (e) {}
-  }
-
-  function requestPlanAgain() {
+  /** Preferences persist across refresh. Never wipe them on reload. */
+  function requestEditPreferences() {
     const count = window.VishCart ? VishCart.cartCount() : 0;
-    const go = function () {
+    const body =
+      (count > 0
+        ?         'This clears your enquiry list (' + count + ' item' + (count === 1 ? '' : 's') + ') and your saved celebration preferences.\n\n'
+        : 'This clears your saved celebration preferences.\n\n') +
+      'You’ll answer the quick match again.';
+    const ask = window.VishDialog
+      ? VishDialog.confirm({
+          kicker: 'Edit preferences',
+          title: 'Start the match again?',
+          body: body,
+          confirmLabel: 'Clear & rematch',
+          cancelLabel: 'Keep current'
+        })
+      : Promise.resolve(true);
+    ask.then(function (ok) {
+      if (!ok) return;
       if (count > 0) VishCart.clearCart();
       VishLane.clearLane();
       paintBanner();
       if (typeof onLaneChanged === 'function') onLaneChanged();
       openMatcher({ force: true });
-    };
-    if (count > 0) {
-      const ask = window.VishDialog
-        ? VishDialog.confirm({
-            kicker: 'Switch list',
-            title: 'Plan a different night?',
-            body: 'Your current enquiry items will be removed.',
-            confirmLabel: 'Clear & plan again',
-            cancelLabel: 'Keep list'
-          })
-        : Promise.resolve(true);
-      ask.then(function (ok) {
-        if (ok) go();
-      });
-      return;
-    }
-    go();
+    });
+  }
+
+  function requestPlanAgain() {
+    requestEditPreferences();
   }
 
   function requestClearAndSwitch(targetLane) {
@@ -230,10 +216,10 @@ window.VishNightUI = (function () {
     if (count > 0) {
       const ask = window.VishDialog
         ? VishDialog.confirm({
-            kicker: 'Switch list',
-            title: 'Clear enquiry and switch?',
-            body: 'Your current items will be removed so the new list can open.',
-            confirmLabel: 'Clear & switch',
+            kicker: 'Edit selection',
+            title: 'Clear enquiry and continue?',
+            body: 'Your current items will be removed so we can show a new curated selection.',
+            confirmLabel: 'Clear & continue',
             cancelLabel: 'Stay'
           })
         : Promise.resolve(true);
@@ -245,16 +231,47 @@ window.VishNightUI = (function () {
     return Promise.resolve(apply());
   }
 
+  function stepsHtml(activeIndex) {
+    // 4 question steps (0–3)
+    let html = '<div class="night-steps" aria-hidden="true">';
+    for (let i = 0; i < 4; i++) {
+      const cls = i < activeIndex ? 'is-done' : i === activeIndex ? 'is-on' : '';
+      html += '<span class="' + cls + '"></span>';
+    }
+    return html + '</div>';
+  }
+
+  function currentAnswers() {
+    return {
+      place: place,
+      who: who,
+      budget: budget,
+      vibe: vibe,
+      lane: VishLane.resolveLane(place, who, vibe)
+    };
+  }
+
+  function goResult() {
+    const answers = currentAnswers();
+    VishLane.saveAnswers(answers);
+    VishLane.setLane(answers.lane);
+    step = 'result';
+    renderStep();
+    paintBanner();
+    if (typeof onLaneChanged === 'function') onLaneChanged();
+  }
+
   function renderStep() {
     const el = ensureRoot();
     if (step === 'result') {
-      const lane = VishLane.resolveLane(place, who);
-      const copy = VishLane.resultCopy(lane, place, who);
+      const answers = currentAnswers();
+      const lane = answers.lane || VishLane.resolveLane(place, who, vibe);
+      const copy = VishLane.resultCopy(lane, answers);
       el.innerHTML =
         '<div class="night-matcher-panel night-result">' +
-        '<p class="eyebrow">Your night is ready</p>' +
+        '<p class="eyebrow">Matched for you</p>' +
         '<h2 id="night-matcher-title" class="night-result-title">' +
-        formatLaneTitle(copy.title) +
+        escapeHtml(copy.title) +
         '</h2>' +
         '<p class="night-result-body">' +
         escapeHtml(copy.body) +
@@ -264,16 +281,50 @@ window.VishNightUI = (function () {
         '</div>' +
         '<div class="night-result-actions">' +
         '<a class="btn-hero featured" href="combos.html" data-enter-lane="1">' +
-        '<span class="featured-copy"><strong>See matching combos</strong><small>' +
-        escapeHtml(copy.meta.combosHint) +
+        '<span class="featured-copy"><strong>See recommended combos</strong><small>' +
+        escapeHtml((copy.meta && copy.meta.combosHint) || 'Start with a pack') +
         '</small></span></a>' +
         '<a class="btn-hero featured is-muted" href="index.html#catalog" data-enter-lane="1">' +
-        '<span class="featured-copy"><strong>Browse catalogue</strong><small>Items from this list only</small></span></a>' +
+        '<span class="featured-copy"><strong>Browse items</strong><small>Add or tweak after a combo</small></span></a>' +
         '</div>' +
         '<div class="night-result-links">' +
-        '<button type="button" class="night-soft-link" data-night-back="who">Change answers</button>' +
-        '<button type="button" class="night-soft-link" data-night-why="1">Why two lists?</button>' +
+        '<button type="button" class="night-soft-link" data-night-back="vibe">Change answers</button>' +
         '</div>' +
+        '</div>';
+      return;
+    }
+
+    if (step === 'vibe') {
+      el.innerHTML =
+        '<div class="night-matcher-panel">' +
+        stepsHtml(3) +
+        '<p class="eyebrow">Last step</p>' +
+        '<h2 id="night-matcher-title">What style do you want?</h2>' +
+        '<p class="night-sub">We’ll favour packs that feel like this.</p>' +
+        '<div class="night-cards">' +
+        card('vibe', 'soft', 'Soft & colourful', 'Sparklers, colour, gentle favourites') +
+        card('vibe', 'classic', 'Classic family mix', 'Balanced Diwali mix for everyone') +
+        card('vibe', 'finale', 'Big finale energy', 'Stronger sky and presence') +
+        '</div>' +
+        '<button type="button" class="night-soft-link" data-night-back="budget">Back</button>' +
+        '</div>';
+      return;
+    }
+
+    if (step === 'budget') {
+      el.innerHTML =
+        '<div class="night-matcher-panel">' +
+        stepsHtml(2) +
+        '<p class="eyebrow">Step 3 of 4</p>' +
+        '<h2 id="night-matcher-title">Rough budget for the celebration?</h2>' +
+        '<p class="night-sub">We’ll put matching combos first.</p>' +
+        '<div class="night-cards">' +
+        card('budget', 'under5', 'Under ₹5,000', 'Starter-friendly packs') +
+        card('budget', 'mid', '₹5,000 – ₹10,000', 'Most popular family packs') +
+        card('budget', 'high', '₹10,000 – ₹20,000', 'Fuller premium packs') +
+        card('budget', 'any', 'Decide while browsing', 'Show everything in order') +
+        '</div>' +
+        '<button type="button" class="night-soft-link" data-night-back="who">Back</button>' +
         '</div>';
       return;
     }
@@ -281,16 +332,16 @@ window.VishNightUI = (function () {
     if (step === 'who') {
       el.innerHTML =
         '<div class="night-matcher-panel">' +
-        '<div class="night-steps" aria-hidden="true"><span class="is-done"></span><span class="is-on"></span></div>' +
-        '<p class="eyebrow">Step 2 of 2</p>' +
-        '<h2 id="night-matcher-title">Who is the night for?</h2>' +
-        '<p class="night-sub">We’ll open the list that fits — one enquiry, one list.</p>' +
+        stepsHtml(1) +
+        '<p class="eyebrow">Step 2 of 4</p>' +
+        '<h2 id="night-matcher-title">Who is celebrating?</h2>' +
+        '<p class="night-sub">Helps us pick the right mix.</p>' +
         '<div class="night-cards">' +
-        card('who', 'kids', 'Mostly kids / soft colour', 'No heavy bombs — soft favourites matter most') +
-        card('who', 'family', 'Whole family', 'Classic Diwali mix for everyone') +
-        card('who', 'show', 'Big show / youth finale', 'Stronger sky and presence') +
+        card('who', 'kids', 'Mostly kids', 'Soft favourites matter most') +
+        card('who', 'family', 'Whole family', 'Classic mix for everyone') +
+        card('who', 'show', 'Big celebration crowd', 'Stronger sky and presence') +
         '</div>' +
-        '<button type="button" class="link-action" data-night-back="place">Back</button>' +
+        '<button type="button" class="night-soft-link" data-night-back="place">Back</button>' +
         '</div>';
       return;
     }
@@ -298,22 +349,15 @@ window.VishNightUI = (function () {
     // place
     el.innerHTML =
       '<div class="night-matcher-panel">' +
-      '<div class="night-steps" aria-hidden="true"><span class="is-on"></span><span></span></div>' +
-      '<p class="eyebrow">Plan your night</p>' +
+      stepsHtml(0) +
+      '<p class="eyebrow">Quick match</p>' +
       '<h2 id="night-matcher-title">Where will you light?</h2>' +
-      '<p class="night-sub">Two lists keep packing simple and the show right for your place. One enquiry = one list.</p>' +
+      '<p class="night-sub">Four quick taps — we curate packs for your celebration.</p>' +
       '<div class="night-cards">' +
-      card('place', 'flat', 'Flat / balcony', 'Society rules · limited sky · complete soft-night lists') +
-      card('place', 'courtyard', 'House courtyard', 'Street front / compound · classic family Diwali') +
-      card('place', 'ground', 'Open ground / farm', 'Vacant plot · full sky finales possible') +
+      card('place', 'flat', 'Flat / balcony', 'Apartment · society space · limited sky') +
+      card('place', 'courtyard', 'House front / side open', 'In front of house · street-side open area') +
+      card('place', 'ground', 'Open ground / farm land', 'Vacant plot · full sky possible') +
       '</div>' +
-      '<p class="night-skip-label">Already know which list you need?</p>' +
-      '<div class="night-skip-row">' +
-      '<button type="button" class="link-action" data-skip-lane="bestvalue">Family nights at home</button>' +
-      '<span aria-hidden="true">·</span>' +
-      '<button type="button" class="link-action" data-skip-lane="fullvariety">Soft nights with kids · Open-ground shows</button>' +
-      '</div>' +
-      '<button type="button" class="link-action night-why" data-night-why="1">Why two lists?</button>' +
       '</div>';
   }
 
@@ -340,19 +384,8 @@ window.VishNightUI = (function () {
   function bindRootClicks() {
     const el = ensureRoot();
     el.onclick = (e) => {
-      if (e.target.closest('[data-night-why]')) {
-        if (window.VishDialog) {
-          VishDialog.notice({
-            kicker: 'Two lists',
-            title: 'Why two lists?',
-            body: VishLane.WHY_TWO_LISTS
-          });
-        }
-        return;
-      }
-      const skip = e.target.closest('[data-skip-lane]');
-      if (skip) {
-        finishLane(skip.getAttribute('data-skip-lane'), { place: 'skip', who: 'skip' });
+      if (e.target.closest('[data-night-help]')) {
+        showMatchHelp();
         return;
       }
       const back = e.target.closest('[data-night-back]');
@@ -362,7 +395,6 @@ window.VishNightUI = (function () {
         return;
       }
       if (e.target.closest('[data-enter-lane]')) {
-        // links navigate; lane already set on result paint
         hideMatcher();
         if (typeof onLaneChanged === 'function') onLaneChanged();
         return;
@@ -377,29 +409,23 @@ window.VishNightUI = (function () {
       const whoBtn = e.target.closest('[data-night-who]');
       if (whoBtn) {
         who = whoBtn.getAttribute('data-night-who');
-        const lane = VishLane.resolveLane(place, who);
-        VishLane.saveAnswers({ place: place, who: who, lane: lane });
-        VishLane.setLane(lane);
-        step = 'result';
+        step = 'budget';
         renderStep();
-        paintBanner();
-        if (typeof onLaneChanged === 'function') onLaneChanged();
         return;
       }
+      const budgetBtn = e.target.closest('[data-night-budget]');
+      if (budgetBtn) {
+        budget = budgetBtn.getAttribute('data-night-budget');
+        step = 'vibe';
+        renderStep();
+        return;
+      }
+      const vibeBtn = e.target.closest('[data-night-vibe]');
+      if (vibeBtn) {
+        vibe = vibeBtn.getAttribute('data-night-vibe');
+        goResult();
+      }
     };
-  }
-
-  function finishLane(laneId, answers) {
-    VishLane.saveAnswers(answers || {});
-    VishLane.setLane(laneId);
-    if (answers && answers.place === 'skip') {
-      place = laneId === 'fullvariety' ? 'ground' : 'courtyard';
-      who = laneId === 'fullvariety' ? 'kids' : 'family';
-    }
-    step = 'result';
-    renderStep();
-    paintBanner();
-    if (typeof onLaneChanged === 'function') onLaneChanged();
   }
 
   function openMatcher(options) {
@@ -409,6 +435,8 @@ window.VishNightUI = (function () {
     step = 'place';
     place = '';
     who = '';
+    budget = '';
+    vibe = '';
     renderStep();
     root.hidden = false;
     document.body.classList.add('night-matcher-open');
@@ -428,7 +456,6 @@ window.VishNightUI = (function () {
   }
 
   function ensureGate() {
-    reconcileLaneForVisit();
     paintBanner();
     if (VishLane.getLane()) {
       hideMatcher();
@@ -458,6 +485,7 @@ window.VishNightUI = (function () {
     hideMatcher: hideMatcher,
     paintBanner: paintBanner,
     requestPlanAgain: requestPlanAgain,
+    requestEditPreferences: requestEditPreferences,
     requestClearAndSwitch: requestClearAndSwitch,
     openPdfChooser: openPdfChooser,
     hidePdfChooser: hidePdfChooser

@@ -20,7 +20,9 @@ npx serve .
 6. Optional extra lock: Apps Script → Project Settings → Script properties → add `ENQUIRY_INGEST_KEY` = a long random string, and set the same value in `js/config.js` → `enquiryIngestKey`.
 
 The hardened script:
-- Never returns Enquiries rows
+- **Enquiries** is the sole enquiry / order book (website submit + bill desk)
+- `Enquiry_Log` is obsolete — after redeploy and a successful `/bill` test, you may delete that tab
+- Bill desk reads Enquiries only (with `BILL_PAGE_PASSWORD`); it does not write status back
 - Validates name / phone / pincode / cart
 - Rate-limits by phone
 - Ignores honeypot spam fields
@@ -29,10 +31,19 @@ The hardened script:
 
 | Sheet | Use |
 | --- | --- |
-| **Products** | Prices, active/limited flags |
-| **Enquiries** | Customer enquiries (private to you) |
+| **Products** | Sri catalogue prices, active/limited flags |
+| **Products_v2** | Ignite catalogue sell prices |
+| **Enquiries** | Sole order book — status, cart JSON, fulfill vendor (edit status here) |
 
 Site loads local catalogue first, then optionally refreshes from Sheet (`?action=products`).
+
+### Cutover after this Apps Script update
+
+1. Paste `scripts/google-apps-script.js` → Deploy **New version**
+2. Submit one test enquiry from the site → row appears in **Enquiries**
+3. Change **Order Status** in Enquiries → Load that S.No on `/bill` → status matches
+4. Confirm bill line items load (`Items Json` column must be present/filled)
+5. Only then delete the `Enquiry_Log` tab if it still exists
 
 ## What customers get on submit
 

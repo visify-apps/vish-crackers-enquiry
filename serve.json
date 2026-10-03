@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/bill", "destination": "/bill.html" },
+    { "source": "/bill/", "destination": "/bill.html" }
+  ]
+}

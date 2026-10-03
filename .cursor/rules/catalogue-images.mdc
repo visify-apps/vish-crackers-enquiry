@@ -1,0 +1,38 @@
+---
+description: How to add products and optimize firework images without renumbering IDs
+globs: data/products.js,data/packs.js,assets/**,scripts/optimize-images.mjs
+alwaysApply: false
+---
+
+# Catalogue + images
+
+## Product IDs (s.no)
+
+- `id` is a **permanent SKU**. Never renumber existing products when inserting.
+- Display order = position inside the category `items` array, not numeric sort of `id`.
+- New product → use next free id (currently max + 1). Gaps are fine.
+- Image path for new items: `assets/optimized/{id}.jpg`
+- Only update `data/packs.js` if a combo should include the new id.
+- If Google Sheet is used, add a row with the same new `id` — do not shift other rows' ids.
+
+## Optimized images
+
+Every new photo:
+
+1. Put the **original** in `assets/` named `{id}.jpg` (or `.png` / `.webp`), e.g. `assets/187.jpg`
+2. Run from project root:
+
+```bash
+npm install
+npm run optimize-images
+```
+
+3. Use the output path in products data: `"image": "assets/optimized/187.jpg"`
+
+Script: `scripts/optimize-images.mjs` — reads `assets/*`, writes `assets/optimized/{name}.jpg` (max width 900, JPEG q82).
+
+Do **not** drop originals only into `assets/optimized/` and skip the script — site expects optimized files there.
+
+## Example insert (between existing items)
+
+Keep ids 3 and 4 unchanged; insert new object **between** them in the array with `id: 187` and `image: "assets/optimized/187.jpg"`.

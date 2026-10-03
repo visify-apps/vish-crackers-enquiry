@@ -218,6 +218,52 @@
   margin-bottom: 12px;
 }
 
+.bill-fulfill-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(240, 199, 94, 0.55);
+  background: rgba(240, 199, 94, 0.12);
+}
+
+.bill-fulfill-note[hidden] {
+  display: none;
+}
+
+.bill-fulfill-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.bill-fulfill-note strong {
+  font-size: 1.05rem;
+  color: #fff6d8;
+}
+
+.bill-fulfill-hint {
+  flex: 1 1 100%;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.bill-fulfill-note.is-ignite {
+  border-color: rgba(120, 200, 255, 0.55);
+  background: rgba(80, 150, 220, 0.14);
+}
+
+.bill-fulfill-note.is-sri {
+  border-color: rgba(255, 170, 120, 0.55);
+  background: rgba(220, 120, 70, 0.14);
+}
+
 #bill-pdf-frame {
   flex: 1;
   width: 100%;

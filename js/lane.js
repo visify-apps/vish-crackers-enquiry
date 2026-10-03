@@ -1,37 +1,91 @@
-/* Night lane — Ignite = family nights at home · Sri = soft nights with kids / open-ground shows.
-   Never expose vendor names to customers. */
+/* Diwali match — curate packs for place / crowd / budget / vibe.
+   Internal lanes map to vendors; never expose vendor names to customers. */
 window.VishLane = (function () {
   const LANE_KEY = 'vish_night_lane_v1';
   const ANSWER_KEY = 'vish_night_answers_v1';
+
+  /* Customer-facing strings must stay identical across lanes — never reveal two catalogues. */
   const LANES = {
     bestvalue: {
       id: 'bestvalue',
       vendor: 'ignite',
-      title: 'For family nights at home',
-      short: 'Family nights at home',
-      blurb: 'Complete packs when you light in a flat or house courtyard.',
-      combosHint: 'Starter to Premium ready packs',
-      pdfLabel: 'Family nights at home — price list',
-      pdfHint: 'Flats and house courtyards'
+      title: 'Your celebration',
+      short: 'Your celebration',
+      blurb: 'Packs curated for your answers.',
+      combosHint: 'Ready packs in your budget',
+      pdfLabel: 'Price list',
+      pdfHint: 'Same curated selection as the site'
     },
     fullvariety: {
       id: 'fullvariety',
       vendor: 'sri',
-      title: 'For soft nights with kids, or open-ground shows',
-      short: 'Soft nights with kids · Open-ground shows',
-      blurb: 'Fuller soft and kids favourites, plus big-sky finales.',
-      combosHint: 'Soft kids favourites & open-ground finales',
-      pdfLabel: 'Soft nights with kids / open-ground shows — price list',
-      pdfHint: 'Soft kids favourites and big-sky finales'
+      title: 'Your celebration',
+      short: 'Your celebration',
+      blurb: 'Packs curated for your answers.',
+      combosHint: 'Ready packs in your budget',
+      pdfLabel: 'Price list',
+      pdfHint: 'Same curated selection as the site'
     }
   };
 
-  /** Customer-facing answer to “why two lists / two PDFs?” */
-  const WHY_TWO_LISTS =
-    'We keep two lists so packing stays simple and the show fits your place. ' +
-    'One is for family nights at home — complete Diwali packs for flats and courtyards. ' +
-    'The other is for soft nights with kids, or for open-ground shows — fuller soft items and big-sky finales. ' +
-    'Each enquiry uses only one list, so rates, combos, and the PDF match what you ordered.';
+  const BUDGETS = {
+    under5: { id: 'under5', label: 'Under ₹5,000', min: 2000, max: 5000, mid: 3500 },
+    mid: { id: 'mid', label: '₹5,000 – ₹10,000', min: 5000, max: 10000, mid: 7500 },
+    high: { id: 'high', label: '₹10,000 – ₹20,000', min: 10000, max: 20000, mid: 15000 },
+    any: { id: 'any', label: 'Decide while browsing', min: 0, max: Infinity, mid: 8000 }
+  };
+
+  const VIBES = {
+    soft: { id: 'soft', label: 'Soft & colourful' },
+    classic: { id: 'classic', label: 'Classic family mix' },
+    finale: { id: 'finale', label: 'Big finale energy' }
+  };
+
+  const MATCH_HELP =
+    'A few quick answers help us show products and packs in a curated order that fits your place, crowd, and budget. ' +
+    'Tap Edit preferences anytime to change — your enquiry always follows the same curated selection you’re browsing.';
+
+  /**
+   * Lane rules (budget never changes lane — it only sorts combos).
+   * place × who × vibe = 27 outcomes; × 4 budgets = 108 paths, same 27 lane results.
+   *
+   * Priority:
+   * 1) Open ground / farm → kids soft & open-sky (fullvariety)
+   * 2) Mostly kids → kids soft & open-sky
+   * 3) Flat / balcony → home & house (bestvalue)  [safe society lighting]
+   * 4) House front / side open:
+   *    - Big show crowd OR big finale vibe → kids soft & open-sky
+   *    - else → home & house
+   */
+  function resolveLane(place, who, vibe) {
+    const p = String(place || '');
+    const w = String(who || '');
+    const v = String(vibe || '');
+    if (p === 'ground') return 'fullvariety';
+    if (w === 'kids') return 'fullvariety';
+    if (p === 'flat') return 'bestvalue';
+    if (p === 'courtyard') {
+      if (w === 'show' || v === 'finale') return 'fullvariety';
+      return 'bestvalue';
+    }
+    return 'bestvalue';
+  }
+
+  /** All 27 place×who×vibe lane landings (budget omitted — display only). */
+  function laneMatrix() {
+    const places = ['flat', 'courtyard', 'ground'];
+    const whos = ['kids', 'family', 'show'];
+    const vibes = ['soft', 'classic', 'finale'];
+    const rows = [];
+    places.forEach((p) => {
+      whos.forEach((w) => {
+        vibes.forEach((v) => {
+          rows.push({ place: p, who: w, vibe: v, lane: resolveLane(p, w, v) });
+        });
+      });
+    });
+    return rows;
+  }
 
   function normalizeLane(id) {
     return LANES[id] ? id : '';
@@ -39,18 +93,16 @@ window.VishLane = (function () {
 
   function readRaw(key) {
     try {
-      // Session-only: survives index↔combos, not forever across days/tabs.
+      if (window.localStorage) {
+        const fromLocal = localStorage.getItem(key);
+        if (fromLocal) return fromLocal;
+      }
       if (window.sessionStorage) {
         const fromSession = sessionStorage.getItem(key);
-        if (fromSession) return fromSession;
-      }
-      // One-time migrate / drop leftover localStorage from older builds.
-      if (window.localStorage) {
-        const legacy = localStorage.getItem(key);
-        if (legacy) {
-          localStorage.removeItem(key);
-          if (window.sessionStorage) sessionStorage.setItem(key, legacy);
-          return legacy;
+        if (fromSession) {
+          sessionStorage.removeItem(key);
+          if (window.localStorage) localStorage.setItem(key, fromSession);
+          return fromSession;
         }
       }
       return '';
@@ -61,10 +113,10 @@ window.VishLane = (function () {
 
   function writeRaw(key, value) {
     try {
-      if (window.localStorage) localStorage.removeItem(key);
-      if (!window.sessionStorage) return;
-      if (value) sessionStorage.setItem(key, value);
-      else sessionStorage.removeItem(key);
+      if (window.sessionStorage) sessionStorage.removeItem(key);
+      if (!window.localStorage) return;
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
     } catch (e) {}
   }
 
@@ -117,43 +169,64 @@ window.VishLane = (function () {
     }
   }
 
-  /**
-   * Ignite-biased resolver:
-   * - Kids → soft nights with kids / open-ground (Sri)
-   * - Open ground → soft nights with kids / open-ground (Sri)
-   * - Flat / courtyard + family or big show → family nights at home (Ignite)
-   */
-  function resolveLane(place, who) {
-    const p = String(place || '');
-    const w = String(who || '');
-    if (w === 'kids') return 'fullvariety';
-    if (p === 'ground') return 'fullvariety';
-    return 'bestvalue';
+  function budgetMeta(id) {
+    return BUDGETS[id] || BUDGETS.any;
   }
 
-  function reasonChips(place, who) {
-    const placeLabel =
-      place === 'flat' ? 'Flat / balcony' : place === 'ground' ? 'Open ground' : 'House courtyard';
-    const whoLabel =
-      who === 'kids' ? 'Mostly kids / soft' : who === 'show' ? 'Big show' : 'Whole family';
-    return [placeLabel, whoLabel];
+  function vibeMeta(id) {
+    return VIBES[id] || VIBES.classic;
   }
 
-  function resultCopy(laneId, place, who) {
+  function packFitsBudget(total, budgetId) {
+    const b = budgetMeta(budgetId);
+    if (!budgetId || budgetId === 'any') return true;
+    const t = Number(total) || 0;
+    return t >= b.min && t <= b.max;
+  }
+
+  function budgetScore(total, budgetId) {
+    const b = budgetMeta(budgetId);
+    const t = Number(total) || 0;
+    if (!budgetId || budgetId === 'any') return Math.abs(t - b.mid);
+    if (t < b.min || t > b.max) return 100000 + Math.abs(t - b.mid);
+    return Math.abs(t - b.mid);
+  }
+
+  function reasonChips(answers) {
+    const a = answers || {};
+    const chips = [];
+    if (a.place === 'flat') chips.push('Flat / balcony');
+    else if (a.place === 'ground') chips.push('Open ground / farm');
+    else if (a.place === 'courtyard') chips.push('House front / side open');
+
+    if (a.who === 'kids') chips.push('Mostly kids');
+    else if (a.who === 'show') chips.push('Big celebration');
+    else if (a.who === 'family') chips.push('Whole family');
+
+    if (a.budget && BUDGETS[a.budget]) chips.push(BUDGETS[a.budget].label);
+    if (a.vibe && VIBES[a.vibe]) chips.push(VIBES[a.vibe].label);
+    return chips;
+  }
+
+  function resultCopy(laneId, answers) {
     const meta = getMeta(laneId);
-    if (!meta) return { title: '', body: '', chips: [] };
-    const chips = reasonChips(place, who);
-    let body =
-      laneId === 'bestvalue'
-        ? 'Complete packs for flats and courtyards — simple to pack and confirm.'
-        : 'Soft kids favourites and big-sky finales — matched to your answers.';
-    return { title: meta.title, body: body, chips: chips, meta: meta };
+    if (!meta) return { title: '', body: '', chips: [], meta: null };
+    const a = answers || getAnswers() || {};
+    return {
+      title: 'Picks for your celebration',
+      body: 'Products and packs are shown in a curated order for your answers — start with a combo, then tweak. Edit preferences anytime.',
+      chips: reasonChips(a),
+      meta: meta
+    };
   }
 
   return {
     LANE_KEY: LANE_KEY,
     LANES: LANES,
-    WHY_TWO_LISTS: WHY_TWO_LISTS,
+    BUDGETS: BUDGETS,
+    VIBES: VIBES,
+    MATCH_HELP: MATCH_HELP,
+    WHY_TWO_LISTS: MATCH_HELP,
     getLane: getLane,
     setLane: setLane,
     clearLane: clearLane,
@@ -161,9 +234,14 @@ window.VishLane = (function () {
     laneToVendor: laneToVendor,
     vendorToLane: vendorToLane,
     resolveLane: resolveLane,
+    laneMatrix: laneMatrix,
     saveAnswers: saveAnswers,
     getAnswers: getAnswers,
     resultCopy: resultCopy,
-    reasonChips: reasonChips
+    reasonChips: reasonChips,
+    budgetMeta: budgetMeta,
+    vibeMeta: vibeMeta,
+    packFitsBudget: packFitsBudget,
+    budgetScore: budgetScore
   };
 })();

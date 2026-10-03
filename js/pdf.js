@@ -785,7 +785,8 @@ window.VishPdf = (function () {
     return {
       doc: doc,
       filename: filename,
-      url: pdfObjectUrl(doc)
+      url: pdfObjectUrl(doc),
+      arrayBuffer: doc.output('arraybuffer')
     };
   }
 

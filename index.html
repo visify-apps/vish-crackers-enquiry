@@ -28,7 +28,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=lane12" />
+  <link rel="stylesheet" href="css/styles.css?v=lane23" />
+  <script>
+    (function () {
+      var h = String(location.hash || '').replace(/^#\/?/, '').toLowerCase();
+      if (h === 'bill') location.replace('/bill');
+    })();
+  </script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -56,9 +62,9 @@
 
   <section class="hero shell hero-combined" id="urgency-banner" aria-live="polite">
     <p class="legal-chip">Enquiry only · From ₹2,000</p>
-    <p class="eyebrow">Plan your Diwali night</p>
-    <h2 class="hero-title">Start with a night that fits your place.</h2>
-    <p class="hero-sub">Answer two quick scene questions — we open the matching list. One enquiry = one list.</p>
+    <p class="eyebrow">Match your Diwali celebration</p>
+    <h2 class="hero-title">Tell us your setup. We’ll pick the packs.</h2>
+    <p class="hero-sub">A few quick taps — place, crowd, budget, style. Then start with a recommended combo.</p>
     <p class="hero-delivery-note">Delivery to your parcel / courier office — not doorstep.</p>
 
     <div class="hero-combo-panel">
@@ -69,7 +75,7 @@
           <small>Matched to your answers</small>
         </span>
       </a>
-      <p class="hero-combo-note">Customisable after adding · Clear list to switch</p>
+      <p class="hero-combo-note">Customisable after adding · Edit preferences anytime</p>
     </div>
 
     <div class="hero-more-links">
@@ -218,8 +224,22 @@
           </button>
         </div>
       </div>
-      <p class="pdf-viewer-hint">Preview below. On some phones, use Download if the preview is blank.</p>
-      <iframe id="pdf-viewer-frame" title="Price list PDF preview"></iframe>
+      <p class="pdf-viewer-hint" id="pdf-viewer-hint">Preview below. Tap Download anytime to save the file.</p>
+      <div class="pdf-viewer-body">
+        <iframe id="pdf-viewer-frame" title="Price list PDF preview"></iframe>
+        <div class="pdf-viewer-pages" id="pdf-viewer-pages" hidden></div>
+        <div class="pdf-viewer-fallback" id="pdf-viewer-fallback" hidden>
+          <p class="pdf-viewer-fallback-kicker">Couldn’t preview</p>
+          <h3 class="pdf-viewer-fallback-title">Download the price list instead</h3>
+          <p class="pdf-viewer-fallback-copy">Preview failed on this phone — the PDF is still ready.</p>
+          <button type="button" class="btn-hero featured" id="pdf-viewer-download-main">
+            <span class="featured-copy">
+              <strong>Download price list PDF</strong>
+              <small>Opens or saves the file on your phone</small>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -313,12 +333,31 @@
       </div>
 
       <div class="enquiry-confirm" id="enquiry-confirm" hidden>
-        <p class="enquiry-confirm-kicker">Final step</p>
-        <p class="enquiry-confirm-title">Save a PDF copy?</p>
-        <p class="enquiry-confirm-copy">Optional — for your records only.</p>
-        <button type="button" class="btn-submit" id="confirm-with-pdf">Yes, download PDF</button>
-        <button type="button" class="btn-pdf-optional" id="confirm-whatsapp-only">No, continue</button>
-        <button type="button" class="enquiry-confirm-back" id="confirm-back">Edit details</button>
+        <div id="enquiry-confirm-actions">
+          <p class="enquiry-confirm-kicker">Final step</p>
+          <p class="enquiry-confirm-title">Save a PDF copy?</p>
+          <p class="enquiry-confirm-copy">Optional — for your records only.</p>
+          <button type="button" class="btn-submit" id="confirm-with-pdf">Yes, download PDF</button>
+          <button type="button" class="btn-pdf-optional" id="confirm-whatsapp-only">No, continue</button>
+          <button type="button" class="enquiry-confirm-back" id="confirm-back">Edit details</button>
+        </div>
+        <div class="enquiry-submit-progress" id="enquiry-submit-progress" hidden>
+          <p class="enquiry-confirm-kicker">Saving enquiry</p>
+          <p class="enquiry-confirm-title" id="enquiry-progress-title">Saving your enquiry…</p>
+          <p class="enquiry-confirm-copy" id="enquiry-progress-copy">Usually takes 5–10 seconds. Keep this page open.</p>
+          <div
+            class="enquiry-progress-track"
+            id="enquiry-progress-bar"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            aria-labelledby="enquiry-progress-title"
+          >
+            <span class="enquiry-progress-fill" id="enquiry-progress-fill"></span>
+          </div>
+          <p class="enquiry-progress-pct" id="enquiry-progress-pct">0%</p>
+        </div>
       </div>
     </div>
   </div>
@@ -330,11 +369,11 @@
   <script src="data/packs.js?v=lane1"></script>
   <script src="js/icons.js?v=lane1"></script>
   <script src="js/cart.js?v=lane1"></script>
-  <script src="js/lane.js?v=lane12"></script>
-  <script src="js/dialog.js?v=lane12"></script>
-  <script src="js/night-ui.js?v=lane12"></script>
-  <script src="js/pdf.js?v=lane1"></script>
-  <script src="js/app.js?v=lane12" defer></script>
+  <script src="js/lane.js?v=lane23"></script>
+  <script src="js/dialog.js?v=lane23"></script>
+  <script src="js/night-ui.js?v=lane23"></script>
+  <script src="js/pdf.js?v=lane23"></script>
+  <script src="js/app.js?v=lane23" defer></script>
   <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

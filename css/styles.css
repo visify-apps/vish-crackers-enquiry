@@ -1577,6 +1577,55 @@ a {
   display: none !important;
 }
 
+#enquiry-confirm-actions {
+  display: grid;
+  gap: 12px;
+  justify-items: stretch;
+}
+
+#enquiry-confirm-actions[hidden] {
+  display: none !important;
+}
+
+.enquiry-submit-progress {
+  display: grid;
+  gap: 12px;
+  justify-items: stretch;
+  width: 100%;
+}
+
+.enquiry-submit-progress[hidden] {
+  display: none !important;
+}
+
+.enquiry-progress-track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.enquiry-progress-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c9a24a 0%, #f0c75e 55%, #ffe29a 100%);
+  transition: width 0.18s linear;
+}
+
+.enquiry-progress-pct {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+
 .sheet-panel.is-confirming .sheet-main {
   display: none;
 }
@@ -2970,12 +3019,133 @@ a {
   line-height: 1.35;
 }
 
+.pdf-viewer-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 #pdf-viewer-frame {
   flex: 1;
   width: 100%;
   border: 0;
   background: #111;
   min-height: 0;
+}
+
+.pdf-viewer-pages {
+  flex: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 10px 20px;
+  background: #0e0908;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.pdf-viewer-pages[hidden] {
+  display: none !important;
+}
+
+.pdf-viewer-pages .pdf-page-canvas {
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.pdf-viewer-loading {
+  margin: 40px 16px;
+  color: rgba(243, 230, 210, 0.7);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.pdf-viewer-fallback {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 22px 36px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 20%, rgba(240, 199, 94, 0.12), transparent 60%),
+    #140c0a;
+}
+
+.pdf-viewer-fallback[hidden] {
+  display: none !important;
+}
+
+.pdf-viewer.is-preview-iframe #pdf-viewer-frame {
+  display: block;
+}
+
+.pdf-viewer.is-preview-iframe .pdf-viewer-pages,
+.pdf-viewer.is-preview-iframe .pdf-viewer-fallback {
+  display: none !important;
+}
+
+.pdf-viewer.is-preview-canvas #pdf-viewer-frame,
+.pdf-viewer.is-preview-canvas .pdf-viewer-fallback {
+  display: none !important;
+}
+
+.pdf-viewer.is-preview-canvas .pdf-viewer-pages {
+  display: flex;
+}
+
+.pdf-viewer.is-preview-download #pdf-viewer-frame,
+.pdf-viewer.is-preview-download .pdf-viewer-pages {
+  display: none !important;
+}
+
+.pdf-viewer.is-preview-download .pdf-viewer-fallback {
+  display: flex;
+}
+
+.pdf-viewer-fallback-kicker {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.pdf-viewer-fallback-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: #f7efe3;
+  line-height: 1.2;
+  max-width: 18rem;
+}
+
+.pdf-viewer-fallback-copy {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: rgba(243, 230, 210, 0.72);
+  max-width: 20rem;
+}
+
+.pdf-viewer-fallback .btn-hero.featured {
+  width: min(100%, 320px);
+  justify-content: center;
+  text-align: center;
+}
+
+.pdf-viewer-fallback .featured-copy {
+  align-items: center;
 }
 
 @media (min-width: 720px) {
@@ -3705,20 +3875,32 @@ body.has-lane-banner .site-header {
 
 .night-steps {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 18px;
 }
 
 .night-steps span {
   flex: 1;
   height: 3px;
-  border-radius: 99px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
 }
 
-.night-steps span.is-on,
+.night-steps span.is-on {
+  background: linear-gradient(90deg, #f0c75e, #e2ad3a);
+}
+
 .night-steps span.is-done {
-  background: linear-gradient(90deg, #e8a045, #f0c978);
+  background: rgba(240, 199, 94, 0.45);
+}
+
+.packs-section-recommended .packs-section-head h2 {
+  color: #f0c75e;
+}
+
+.pack-card-budget .pack-badge {
+  border-color: rgba(240, 199, 94, 0.55);
+  background: rgba(240, 199, 94, 0.16);
 }
 
 .night-matcher .eyebrow {
@@ -3736,6 +3918,10 @@ body.has-lane-banner .site-header {
   font-size: clamp(1.55rem, 4vw, 2rem);
   color: #f7efe3;
   line-height: 1.2;
+}
+
+.night-matcher h2:focus {
+  outline: none;
 }
 
 .night-result-title .night-title-main {
@@ -3811,15 +3997,55 @@ body.has-lane-banner .site-header {
 }
 
 .night-card-flat .night-card-glow {
-  background: radial-gradient(circle, rgba(140, 200, 255, 0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(140, 200, 255, 0.22), transparent 70%);
+}
+
+.night-card-courtyard .night-card-glow {
+  background: radial-gradient(circle, rgba(255, 200, 100, 0.24), transparent 70%);
 }
 
 .night-card-ground .night-card-glow {
-  background: radial-gradient(circle, rgba(255, 120, 80, 0.22), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 110, 70, 0.26), transparent 70%);
 }
 
 .night-card-kids .night-card-glow {
-  background: radial-gradient(circle, rgba(255, 160, 200, 0.2), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 150, 210, 0.24), transparent 70%);
+}
+
+.night-card-family .night-card-glow {
+  background: radial-gradient(circle, rgba(240, 199, 94, 0.26), transparent 70%);
+}
+
+.night-card-show .night-card-glow {
+  background: radial-gradient(circle, rgba(255, 90, 90, 0.22), transparent 70%);
+}
+
+.night-card-under5 .night-card-glow {
+  background: radial-gradient(circle, rgba(120, 220, 160, 0.22), transparent 70%);
+}
+
+.night-card-mid .night-card-glow {
+  background: radial-gradient(circle, rgba(240, 199, 94, 0.26), transparent 70%);
+}
+
+.night-card-high .night-card-glow {
+  background: radial-gradient(circle, rgba(180, 140, 255, 0.24), transparent 70%);
+}
+
+.night-card-any .night-card-glow {
+  background: radial-gradient(circle, rgba(180, 200, 220, 0.2), transparent 70%);
+}
+
+.night-card-soft .night-card-glow {
+  background: radial-gradient(circle, rgba(255, 160, 220, 0.24), transparent 70%);
+}
+
+.night-card-classic .night-card-glow {
+  background: radial-gradient(circle, rgba(240, 180, 90, 0.26), transparent 70%);
+}
+
+.night-card-finale .night-card-glow {
+  background: radial-gradient(circle, rgba(255, 100, 60, 0.28), transparent 70%);
 }
 
 .night-card strong {

@@ -8,6 +8,8 @@ window.VishApp = (function () {
   let categorySearch = '';
   let openCategories = new Set();
   let submitting = false;
+  let submitProgressTimer = null;
+  let submitProgressValue = 0;
   let pinLookupToken = 0;
   let pinAbort = null;
   let resolvedArea = { city: '', state: '', officeName: '', offices: [] };
@@ -105,7 +107,7 @@ window.VishApp = (function () {
 
   function syncActiveCatalog() {
     const vendor = activeVendor();
-    productsData = catalogForVendor(vendor);
+    productsData = vendor ? catalogForVendor(vendor) : [];
     return productsData;
   }
 
@@ -114,31 +116,47 @@ window.VishApp = (function () {
     if (fromCart) return fromCart;
     if (window.VishLane) {
       const lane = VishLane.getLane();
-      if (lane) return VishLane.laneToVendor(lane) || 'ignite';
+      if (lane) return VishLane.laneToVendor(lane) || '';
     }
-    return 'ignite';
+    return '';
+  }
+
+  /** Prefer cart/lane lock; else infer from first cart id (Ignite = 10000+). */
+  function resolveFulfillVendor() {
+    const locked = activeVendor();
+    if (locked === 'ignite' || locked === 'sri') return locked;
+    const cart = VishCart.getCart();
+    const first = Object.values(cart)[0];
+    if (!first) return 'sri';
+    const tagged = String(first.vendor || '').toLowerCase();
+    if (tagged === 'ignite' || tagged === 'sri') return tagged;
+    const n = Number(first.id);
+    if (Number.isFinite(n) && n >= 10000) return 'ignite';
+    return 'sri';
   }
 
   function activeLaneId() {
     if (window.VishLane) {
       const lane = VishLane.getLane();
       if (lane) return lane;
-      return VishLane.vendorToLane(activeVendor());
     }
-    return activeVendor() === 'sri' ? 'fullvariety' : 'bestvalue';
+    return '';
   }
 
-  function vendorLockMessage(lockedVendor) {
-    const lane =
-      window.VishLane && VishLane.vendorToLane(lockedVendor)
-        ? VishLane.getMeta(VishLane.vendorToLane(lockedVendor))
-        : null;
-    const name =
-      lane ? lane.short : lockedVendor === 'ignite' ? 'Family nights at home' : 'Soft nights with kids · Open-ground shows';
+  function hasNightMatch() {
+    return !!(window.VishLane && VishLane.getLane());
+  }
+
+  function requireNightMatch() {
+    if (hasNightMatch()) return true;
+    if (window.VishNightUI) VishNightUI.openMatcher({ force: true });
+    return false;
+  }
+
+  function vendorLockMessage() {
     return (
-      'Your enquiry is on “' +
-      name +
-      '”. Clear the list and tap Plan again to switch.'
+      'Your enquiry stays with this curated selection. ' +
+      'Clear the list and tap Edit preferences to change.'
     );
   }
 
@@ -199,15 +217,12 @@ window.VishApp = (function () {
       badge.hidden = count === 0;
     }
     if (meta) {
-      const locked = activeVendor();
-      const metaLane = window.VishLane ? VishLane.getMeta(VishLane.vendorToLane(locked)) : null;
-      const lockBit = metaLane ? ' · ' + metaLane.short : '';
       meta.textContent =
         count === 0
           ? isPacksPage()
             ? 'Add a combo to start'
             : 'Add items to build your enquiry'
-          : count + (count === 1 ? ' item' : ' items') + ' · ' + money(total) + lockBit;
+          : count + (count === 1 ? ' item' : ' items') + ' · ' + money(total);
     }
 
     if (savedEl) {
@@ -391,10 +406,7 @@ window.VishApp = (function () {
       add.className = 'btn btn-add';
       add.textContent = 'Add';
       add.addEventListener('click', () => {
-        if (window.VishLane && !VishLane.getLane()) {
-          VishLane.setLane(VishLane.vendorToLane(item.vendor || activeVendor()));
-          if (window.VishNightUI) VishNightUI.paintBanner();
-        }
+        if (!requireNightMatch()) return;
         const result = VishCart.addItem(item);
         if (result && result.ok === false) {
           notify(vendorLockMessage(result.vendor));
@@ -435,6 +447,11 @@ window.VishApp = (function () {
     const root = $('product-list');
     if (!root || isPacksPage()) return;
     root.innerHTML = '';
+    if (!hasNightMatch()) {
+      root.innerHTML =
+        '<p class="empty-state">Match your celebration first. <button type="button" class="link-action" data-edit-prefs="1">Set preferences</button></p>';
+      return;
+    }
     const grouped = groupedFiltered();
 
     if (grouped.size === 0) {
@@ -539,13 +556,9 @@ window.VishApp = (function () {
       return;
     }
     note.hidden = false;
-    const locked = VishCart.cartCount() > 0;
     note.innerHTML =
-      (locked
-        ? 'Enquiry locked to “' + escapeHtml(meta.short) + '”. '
-        : 'Showing “' + escapeHtml(meta.short) + '” for this visit. ') +
-      '<button type="button" class="link-action" data-plan-again="1">Plan again</button>' +
-      ' to switch.';
+      'Products shown in a curated order for your celebration. ' +
+      '<button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>';
   }
 
   function showToast(message) {
@@ -620,18 +633,135 @@ window.VishApp = (function () {
 
   let priceListPreviewUrl = '';
   let priceListPreviewFilename = '';
+  let pdfPreviewTimer = null;
+  let pdfJsLoading = null;
+
+  function pdfPreviewLikelyUnsupported() {
+    try {
+      const ua = navigator.userAgent || '';
+      const touch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+      if (/iPhone|iPad|iPod/i.test(ua)) return true;
+      if (/Android/i.test(ua)) return true;
+      if (touch && /Mobile|Tablet/i.test(ua)) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function setPdfPreviewMode(mode) {
+    const viewer = $('pdf-viewer');
+    const fallback = $('pdf-viewer-fallback');
+    const pages = $('pdf-viewer-pages');
+    const hint = $('pdf-viewer-hint');
+    if (!viewer) return;
+    viewer.classList.remove('is-preview-iframe', 'is-preview-canvas', 'is-preview-download');
+    viewer.classList.add(
+      mode === 'canvas'
+        ? 'is-preview-canvas'
+        : mode === 'download'
+          ? 'is-preview-download'
+          : 'is-preview-iframe'
+    );
+    if (fallback) fallback.hidden = mode !== 'download';
+    if (pages) pages.hidden = mode !== 'canvas';
+    if (hint) {
+      if (mode === 'canvas') {
+        hint.textContent = 'Scroll to preview pages. Tap Download to save.';
+      } else if (mode === 'download') {
+        hint.textContent = 'Preview failed — download the PDF below.';
+      } else {
+        hint.textContent = 'Preview below. Tap Download anytime to save the file.';
+      }
+    }
+  }
+
+  function loadPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (pdfJsLoading) return pdfJsLoading;
+    pdfJsLoading = new Promise(function (resolve, reject) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+      s.async = true;
+      s.onload = function () {
+        if (!window.pdfjsLib) {
+          reject(new Error('PDF engine missing'));
+          return;
+        }
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = function () {
+        pdfJsLoading = null;
+        reject(new Error('Could not load PDF preview engine'));
+      };
+      document.head.appendChild(s);
+    });
+    return pdfJsLoading;
+  }
+
+  function clearPdfPages() {
+    const pages = $('pdf-viewer-pages');
+    if (pages) pages.innerHTML = '';
+  }
+
+  function renderPdfCanvasPreview(arrayBuffer) {
+    const pages = $('pdf-viewer-pages');
+    if (!pages || !arrayBuffer) return Promise.reject(new Error('No preview target'));
+    pages.hidden = false;
+    pages.innerHTML = '<p class="pdf-viewer-loading">Loading preview…</p>';
+    setPdfPreviewMode('canvas');
+    return loadPdfJs().then(function (pdfjsLib) {
+      return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    }).then(function (pdf) {
+      pages.innerHTML = '';
+      const width = Math.max(280, pages.clientWidth - 20);
+      let chain = Promise.resolve();
+      for (let i = 1; i <= pdf.numPages; i++) {
+        chain = chain.then(function () {
+          return pdf.getPage(i).then(function (page) {
+            const base = page.getViewport({ scale: 1 });
+            const scale = Math.min(2.2, width / base.width);
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            canvas.className = 'pdf-page-canvas';
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+            canvas.setAttribute('aria-label', 'Page ' + i);
+            pages.appendChild(canvas);
+            return page.render({
+              canvasContext: canvas.getContext('2d'),
+              viewport: viewport
+            }).promise;
+          });
+        });
+      }
+      return chain;
+    });
+  }
 
   function closePdfViewer() {
     const viewer = $('pdf-viewer');
     const frame = $('pdf-viewer-frame');
+    if (pdfPreviewTimer) {
+      clearTimeout(pdfPreviewTimer);
+      pdfPreviewTimer = null;
+    }
     if (frame) frame.src = 'about:blank';
-    if (viewer) viewer.hidden = true;
+    clearPdfPages();
+    if (viewer) {
+      viewer.hidden = true;
+      viewer.classList.remove('is-preview-iframe', 'is-preview-canvas', 'is-preview-download');
+    }
     document.body.classList.remove('pdf-viewer-open');
     if (priceListPreviewUrl) {
       URL.revokeObjectURL(priceListPreviewUrl);
       priceListPreviewUrl = '';
     }
     priceListPreviewFilename = '';
+    const fallback = $('pdf-viewer-fallback');
+    if (fallback) fallback.hidden = true;
+    const pages = $('pdf-viewer-pages');
+    if (pages) pages.hidden = true;
   }
 
   function openPriceListViewerForCatalog(catalog, subtitle) {
@@ -649,10 +779,44 @@ window.VishApp = (function () {
       priceListPreviewFilename = preview.filename;
       const frame = $('pdf-viewer-frame');
       const viewer = $('pdf-viewer');
-      if (frame) frame.src = preview.url;
+      const useCanvas = pdfPreviewLikelyUnsupported();
       if (viewer) viewer.hidden = false;
       document.body.classList.add('pdf-viewer-open');
       injectIcons(viewer);
+
+      if (useCanvas) {
+        if (frame) frame.src = 'about:blank';
+        renderPdfCanvasPreview(preview.arrayBuffer).catch(function (err) {
+          console.warn('Canvas PDF preview failed:', err);
+          setPdfPreviewMode('download');
+        });
+        return;
+      }
+
+      if (frame) frame.src = preview.url;
+      setPdfPreviewMode('iframe');
+      if (frame) {
+        pdfPreviewTimer = setTimeout(function () {
+          pdfPreviewTimer = null;
+          try {
+            const blank =
+              !frame.contentDocument ||
+              !frame.contentDocument.body ||
+              frame.contentDocument.body.childElementCount === 0;
+            if (blank && preview.arrayBuffer) {
+              renderPdfCanvasPreview(preview.arrayBuffer).catch(function () {
+                setPdfPreviewMode('download');
+              });
+            }
+          } catch (e) {
+            if (preview.arrayBuffer) {
+              renderPdfCanvasPreview(preview.arrayBuffer).catch(function () {
+                setPdfPreviewMode('download');
+              });
+            }
+          }
+        }, 1600);
+      }
     } catch (err) {
       console.error(err);
       notify(err.message || 'Could not create PDF. Please refresh and try again.');
@@ -660,29 +824,37 @@ window.VishApp = (function () {
   }
 
   function openPriceListViewer() {
-    if (window.VishNightUI) {
-      VishNightUI.openPdfChooser((laneId) => {
-        const meta = VishLane.getMeta(laneId);
-        const vendor = VishLane.laneToVendor(laneId);
-        openPriceListViewerForCatalog(
-          catalogForVendor(vendor),
-          (meta && meta.pdfLabel ? meta.pdfLabel + '  |  Sivakasi  |  Enquiry only' : null)
-        );
-      });
+    if (!hasNightMatch()) {
+      requireNightMatch();
       return;
     }
-    openPriceListViewerForCatalog(productsData, null);
+    const laneId = activeLaneId();
+    const vendor = window.VishLane ? VishLane.laneToVendor(laneId) : activeVendor();
+    openPriceListViewerForCatalog(catalogForVendor(vendor), 'Price list  |  Sivakasi  |  Enquiry only');
   }
 
   function downloadPriceListFromViewer() {
     if (!priceListPreviewUrl) return;
     try {
+      // Phones often ignore <a download> for blob PDFs — open instead.
+      if (pdfPreviewLikelyUnsupported()) {
+        window.open(priceListPreviewUrl, '_blank', 'noopener');
+        return;
+      }
       const a = document.createElement('a');
       a.href = priceListPreviewUrl;
       a.download = priceListPreviewFilename || 'vish-price-list.pdf';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
       a.click();
+      a.remove();
     } catch (err) {
       console.error(err);
+      try {
+        window.open(priceListPreviewUrl, '_blank', 'noopener');
+      } catch (e2) {
+        notify('Could not start download. Please try again.');
+      }
     }
   }
 
@@ -690,6 +862,7 @@ window.VishApp = (function () {
     const confirm = $('enquiry-confirm');
     const panel = document.querySelector('#sheet .sheet-panel');
     if (panel) panel.classList.add('is-confirming');
+    resetSubmitProgressUi();
     if (confirm) {
       confirm.hidden = false;
       const primary = $('confirm-with-pdf');
@@ -698,10 +871,88 @@ window.VishApp = (function () {
   }
 
   function hideEnquiryConfirm() {
+    stopSubmitProgress();
+    resetSubmitProgressUi();
     const confirm = $('enquiry-confirm');
     const panel = document.querySelector('#sheet .sheet-panel');
     if (confirm) confirm.hidden = true;
     if (panel) panel.classList.remove('is-confirming');
+  }
+
+  function stopSubmitProgress() {
+    if (submitProgressTimer) {
+      clearInterval(submitProgressTimer);
+      submitProgressTimer = null;
+    }
+  }
+
+  function paintSubmitProgress(pct) {
+    submitProgressValue = Math.max(0, Math.min(100, Math.round(pct)));
+    const fill = $('enquiry-progress-fill');
+    const bar = $('enquiry-progress-bar');
+    const label = $('enquiry-progress-pct');
+    if (fill) fill.style.width = submitProgressValue + '%';
+    if (bar) bar.setAttribute('aria-valuenow', String(submitProgressValue));
+    if (label) label.textContent = submitProgressValue + '%';
+  }
+
+  function resetSubmitProgressUi() {
+    stopSubmitProgress();
+    paintSubmitProgress(0);
+    const actions = $('enquiry-confirm-actions');
+    const progress = $('enquiry-submit-progress');
+    const title = $('enquiry-progress-title');
+    const copy = $('enquiry-progress-copy');
+    if (actions) actions.hidden = false;
+    if (progress) progress.hidden = true;
+    if (title) title.textContent = 'Saving your enquiry…';
+    if (copy) copy.textContent = 'Usually takes 5–10 seconds. Keep this page open.';
+  }
+
+  function startSubmitProgress() {
+    stopSubmitProgress();
+    const actions = $('enquiry-confirm-actions');
+    const progress = $('enquiry-submit-progress');
+    const title = $('enquiry-progress-title');
+    const copy = $('enquiry-progress-copy');
+    if (actions) actions.hidden = true;
+    if (progress) progress.hidden = false;
+    if (title) title.textContent = 'Saving your enquiry…';
+    if (copy) copy.textContent = 'Usually takes 5–10 seconds. Keep this page open.';
+    paintSubmitProgress(4);
+
+    const raceMs = 8000;
+    const cap = 90;
+    const started = Date.now();
+    submitProgressTimer = setInterval(function () {
+      const t = Math.min(1, (Date.now() - started) / raceMs);
+      // Ease-out toward 90% over ~8s
+      const eased = 1 - Math.pow(1 - t, 2.2);
+      paintSubmitProgress(4 + eased * (cap - 4));
+      if (t >= 1) {
+        clearInterval(submitProgressTimer);
+        submitProgressTimer = null;
+        if (title) title.textContent = 'Still saving…';
+        if (copy) copy.textContent = 'Taking a little longer — please keep this page open.';
+      }
+    }, 100);
+  }
+
+  function completeSubmitProgress() {
+    return new Promise(function (resolve) {
+      stopSubmitProgress();
+      const title = $('enquiry-progress-title');
+      const copy = $('enquiry-progress-copy');
+      if (title) title.textContent = 'Saved';
+      if (copy) copy.textContent = 'Opening WhatsApp next…';
+      paintSubmitProgress(100);
+      setTimeout(resolve, 280);
+    });
+  }
+
+  function failSubmitProgress() {
+    stopSubmitProgress();
+    resetSubmitProgressUi();
   }
 
   function packTotals(pack) {
@@ -722,6 +973,7 @@ window.VishApp = (function () {
 
   function addPack(pack) {
     const runAdd = function () {
+      if (!requireNightMatch()) return;
       const vendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
       const afterLane = function () {
         const lock = VishCart.ensureVendor(vendor);
@@ -756,10 +1008,6 @@ window.VishApp = (function () {
             if (switched) afterLane();
           });
           return;
-        }
-        if (!VishLane.getLane()) {
-          VishLane.setLane(VishLane.vendorToLane(vendor));
-          if (window.VishNightUI) VishNightUI.paintBanner();
         }
       }
       afterLane();
@@ -878,23 +1126,128 @@ window.VishApp = (function () {
   function updatePacksLaneNote() {
     const note = $('packs-lane-note');
     if (!note) return;
-    const meta = window.VishLane && VishLane.getLane() ? VishLane.getMeta(VishLane.getLane()) : null;
-    const why =
-      ' <button type="button" class="link-action" data-why-two-lists="1">Why two lists?</button>';
-    if (!meta) {
-      note.innerHTML = '<strong>One list per enquiry.</strong>' + why;
+    const answers = window.VishLane ? VishLane.getAnswers() : null;
+    const budgetLabel =
+      answers && answers.budget && VishLane.BUDGETS[answers.budget]
+        ? VishLane.BUDGETS[answers.budget].label
+        : '';
+    const help =
+      ' <button type="button" class="link-action" data-match-help="1">How we match</button>';
+    if (!hasNightMatch()) {
+      note.innerHTML =
+        '<strong>Match your celebration to see recommended combos.</strong>' +
+        ' <button type="button" class="link-action" data-edit-prefs="1">Set preferences</button>' +
+        help;
       return;
     }
-    const locked = VishCart.cartCount() > 0;
     note.innerHTML =
-      '<strong>' +
-      (locked ? 'Enquiry locked to' : 'Showing') +
-      ' “' +
-      escapeHtml(meta.short) +
-      '”.</strong> ' +
-      '<button type="button" class="link-action" data-plan-again="1">Plan again</button>' +
-      ' to switch.' +
-      why;
+      '<strong>Combos in a curated order' +
+      (budgetLabel ? ' · ' + escapeHtml(budgetLabel) : '') +
+      '.</strong> ' +
+      '<button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>' +
+      help;
+  }
+
+  function preferredSectionOrder(answers) {
+    const who = answers && answers.who;
+    const vibe = answers && answers.vibe;
+    const place = answers && answers.place;
+    if (who === 'kids' || vibe === 'soft') {
+      return ['Kids magic nights', 'Soft colour nights', 'Family Diwali nights', 'Open ground finales'];
+    }
+    if (place === 'ground' || vibe === 'finale' || who === 'show') {
+      return ['Open ground finales', 'Family Diwali nights', 'Kids magic nights', 'Soft colour nights'];
+    }
+    return ['Family Diwali nights', 'Soft colour nights', 'Kids magic nights', 'Open ground finales'];
+  }
+
+  function renderPackCard(pack, opts) {
+    opts = opts || {};
+    const { total, mrp, saved, lines } = packTotals(pack);
+    const theme = String(pack.theme || 'starter')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '');
+    const already = pack.id != null && VishCart.hasCombo(pack.id);
+    const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
+    const tone = opts.tone || sectionTone(pack.section || '');
+    const badge = opts.budgetFit ? 'Fits your budget' : pack.badge || 'Combo';
+    const card = document.createElement('article');
+    card.className =
+      'pack-card pack-theme-' +
+      theme +
+      (tone === 'kids' ? ' pack-card-kids' : '') +
+      (already ? ' pack-card-added' : '') +
+      (opts.budgetFit ? ' pack-card-budget' : '');
+    card.dataset.theme = theme;
+    card.dataset.vendor = packVendor;
+    card.innerHTML =
+      '<div class="pack-atmosphere" aria-hidden="true">' +
+      '<span class="pack-burst"></span>' +
+      '<span class="pack-sparks"></span>' +
+      '</div>' +
+      '<div class="pack-body">' +
+      '<div class="pack-top">' +
+      '<span class="pack-badge">' +
+      escapeHtml(badge) +
+      '</span>' +
+      '<h3>' +
+      escapeHtml(pack.name) +
+      '</h3>' +
+      '<p>' +
+      escapeHtml(pack.tagline || '') +
+      '</p>' +
+      '</div>' +
+      '<div class="pack-foot">' +
+      '<div class="pack-pricing">' +
+      '<strong class="price">' +
+      money(total) +
+      '</strong>' +
+      (saved > 0
+        ? '<span class="mrp">' +
+          money(mrp) +
+          '</span><span class="pack-save">Save ' +
+          money(saved) +
+          '</span>'
+        : '') +
+      '</div>' +
+      '<button type="button" class="btn-add-pack' +
+      (already ? ' is-added' : '') +
+      '">' +
+      (already ? 'Add another set' : 'Add combo') +
+      '</button>' +
+      '</div>' +
+      '<button type="button" class="pack-details-toggle" aria-expanded="false">' +
+      '<span class="pack-details-label">' +
+      'View ' +
+      lines.length +
+      (lines.length === 1 ? ' item' : ' items') +
+      '</span>' +
+      '<span class="pack-details-chevron" aria-hidden="true">' +
+      (window.VishIcons ? VishIcons.svg('chevron') : '▾') +
+      '</span>' +
+      '</button>' +
+      '<div class="pack-details">' +
+      '<div class="pack-details-inner">' +
+      '<div class="pack-details-tools">' +
+      packPhotosToggleHtml() +
+      '</div>' +
+      '<ul class="pack-items">' +
+      packItemLinesHtml(lines) +
+      '</ul>' +
+      '<p class="pack-customize-hint">After adding, change quantities or add more items anytime.</p>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+    const addBtn = card.querySelector('.btn-add-pack');
+    if (addBtn) addBtn.addEventListener('click', () => addPack(pack));
+    const toggle = card.querySelector('.pack-details-toggle');
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        const open = card.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    }
+    return card;
   }
 
   function renderPacks() {
@@ -906,30 +1259,75 @@ window.VishApp = (function () {
     if (oldBar) oldBar.remove();
     const allPacks = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
     const vendor = activeVendor();
+    const answers = window.VishLane ? VishLane.getAnswers() : null;
+    const budgetId = answers && answers.budget ? answers.budget : 'any';
     const packs = allPacks.filter((pack) => {
       const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
       return packVendor === vendor;
     });
     root.innerHTML = '';
+    if (!hasNightMatch()) {
+      root.innerHTML =
+        '<p class="empty-state">Match your celebration first. <button type="button" class="link-action" data-edit-prefs="1">Set preferences</button></p>';
+      return;
+    }
     if (!packs.length) {
       root.innerHTML =
-        '<p class="empty-state">No combos for this list yet. <button type="button" class="link-action" data-plan-again="1">Plan again</button> to switch.</p>';
+        '<p class="empty-state">No combos for this match yet. <button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>.</p>';
       return;
     }
 
-    const bySection = new Map();
-    packs.forEach((pack) => {
-      const key = pack.section || 'Combos';
-      if (!bySection.has(key)) bySection.set(key, []);
-      bySection.get(key).push(pack);
+    const enriched = packs.map((pack) => {
+      const totals = packTotals(pack);
+      return {
+        pack: pack,
+        total: totals.total,
+        fit: window.VishLane ? VishLane.packFitsBudget(totals.total, budgetId) : true,
+        score: window.VishLane ? VishLane.budgetScore(totals.total, budgetId) : totals.total
+      };
     });
 
-    const preferred = [
-      'Soft colour nights',
-      'Kids magic nights',
-      'Family Diwali nights',
-      'Open ground finales'
-    ];
+    const showBudgetFirst = budgetId && budgetId !== 'any';
+    const recommended = showBudgetFirst
+      ? enriched.filter((e) => e.fit).sort((a, b) => a.score - b.score)
+      : [];
+
+    if (recommended.length) {
+      const block = document.createElement('section');
+      block.className = 'packs-section packs-section-recommended';
+      block.id = 'recommended-combos';
+      const heading = document.createElement('div');
+      heading.className = 'packs-section-head';
+      const bLabel = VishLane.budgetMeta(budgetId).label;
+      heading.innerHTML =
+        '<h2>Best for your budget</h2>' +
+        '<p>Closest matches to ' +
+        escapeHtml(bLabel) +
+        ' — add one, then customise.</p>';
+      block.appendChild(heading);
+      const grid = document.createElement('div');
+      grid.className = 'packs-section-grid';
+      recommended.forEach((e) => {
+        grid.appendChild(
+          renderPackCard(e.pack, {
+            tone: sectionTone(e.pack.section || ''),
+            budgetFit: true
+          })
+        );
+      });
+      block.appendChild(grid);
+      root.appendChild(block);
+    }
+
+    const bySection = new Map();
+    enriched.forEach((e) => {
+      if (showBudgetFirst && e.fit) return;
+      const key = e.pack.section || 'Combos';
+      if (!bySection.has(key)) bySection.set(key, []);
+      bySection.get(key).push(e);
+    });
+
+    const preferred = preferredSectionOrder(answers);
     const sectionOrder = Array.from(bySection.keys()).sort((a, b) => {
       const ai = preferred.indexOf(a);
       const bi = preferred.indexOf(b);
@@ -940,7 +1338,8 @@ window.VishApp = (function () {
     });
 
     sectionOrder.forEach((sectionName) => {
-      const sectionPacks = bySection.get(sectionName) || [];
+      const sectionPacks = (bySection.get(sectionName) || []).sort((a, b) => a.score - b.score);
+      if (!sectionPacks.length) return;
       const tone = sectionTone(sectionName);
       const block = document.createElement('section');
       block.className =
@@ -954,101 +1353,22 @@ window.VishApp = (function () {
       heading.className = 'packs-section-head';
       heading.innerHTML =
         '<h2>' +
-        escapeHtml(sectionName) +
+        escapeHtml(showBudgetFirst ? 'More · ' + sectionName : sectionName) +
         '</h2>' +
         '<p>' +
         escapeHtml(sectionBlurb(sectionName)) +
         '</p>';
       block.appendChild(heading);
-
       const grid = document.createElement('div');
       grid.className = 'packs-section-grid';
-
-      sectionPacks.forEach((pack) => {
-        const { total, mrp, saved, lines } = packTotals(pack);
-        const theme = String(pack.theme || 'starter')
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, '');
-        const already = pack.id != null && VishCart.hasCombo(pack.id);
-        const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
-        const card = document.createElement('article');
-        card.className =
-          'pack-card pack-theme-' +
-          theme +
-          (tone === 'kids' ? ' pack-card-kids' : '') +
-          (already ? ' pack-card-added' : '');
-        card.dataset.theme = theme;
-        card.dataset.vendor = packVendor;
-        card.innerHTML =
-          '<div class="pack-atmosphere" aria-hidden="true">' +
-          '<span class="pack-burst"></span>' +
-          '<span class="pack-sparks"></span>' +
-          '</div>' +
-          '<div class="pack-body">' +
-          '<div class="pack-top">' +
-          '<span class="pack-badge">' +
-          escapeHtml(pack.badge || 'Combo') +
-          '</span>' +
-          '<h3>' +
-          escapeHtml(pack.name) +
-          '</h3>' +
-          '<p>' +
-          escapeHtml(pack.tagline || '') +
-          '</p>' +
-          '</div>' +
-          '<div class="pack-foot">' +
-          '<div class="pack-pricing">' +
-          '<strong class="price">' +
-          money(total) +
-          '</strong>' +
-          (saved > 0
-            ? '<span class="mrp">' +
-              money(mrp) +
-              '</span><span class="pack-save">Save ' +
-              money(saved) +
-              '</span>'
-            : '') +
-          '</div>' +
-          '<button type="button" class="btn-add-pack' +
-          (already ? ' is-added' : '') +
-          '">' +
-          (already ? 'Add another set' : 'Add combo') +
-          '</button>' +
-          '</div>' +
-          '<button type="button" class="pack-details-toggle" aria-expanded="false">' +
-          '<span class="pack-details-label">' +
-          'View ' +
-          lines.length +
-          (lines.length === 1 ? ' item' : ' items') +
-          '</span>' +
-          '<span class="pack-details-chevron" aria-hidden="true">' +
-          (window.VishIcons ? VishIcons.svg('chevron') : '▾') +
-          '</span>' +
-          '</button>' +
-          '<div class="pack-details">' +
-          '<div class="pack-details-inner">' +
-          '<div class="pack-details-tools">' +
-          packPhotosToggleHtml() +
-          '</div>' +
-          '<ul class="pack-items">' +
-          packItemLinesHtml(lines) +
-          '</ul>' +
-          '<p class="pack-customize-hint">After adding, change quantities or add more from this list only.</p>' +
-          '</div>' +
-          '</div>' +
-          '</div>';
-        const addBtn = card.querySelector('.btn-add-pack');
-        if (addBtn) addBtn.addEventListener('click', () => addPack(pack));
-        const toggle = card.querySelector('.pack-details-toggle');
-        if (toggle) {
-          toggle.addEventListener('click', () => {
-            const open = card.classList.toggle('is-open');
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-          });
-        }
-        grid.appendChild(card);
+      sectionPacks.forEach((e) => {
+        grid.appendChild(
+          renderPackCard(e.pack, {
+            tone: tone,
+            budgetFit: false
+          })
+        );
       });
-
       block.appendChild(grid);
       root.appendChild(block);
     });
@@ -1147,16 +1467,12 @@ window.VishApp = (function () {
     if (VishCart.cartCount(cart) === 0) {
       list.innerHTML = '<p class="empty-state">Your enquiry list is empty.</p>';
     } else {
-      const locked = activeVendor();
-      const metaLane = window.VishLane ? VishLane.getMeta(VishLane.vendorToLane(locked)) : null;
-      if (metaLane) {
+      if (activeVendor()) {
         const banner = document.createElement('p');
         banner.className = 'catalog-vendor-note';
         banner.style.marginBottom = '10px';
         banner.textContent =
-          'This enquiry is “' +
-          metaLane.short +
-          '” — add more only from this list. Clear list & Plan again to switch.';
+          'This enquiry uses your curated selection. Clear the list or Edit preferences to change.';
         list.appendChild(banner);
       }
       Object.values(cart).forEach((item) => {
@@ -1505,11 +1821,10 @@ window.VishApp = (function () {
     [withPdfBtn, waOnlyBtn, backBtn].forEach((b) => {
       if (b) b.disabled = true;
     });
-    if (withPdfBtn) withPdfBtn.textContent = 'Saving… please wait';
-    if (waOnlyBtn) waOnlyBtn.textContent = 'Saving… please wait';
     if ($('form-msg')) {
-      $('form-msg').textContent = 'Saving your enquiry… please keep this page open for a few seconds.';
+      $('form-msg').textContent = 'Saving your enquiry… please keep this page open.';
     }
+    startSubmitProgress();
 
     const totals = liveCartTotals(cart);
     const submissionId = newSubmissionId();
@@ -1529,7 +1844,7 @@ window.VishApp = (function () {
       saved: totals.saved,
       submissionId: submissionId,
       submittedAt: new Date().toISOString(),
-      fulfillVendor: activeVendor() || 'sri',
+      fulfillVendor: resolveFulfillVendor(),
       website: '',
       ingestKey: cfg().enquiryIngestKey || '',
       userAgent: navigator.userAgent || ''
@@ -1539,6 +1854,7 @@ window.VishApp = (function () {
 
     // Require confirmed server save — never open PDF/WA on hope
     if (result.ok !== true) {
+      failSubmitProgress();
       resetConfirmButtons(withPdfBtn, waOnlyBtn, backBtn);
       hideEnquiryConfirm();
       let errText = 'Could not save your enquiry. Please try Submit again — your list is still here.';
@@ -1553,6 +1869,8 @@ window.VishApp = (function () {
       if ($('form-msg')) $('form-msg').textContent = errText;
       return;
     }
+
+    await completeSubmitProgress();
 
     const exportCart = (function enrich(cart) {
       const out = {};
@@ -1586,7 +1904,6 @@ window.VishApp = (function () {
     VishPdf.openWhatsApp(cfg(), waText);
 
     VishCart.clearCart();
-    if (window.VishLane) VishLane.clearLane();
     updateCartBar();
     renderProducts();
     renderPacks();
@@ -1646,7 +1963,6 @@ window.VishApp = (function () {
         ask.then(function (ok) {
           if (!ok) return;
           VishCart.clearCart();
-          if (window.VishLane) VishLane.clearLane();
           refreshAfterCartChange();
           showToast('Enquiry list cleared');
         });
@@ -1751,23 +2067,31 @@ window.VishApp = (function () {
     if ($('pdf-viewer-download')) {
       $('pdf-viewer-download').addEventListener('click', downloadPriceListFromViewer);
     }
+    if ($('pdf-viewer-download-main')) {
+      $('pdf-viewer-download-main').addEventListener('click', downloadPriceListFromViewer);
+    }
 
     wireWhatsAppFloat();
 
     document.addEventListener('click', (e) => {
-      const plan = e.target.closest('[data-plan-again]');
-      if (plan) {
+      const editPrefs = e.target.closest('[data-edit-prefs], [data-plan-again]');
+      if (editPrefs) {
         e.preventDefault();
-        if (window.VishNightUI) VishNightUI.requestPlanAgain();
+        if (window.VishNightUI) {
+          if (hasNightMatch()) VishNightUI.requestEditPreferences();
+          else VishNightUI.openMatcher({ force: true });
+        }
         return;
       }
-      if (e.target.closest('#why-two-lists-btn') || e.target.closest('[data-why-two-lists]')) {
+      if (e.target.closest('[data-match-help]') || e.target.closest('[data-why-two-lists]')) {
         e.preventDefault();
         if (window.VishDialog) {
           VishDialog.notice({
-            kicker: 'Two lists',
-            title: 'Why two lists?',
-            body: window.VishLane ? VishLane.WHY_TWO_LISTS : 'We keep two lists so packing stays simple.'
+            kicker: 'Quick match',
+            title: 'How we match your celebration',
+            body: window.VishLane
+              ? VishLane.MATCH_HELP
+              : 'A few answers help us show packs that fit your celebration.'
           });
         }
         return;
@@ -1824,6 +2148,14 @@ window.VishApp = (function () {
     return true;
   }
 
+  function paintPricesLoading() {
+    const msg = '<p class="empty-state">Loading latest prices…</p>';
+    const products = $('product-list');
+    if (products && !isPacksPage()) products.innerHTML = msg;
+    const packs = $('packs-list');
+    if (packs) packs.innerHTML = msg;
+  }
+
   function paintCatalog() {
     syncActiveCatalog();
     pruneInactiveCartItems();
@@ -1836,13 +2168,15 @@ window.VishApp = (function () {
     injectIcons(document);
   }
 
-  async function refreshProductsFromSheet() {
+  async function refreshProductsFromSheet(options) {
+    options = options || {};
+    const shouldPaint = options.paint === true;
+    const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 25000;
     const url = (cfg().appsScriptUrl || '').trim();
-    if (!url) return;
+    if (!url) return false;
 
     const controller = new AbortController();
-    // Apps Script cold starts often exceed 4s on live; keep waiting longer than local.
-    const timer = setTimeout(() => controller.abort(), 25000);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const res = await fetch(url + '?action=products&_=' + Date.now(), {
@@ -1853,13 +2187,15 @@ window.VishApp = (function () {
       if (data && Array.isArray(data.products) && data.products.length) {
         sriProductsData = tagVendor(data.products, 'sri');
         syncActiveCatalog();
-        paintCatalog();
+        if (shouldPaint) paintCatalog();
+        return true;
       }
     } catch (err) {
       console.warn('Sheet catalog refresh skipped:', err);
     } finally {
       clearTimeout(timer);
     }
+    return false;
   }
 
   async function init() {
@@ -1883,7 +2219,7 @@ window.VishApp = (function () {
           paintCatalog();
         }
       });
-      // Legacy cart without lane: infer from vendor or product ids
+      // Legacy cart without prefs: infer match from cart vendor once
       if (!VishLane.getLane() && VishCart.cartCount() > 0) {
         let v = VishCart.getVendor();
         if (!v) {
@@ -1904,8 +2240,10 @@ window.VishApp = (function () {
       }
     } catch (err) {}
 
+    // One paint only: wait for live sheet (or timeout), never flash cached then updated prices.
+    paintPricesLoading();
+    await refreshProductsFromSheet({ paint: false, timeoutMs: 12000 });
     paintCatalog();
-    refreshProductsFromSheet();
   }
 
   return { init };
