@@ -28,11 +28,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=lane23" />
+  <link rel="stylesheet" href="css/styles.css?v=lane30" />
   <script>
     (function () {
       var h = String(location.hash || '').replace(/^#\/?/, '').toLowerCase();
       if (h === 'bill') location.replace('/bill');
+      if (h === 'ignite-images' || h === 'igniteimages') location.replace('/ignite-images');
     })();
   </script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
@@ -122,6 +123,9 @@
           <span data-icon="chevron"></span>
         </button>
       </div>
+      <p class="prefs-dock-link" id="prefs-dock-link" hidden>
+        <button type="button" class="link-action prefs-quiet" data-edit-prefs="1">Edit preferences</button>
+      </p>
     </div>
   </div>
 
@@ -364,16 +368,16 @@
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
   <script src="js/config.js?v=lane1"></script>
-  <script src="data/products.js?v=lane1"></script>
-  <script src="data/products-ignite.js?v=lane1"></script>
+  <script src="data/products.js?v=sync1"></script>
+  <script src="data/products-ignite.js?v=sync1"></script>
   <script src="data/packs.js?v=lane1"></script>
   <script src="js/icons.js?v=lane1"></script>
   <script src="js/cart.js?v=lane1"></script>
-  <script src="js/lane.js?v=lane23"></script>
-  <script src="js/dialog.js?v=lane23"></script>
-  <script src="js/night-ui.js?v=lane23"></script>
-  <script src="js/pdf.js?v=lane23"></script>
-  <script src="js/app.js?v=lane23" defer></script>
+  <script src="js/lane.js?v=lane26"></script>
+  <script src="js/dialog.js?v=lane26"></script>
+  <script src="js/night-ui.js?v=lane31"></script>
+  <script src="js/pdf.js?v=lane26"></script>
+  <script src="js/app.js?v=sync1" defer></script>
   <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

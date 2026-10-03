@@ -1,0 +1,2368 @@
+{
+  "comparisons": [
+    {
+      "id": "soft-colour-kit",
+      "name": "Soft Colour Combo",
+      "section": "Kids & soft colour (no bombs)",
+      "badge": "Kids safe · ~₹2,100",
+      "sriSell": 2101,
+      "sriBuy": 1833,
+      "sriProfit": 268,
+      "igniteSell": 2646,
+      "igniteBuy": 2167,
+      "igniteProfit": 479,
+      "profitDelta": 211,
+      "sellDelta": 545,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 105,
+          "name": "10CM ELECTRIC SPARKLERS",
+          "qty": 3,
+          "sell": 25,
+          "buy": 16,
+          "profit": 27,
+          "fromSri": 162
+        },
+        {
+          "igniteId": 107,
+          "name": "10CM GREEN SPARKLERS",
+          "qty": 2,
+          "sell": 30,
+          "buy": 18,
+          "profit": 24,
+          "fromSri": 164
+        },
+        {
+          "igniteId": 115,
+          "name": "15CM GREEN SPARKLERS",
+          "qty": 2,
+          "sell": 57,
+          "buy": 44,
+          "profit": 26,
+          "fromSri": 167
+        },
+        {
+          "igniteId": 114,
+          "name": "15CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 53,
+          "buy": 42,
+          "profit": 11,
+          "fromSri": 173
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 2,
+          "sell": 59,
+          "buy": 49,
+          "profit": 20,
+          "fromSri": 174
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 1,
+          "sell": 59,
+          "buy": 49,
+          "profit": 10,
+          "fromSri": 166
+        },
+        {
+          "igniteId": 32,
+          "name": "KIT KAT SHOWERS",
+          "qty": 3,
+          "sell": 35,
+          "buy": 29,
+          "profit": 18,
+          "fromSri": 69
+        },
+        {
+          "igniteId": 59,
+          "name": "PHOTO FLASH (5 PCS) FUNCTION",
+          "qty": 2,
+          "sell": 80,
+          "buy": 75,
+          "profit": 10,
+          "fromSri": 71
+        },
+        {
+          "igniteId": 81,
+          "name": "COLOUR RAIN / GOLDEN RAISE",
+          "qty": 2,
+          "sell": 120,
+          "buy": 98,
+          "profit": 44,
+          "fromSri": 76
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 63
+        },
+        {
+          "igniteId": 56,
+          "name": "BUTTERFLY COLOUR CHANGING",
+          "qty": 1,
+          "sell": 99,
+          "buy": 81,
+          "profit": 18,
+          "fromSri": 68
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 68,
+          "name": "RED SUN (5 PCS) (10 VARIETIES)",
+          "qty": 2,
+          "sell": 199,
+          "buy": 173,
+          "profit": 52,
+          "fromSri": 84
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 85
+        },
+        {
+          "igniteId": 77,
+          "name": "SELFIE STICK FLASH (5 PCS)",
+          "qty": 1,
+          "sell": 174,
+          "buy": 144,
+          "profit": 30,
+          "fromSri": 103
+        },
+        {
+          "igniteId": 83,
+          "name": "CHOTTA FANCY - SKY SHOT",
+          "qty": 2,
+          "sell": 55,
+          "buy": 41,
+          "profit": 28,
+          "fromSri": 115
+        },
+        {
+          "igniteId": 126,
+          "name": "JAMES BOND COLOUR MATCHES",
+          "qty": 2,
+          "sell": 111,
+          "buy": 96,
+          "profit": 30,
+          "fromSri": 176
+        },
+        {
+          "igniteId": 132,
+          "name": "SNAKE SERPHANT BIG",
+          "qty": 2,
+          "sell": 45,
+          "buy": 28,
+          "profit": 34,
+          "fromSri": 180
+        },
+        {
+          "igniteId": 86,
+          "name": "2.5\" FANCY (1 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 130,
+          "buy": 115,
+          "profit": 15,
+          "fromSri": 116
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "kids-stage-kit",
+      "name": "Kids Stage Combo",
+      "section": "Kids & soft colour (no bombs)",
+      "badge": "Kids · ~₹4,400",
+      "sriSell": 4371,
+      "sriBuy": 4025,
+      "sriProfit": 346,
+      "igniteSell": 4645,
+      "igniteBuy": 4067,
+      "igniteProfit": 578,
+      "profitDelta": 232,
+      "sellDelta": 274,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 115,
+          "name": "15CM GREEN SPARKLERS",
+          "qty": 2,
+          "sell": 57,
+          "buy": 44,
+          "profit": 26,
+          "fromSri": 167
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 2,
+          "sell": 59,
+          "buy": 49,
+          "profit": 20,
+          "fromSri": 174
+        },
+        {
+          "igniteId": 122,
+          "name": "40CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 140,
+          "profit": 10,
+          "fromSri": 175
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 59,
+          "name": "PHOTO FLASH (5 PCS) FUNCTION",
+          "qty": 2,
+          "sell": 80,
+          "buy": 75,
+          "profit": 10,
+          "fromSri": 71
+        },
+        {
+          "igniteId": 81,
+          "name": "COLOUR RAIN / GOLDEN RAISE",
+          "qty": 2,
+          "sell": 120,
+          "buy": 98,
+          "profit": 44,
+          "fromSri": 76
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 63
+        },
+        {
+          "igniteId": 68,
+          "name": "RED SUN (5 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 84
+        },
+        {
+          "igniteId": 71,
+          "name": "STAR SHOW (RED & GREEN)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 88
+        },
+        {
+          "igniteId": 75,
+          "name": "WONDER 3 IN 1 CRACKLING MEGA",
+          "qty": 1,
+          "sell": 299,
+          "buy": 253,
+          "profit": 46,
+          "fromSri": 92
+        },
+        {
+          "igniteId": 76,
+          "name": "TRI COLOUR FOUNTAIN (5 PCS)",
+          "qty": 1,
+          "sell": 320,
+          "buy": 299,
+          "profit": 21,
+          "fromSri": 99
+        },
+        {
+          "igniteId": 73,
+          "name": "TIO / KIO / SEO / MIO - TESCO",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 90
+        },
+        {
+          "igniteId": 77,
+          "name": "SELFIE STICK FLASH (5 PCS)",
+          "qty": 1,
+          "sell": 174,
+          "buy": 144,
+          "profit": 30,
+          "fromSri": 103
+        },
+        {
+          "igniteId": 82,
+          "name": "LOLLY POP - LONG STICK",
+          "qty": 1,
+          "sell": 269,
+          "buy": 242,
+          "profit": 27,
+          "fromSri": 104
+        },
+        {
+          "igniteId": 79,
+          "name": "DRONE (5 PCS) SKY FLY",
+          "qty": 1,
+          "sell": 180,
+          "buy": 161,
+          "profit": 19,
+          "fromSri": 105
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 83,
+          "name": "CHOTTA FANCY - SKY SHOT",
+          "qty": 2,
+          "sell": 55,
+          "buy": 41,
+          "profit": 28,
+          "fromSri": 115
+        },
+        {
+          "igniteId": 86,
+          "name": "2.5\" FANCY (1 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 130,
+          "buy": 115,
+          "profit": 15,
+          "fromSri": 116
+        },
+        {
+          "igniteId": 93,
+          "name": "7 SHOT (5 PCS)",
+          "qty": 2,
+          "sell": 140,
+          "buy": 127,
+          "profit": 26,
+          "fromSri": 134
+        },
+        {
+          "igniteId": 126,
+          "name": "JAMES BOND COLOUR MATCHES",
+          "qty": 2,
+          "sell": 111,
+          "buy": 96,
+          "profit": 30,
+          "fromSri": 176
+        },
+        {
+          "igniteId": 88,
+          "name": "3 PCS FANCY (3 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 290,
+          "buy": 265,
+          "profit": 25,
+          "fromSri": 117
+        },
+        {
+          "igniteId": 129,
+          "name": "LAPTOP COLOUR MATCHES - 10 BOX",
+          "qty": 1,
+          "sell": 299,
+          "buy": 280,
+          "profit": 19,
+          "fromSri": 178
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "fear-free-colour-kit",
+      "name": "Fear-Free Colour Combo",
+      "section": "Kids & soft colour (no bombs)",
+      "badge": "No bombs · ~₹6,200",
+      "sriSell": 6239,
+      "sriBuy": 5720,
+      "sriProfit": 519,
+      "igniteSell": 6408,
+      "igniteBuy": 5626,
+      "igniteProfit": 782,
+      "profitDelta": 263,
+      "sellDelta": 169,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 115,
+          "name": "15CM GREEN SPARKLERS",
+          "qty": 2,
+          "sell": 57,
+          "buy": 44,
+          "profit": 26,
+          "fromSri": 167
+        },
+        {
+          "igniteId": 114,
+          "name": "15CM COLOUR SPARKLERS",
+          "qty": 2,
+          "sell": 53,
+          "buy": 42,
+          "profit": 22,
+          "fromSri": 173
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 2,
+          "sell": 59,
+          "buy": 49,
+          "profit": 20,
+          "fromSri": 174
+        },
+        {
+          "igniteId": 122,
+          "name": "40CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 140,
+          "profit": 10,
+          "fromSri": 175
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 59,
+          "name": "PHOTO FLASH (5 PCS) FUNCTION",
+          "qty": 2,
+          "sell": 80,
+          "buy": 75,
+          "profit": 10,
+          "fromSri": 71
+        },
+        {
+          "igniteId": 81,
+          "name": "COLOUR RAIN / GOLDEN RAISE",
+          "qty": 2,
+          "sell": 120,
+          "buy": 98,
+          "profit": 44,
+          "fromSri": 76
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 2,
+          "sell": 199,
+          "buy": 173,
+          "profit": 52,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 63
+        },
+        {
+          "igniteId": 70,
+          "name": "TIN BIG SIZE - NUTS, DRAGON",
+          "qty": 1,
+          "sell": 179,
+          "buy": 156,
+          "profit": 23,
+          "fromSri": 64
+        },
+        {
+          "igniteId": 68,
+          "name": "RED SUN (5 PCS) (10 VARIETIES)",
+          "qty": 2,
+          "sell": 199,
+          "buy": 173,
+          "profit": 52,
+          "fromSri": 84
+        },
+        {
+          "igniteId": 71,
+          "name": "STAR SHOW (RED & GREEN)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 88
+        },
+        {
+          "igniteId": 75,
+          "name": "WONDER 3 IN 1 CRACKLING MEGA",
+          "qty": 1,
+          "sell": 299,
+          "buy": 253,
+          "profit": 46,
+          "fromSri": 92
+        },
+        {
+          "igniteId": 76,
+          "name": "TRI COLOUR FOUNTAIN (5 PCS)",
+          "qty": 1,
+          "sell": 320,
+          "buy": 299,
+          "profit": 21,
+          "fromSri": 99
+        },
+        {
+          "igniteId": 73,
+          "name": "TIO / KIO / SEO / MIO - TESCO",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 90
+        },
+        {
+          "igniteId": 77,
+          "name": "SELFIE STICK FLASH (5 PCS)",
+          "qty": 1,
+          "sell": 174,
+          "buy": 144,
+          "profit": 30,
+          "fromSri": 103
+        },
+        {
+          "igniteId": 82,
+          "name": "LOLLY POP - LONG STICK",
+          "qty": 1,
+          "sell": 269,
+          "buy": 242,
+          "profit": 27,
+          "fromSri": 104
+        },
+        {
+          "igniteId": 79,
+          "name": "DRONE (5 PCS) SKY FLY",
+          "qty": 1,
+          "sell": 180,
+          "buy": 161,
+          "profit": 19,
+          "fromSri": 105
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 63,
+          "name": "PEACOCK FUNCTION BADA",
+          "qty": 1,
+          "sell": 430,
+          "buy": 391,
+          "profit": 39,
+          "fromSri": 109
+        },
+        {
+          "igniteId": 83,
+          "name": "CHOTTA FANCY - SKY SHOT",
+          "qty": 2,
+          "sell": 55,
+          "buy": 41,
+          "profit": 28,
+          "fromSri": 115
+        },
+        {
+          "igniteId": 86,
+          "name": "2.5\" FANCY (1 PCS) (10 VARIETIES)",
+          "qty": 2,
+          "sell": 130,
+          "buy": 115,
+          "profit": 30,
+          "fromSri": 116
+        },
+        {
+          "igniteId": 93,
+          "name": "7 SHOT (5 PCS)",
+          "qty": 2,
+          "sell": 140,
+          "buy": 127,
+          "profit": 26,
+          "fromSri": 134
+        },
+        {
+          "igniteId": 88,
+          "name": "3 PCS FANCY (3 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 290,
+          "buy": 265,
+          "profit": 25,
+          "fromSri": 117
+        },
+        {
+          "igniteId": 87,
+          "name": "2.75\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 230,
+          "buy": 202,
+          "profit": 28,
+          "fromSri": 121
+        },
+        {
+          "igniteId": 126,
+          "name": "JAMES BOND COLOUR MATCHES",
+          "qty": 2,
+          "sell": 111,
+          "buy": 96,
+          "profit": 30,
+          "fromSri": 176
+        },
+        {
+          "igniteId": 129,
+          "name": "LAPTOP COLOUR MATCHES - 10 BOX",
+          "qty": 1,
+          "sell": 299,
+          "buy": 280,
+          "profit": 19,
+          "fromSri": 178
+        },
+        {
+          "igniteId": 89,
+          "name": "3.5\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 290,
+          "buy": 265,
+          "profit": 25,
+          "fromSri": 118
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "starter-kit",
+      "name": "Starter Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "From min · ~₹2,100",
+      "sriSell": 2108,
+      "sriBuy": 1919,
+      "sriProfit": 189,
+      "igniteSell": 2829,
+      "igniteBuy": 2377,
+      "igniteProfit": 452,
+      "profitDelta": 263,
+      "sellDelta": 721,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 19,
+          "name": "4\" LAKSHMI CRACKERS",
+          "qty": 4,
+          "sell": 23,
+          "buy": 18,
+          "profit": 20,
+          "fromSri": 3
+        },
+        {
+          "igniteId": 38,
+          "name": "GANGA JAMUNA CRACKERS",
+          "qty": 2,
+          "sell": 80,
+          "buy": 64,
+          "profit": 32,
+          "fromSri": 7
+        },
+        {
+          "igniteId": 53,
+          "name": "RED BIJILI (100 PCS) CRACKERS",
+          "qty": 2,
+          "sell": 45,
+          "buy": 32,
+          "profit": 26,
+          "fromSri": 8
+        },
+        {
+          "igniteId": 26,
+          "name": "1.5\" TWINKLING STAR",
+          "qty": 2,
+          "sell": 38,
+          "buy": 29,
+          "profit": 18,
+          "fromSri": 10
+        },
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 1,
+          "sell": 86,
+          "buy": 75,
+          "profit": 11,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 105,
+          "name": "10CM ELECTRIC SPARKLERS",
+          "qty": 2,
+          "sell": 25,
+          "buy": 16,
+          "profit": 18,
+          "fromSri": 162
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 1,
+          "sell": 59,
+          "buy": 49,
+          "profit": 10,
+          "fromSri": 166
+        },
+        {
+          "igniteId": 115,
+          "name": "15CM GREEN SPARKLERS",
+          "qty": 1,
+          "sell": 57,
+          "buy": 44,
+          "profit": 13,
+          "fromSri": 167
+        },
+        {
+          "igniteId": 2,
+          "name": "CHAKKAR BIG (25 PCS)",
+          "qty": 2,
+          "sell": 85,
+          "buy": 75,
+          "profit": 20,
+          "fromSri": 46
+        },
+        {
+          "igniteId": 3,
+          "name": "CHAKKAR SPECIAL",
+          "qty": 1,
+          "sell": 80,
+          "buy": 69,
+          "profit": 11,
+          "fromSri": 47
+        },
+        {
+          "igniteId": 9,
+          "name": "FLOWER POT BIG",
+          "qty": 2,
+          "sell": 75,
+          "buy": 64,
+          "profit": 22,
+          "fromSri": 51
+        },
+        {
+          "igniteId": 10,
+          "name": "FLOWER POT SPECIAL",
+          "qty": 1,
+          "sell": 85,
+          "buy": 75,
+          "profit": 10,
+          "fromSri": 52
+        },
+        {
+          "igniteId": 32,
+          "name": "KIT KAT SHOWERS",
+          "qty": 2,
+          "sell": 35,
+          "buy": 29,
+          "profit": 12,
+          "fromSri": 69
+        },
+        {
+          "igniteId": 59,
+          "name": "PHOTO FLASH (5 PCS) FUNCTION",
+          "qty": 2,
+          "sell": 80,
+          "buy": 75,
+          "profit": 10,
+          "fromSri": 71
+        },
+        {
+          "igniteId": 81,
+          "name": "COLOUR RAIN / GOLDEN RAISE",
+          "qty": 1,
+          "sell": 120,
+          "buy": 98,
+          "profit": 22,
+          "fromSri": 76
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 63
+        },
+        {
+          "igniteId": 68,
+          "name": "RED SUN (5 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 84
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 85
+        },
+        {
+          "igniteId": 83,
+          "name": "CHOTTA FANCY - SKY SHOT",
+          "qty": 2,
+          "sell": 55,
+          "buy": 41,
+          "profit": 28,
+          "fromSri": 115
+        },
+        {
+          "igniteId": 86,
+          "name": "2.5\" FANCY (1 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 130,
+          "buy": 115,
+          "profit": 15,
+          "fromSri": 116
+        },
+        {
+          "igniteId": 93,
+          "name": "7 SHOT (5 PCS)",
+          "qty": 1,
+          "sell": 140,
+          "buy": 127,
+          "profit": 13,
+          "fromSri": 134
+        },
+        {
+          "igniteId": 42,
+          "name": "100 WALA CRACKERS",
+          "qty": 3,
+          "sell": 50,
+          "buy": 46,
+          "profit": 12,
+          "fromSri": 28
+        },
+        {
+          "igniteId": 55,
+          "name": "MEGA WHIZLING ROCKET BOMB",
+          "qty": 1,
+          "sell": 199,
+          "buy": 184,
+          "profit": 15,
+          "fromSri": 37
+        },
+        {
+          "igniteId": 132,
+          "name": "SNAKE SERPHANT BIG",
+          "qty": 1,
+          "sell": 45,
+          "buy": 28,
+          "profit": 17,
+          "fromSri": 180
+        },
+        {
+          "igniteId": 126,
+          "name": "JAMES BOND COLOUR MATCHES",
+          "qty": 1,
+          "sell": 111,
+          "buy": 96,
+          "profit": 15,
+          "fromSri": 176
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "apartment-kit",
+      "name": "Apartment Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "Flat-friendly · ~₹3,400",
+      "sriSell": 3381,
+      "sriBuy": 3074,
+      "sriProfit": 307,
+      "igniteSell": 3724,
+      "igniteBuy": 3172,
+      "igniteProfit": 552,
+      "profitDelta": 245,
+      "sellDelta": 343,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 21,
+          "name": "4\" DELUXE LAKSHMI",
+          "qty": 3,
+          "sell": 35,
+          "buy": 29,
+          "profit": 18,
+          "fromSri": 4
+        },
+        {
+          "igniteId": 53,
+          "name": "RED BIJILI (100 PCS) CRACKERS",
+          "qty": 2,
+          "sell": 45,
+          "buy": 32,
+          "profit": 26,
+          "fromSri": 8
+        },
+        {
+          "igniteId": 54,
+          "name": "STRIPPED BIJILI (100 PCS) CRACKERS",
+          "qty": 1,
+          "sell": 47,
+          "buy": 34,
+          "profit": 13,
+          "fromSri": 9
+        },
+        {
+          "igniteId": 26,
+          "name": "1.5\" TWINKLING STAR",
+          "qty": 2,
+          "sell": 38,
+          "buy": 29,
+          "profit": 18,
+          "fromSri": 10
+        },
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 1,
+          "sell": 86,
+          "buy": 75,
+          "profit": 11,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 1,
+          "sell": 59,
+          "buy": 49,
+          "profit": 10,
+          "fromSri": 166
+        },
+        {
+          "igniteId": 115,
+          "name": "15CM GREEN SPARKLERS",
+          "qty": 1,
+          "sell": 57,
+          "buy": 44,
+          "profit": 13,
+          "fromSri": 167
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 3,
+          "name": "CHAKKAR SPECIAL",
+          "qty": 1,
+          "sell": 80,
+          "buy": 69,
+          "profit": 11,
+          "fromSri": 47
+        },
+        {
+          "igniteId": 4,
+          "name": "CHAKKAR DELUXE",
+          "qty": 1,
+          "sell": 140,
+          "buy": 127,
+          "profit": 13,
+          "fromSri": 48
+        },
+        {
+          "igniteId": 10,
+          "name": "FLOWER POT SPECIAL",
+          "qty": 1,
+          "sell": 85,
+          "buy": 75,
+          "profit": 10,
+          "fromSri": 52
+        },
+        {
+          "igniteId": 14,
+          "name": "COLOUR KOTI / GYPSY",
+          "qty": 1,
+          "sell": 185,
+          "buy": 173,
+          "profit": 12,
+          "fromSri": 54
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 63
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 56,
+          "name": "BUTTERFLY COLOUR CHANGING",
+          "qty": 1,
+          "sell": 99,
+          "buy": 81,
+          "profit": 18,
+          "fromSri": 68
+        },
+        {
+          "igniteId": 81,
+          "name": "COLOUR RAIN / GOLDEN RAISE",
+          "qty": 1,
+          "sell": 120,
+          "buy": 98,
+          "profit": 22,
+          "fromSri": 76
+        },
+        {
+          "igniteId": 68,
+          "name": "RED SUN (5 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 84
+        },
+        {
+          "igniteId": 69,
+          "name": "TIN SMALL SIZE - 7UP, MANGO",
+          "qty": 1,
+          "sell": 120,
+          "buy": 92,
+          "profit": 28,
+          "fromSri": 85
+        },
+        {
+          "igniteId": 77,
+          "name": "SELFIE STICK FLASH (5 PCS)",
+          "qty": 1,
+          "sell": 174,
+          "buy": 144,
+          "profit": 30,
+          "fromSri": 103
+        },
+        {
+          "igniteId": 86,
+          "name": "2.5\" FANCY (1 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 130,
+          "buy": 115,
+          "profit": 15,
+          "fromSri": 116
+        },
+        {
+          "igniteId": 88,
+          "name": "3 PCS FANCY (3 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 290,
+          "buy": 265,
+          "profit": 25,
+          "fromSri": 117
+        },
+        {
+          "igniteId": 93,
+          "name": "7 SHOT (5 PCS)",
+          "qty": 1,
+          "sell": 140,
+          "buy": 127,
+          "profit": 13,
+          "fromSri": 134
+        },
+        {
+          "igniteId": 94,
+          "name": "12 SHOT STAR BOMB",
+          "qty": 1,
+          "sell": 160,
+          "buy": 144,
+          "profit": 16,
+          "fromSri": 135
+        },
+        {
+          "igniteId": 43,
+          "name": "1 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 290,
+          "buy": 190,
+          "profit": 100,
+          "fromSri": 29
+        },
+        {
+          "igniteId": 55,
+          "name": "MEGA WHIZLING ROCKET BOMB",
+          "qty": 1,
+          "sell": 199,
+          "buy": 184,
+          "profit": 15,
+          "fromSri": 37
+        },
+        {
+          "igniteId": 55,
+          "name": "MEGA WHIZLING ROCKET BOMB",
+          "qty": 1,
+          "sell": 199,
+          "buy": 184,
+          "profit": 15,
+          "fromSri": 39
+        },
+        {
+          "igniteId": 42,
+          "name": "100 WALA CRACKERS",
+          "qty": 2,
+          "sell": 50,
+          "buy": 46,
+          "profit": 8,
+          "fromSri": 28
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "family-kit",
+      "name": "Family Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "Family · ~₹5,000",
+      "sriSell": 4970,
+      "sriBuy": 4654,
+      "sriProfit": 316,
+      "igniteSell": 5430,
+      "igniteBuy": 4708,
+      "igniteProfit": 722,
+      "profitDelta": 406,
+      "sellDelta": 460,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 21,
+          "name": "4\" DELUXE LAKSHMI",
+          "qty": 3,
+          "sell": 35,
+          "buy": 29,
+          "profit": 18,
+          "fromSri": 4
+        },
+        {
+          "igniteId": 53,
+          "name": "RED BIJILI (100 PCS) CRACKERS",
+          "qty": 2,
+          "sell": 45,
+          "buy": 32,
+          "profit": 26,
+          "fromSri": 8
+        },
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 1,
+          "sell": 86,
+          "buy": 75,
+          "profit": 11,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 54,
+          "name": "STRIPPED BIJILI (100 PCS) CRACKERS",
+          "qty": 1,
+          "sell": 47,
+          "buy": 34,
+          "profit": 13,
+          "fromSri": 9
+        },
+        {
+          "igniteId": 115,
+          "name": "15CM GREEN SPARKLERS",
+          "qty": 1,
+          "sell": 57,
+          "buy": 44,
+          "profit": 13,
+          "fromSri": 167
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 116,
+          "name": "15CM RED SPARKLERS",
+          "qty": 1,
+          "sell": 59,
+          "buy": 49,
+          "profit": 10,
+          "fromSri": 174
+        },
+        {
+          "igniteId": 4,
+          "name": "CHAKKAR DELUXE",
+          "qty": 1,
+          "sell": 140,
+          "buy": 127,
+          "profit": 13,
+          "fromSri": 48
+        },
+        {
+          "igniteId": 5,
+          "name": "DISCO / TAITANIC WHEEL CHAKKAR",
+          "qty": 1,
+          "sell": 90,
+          "buy": 75,
+          "profit": 15,
+          "fromSri": 49
+        },
+        {
+          "igniteId": 14,
+          "name": "COLOUR KOTI / GYPSY",
+          "qty": 1,
+          "sell": 185,
+          "buy": 173,
+          "profit": 12,
+          "fromSri": 54
+        },
+        {
+          "igniteId": 15,
+          "name": "MEGA COLOUR KOTI DELUXE",
+          "qty": 1,
+          "sell": 300,
+          "buy": 288,
+          "profit": 12,
+          "fromSri": 55
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 70,
+          "name": "TIN BIG SIZE - NUTS, DRAGON",
+          "qty": 1,
+          "sell": 179,
+          "buy": 156,
+          "profit": 23,
+          "fromSri": 64
+        },
+        {
+          "igniteId": 81,
+          "name": "COLOUR RAIN / GOLDEN RAISE",
+          "qty": 1,
+          "sell": 120,
+          "buy": 98,
+          "profit": 22,
+          "fromSri": 76
+        },
+        {
+          "igniteId": 59,
+          "name": "PHOTO FLASH (5 PCS) FUNCTION",
+          "qty": 1,
+          "sell": 80,
+          "buy": 75,
+          "profit": 5,
+          "fromSri": 71
+        },
+        {
+          "igniteId": 68,
+          "name": "RED SUN (5 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 84
+        },
+        {
+          "igniteId": 71,
+          "name": "STAR SHOW (RED & GREEN)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 88
+        },
+        {
+          "igniteId": 75,
+          "name": "WONDER 3 IN 1 CRACKLING MEGA",
+          "qty": 1,
+          "sell": 299,
+          "buy": 253,
+          "profit": 46,
+          "fromSri": 92
+        },
+        {
+          "igniteId": 77,
+          "name": "SELFIE STICK FLASH (5 PCS)",
+          "qty": 1,
+          "sell": 174,
+          "buy": 144,
+          "profit": 30,
+          "fromSri": 103
+        },
+        {
+          "igniteId": 82,
+          "name": "LOLLY POP - LONG STICK",
+          "qty": 1,
+          "sell": 269,
+          "buy": 242,
+          "profit": 27,
+          "fromSri": 104
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 86,
+          "name": "2.5\" FANCY (1 PCS) (10 VARIETIES)",
+          "qty": 1,
+          "sell": 130,
+          "buy": 115,
+          "profit": 15,
+          "fromSri": 116
+        },
+        {
+          "igniteId": 88,
+          "name": "3 PCS FANCY (3 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 290,
+          "buy": 265,
+          "profit": 25,
+          "fromSri": 117
+        },
+        {
+          "igniteId": 94,
+          "name": "12 SHOT STAR BOMB",
+          "qty": 1,
+          "sell": 160,
+          "buy": 144,
+          "profit": 16,
+          "fromSri": 135
+        },
+        {
+          "igniteId": 97,
+          "name": "30 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 449,
+          "buy": 430,
+          "profit": 19,
+          "fromSri": 137
+        },
+        {
+          "igniteId": 43,
+          "name": "1 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 290,
+          "buy": 190,
+          "profit": 100,
+          "fromSri": 29
+        },
+        {
+          "igniteId": 47,
+          "name": "1 K WALA CRACKERS - PREMIUM",
+          "qty": 1,
+          "sell": 410,
+          "buy": 330,
+          "profit": 80,
+          "fromSri": 30
+        },
+        {
+          "igniteId": 55,
+          "name": "MEGA WHIZLING ROCKET BOMB",
+          "qty": 1,
+          "sell": 199,
+          "buy": 184,
+          "profit": 15,
+          "fromSri": 39
+        },
+        {
+          "igniteId": 126,
+          "name": "JAMES BOND COLOUR MATCHES",
+          "qty": 1,
+          "sell": 111,
+          "buy": 96,
+          "profit": 15,
+          "fromSri": 176
+        },
+        {
+          "igniteId": 93,
+          "name": "7 SHOT (5 PCS)",
+          "qty": 1,
+          "sell": 140,
+          "buy": 127,
+          "profit": 13,
+          "fromSri": 110
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "society-kit",
+      "name": "Society Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "Society · ~₹7,200",
+      "sriSell": 7172,
+      "sriBuy": 6613,
+      "sriProfit": 559,
+      "igniteSell": 6575,
+      "igniteBuy": 5786,
+      "igniteProfit": 789,
+      "profitDelta": 230,
+      "sellDelta": -597,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 21,
+          "name": "4\" DELUXE LAKSHMI",
+          "qty": 4,
+          "sell": 35,
+          "buy": 29,
+          "profit": 24,
+          "fromSri": 4
+        },
+        {
+          "igniteId": 24,
+          "name": "5\" PAGUBALI / VIKRAM CRACKERS",
+          "qty": 2,
+          "sell": 50,
+          "buy": 41,
+          "profit": 18,
+          "fromSri": 5
+        },
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 2,
+          "sell": 86,
+          "buy": 75,
+          "profit": 22,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 54,
+          "name": "STRIPPED BIJILI (100 PCS) CRACKERS",
+          "qty": 1,
+          "sell": 47,
+          "buy": 34,
+          "profit": 13,
+          "fromSri": 9
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 122,
+          "name": "40CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 140,
+          "profit": 10,
+          "fromSri": 175
+        },
+        {
+          "igniteId": 5,
+          "name": "DISCO / TAITANIC WHEEL CHAKKAR",
+          "qty": 1,
+          "sell": 90,
+          "buy": 75,
+          "profit": 15,
+          "fromSri": 49
+        },
+        {
+          "igniteId": 7,
+          "name": "TREND / LOTUS WHEEL CHAKKAR",
+          "qty": 1,
+          "sell": 170,
+          "buy": 156,
+          "profit": 14,
+          "fromSri": 50
+        },
+        {
+          "igniteId": 15,
+          "name": "MEGA COLOUR KOTI DELUXE",
+          "qty": 1,
+          "sell": 300,
+          "buy": 288,
+          "profit": 12,
+          "fromSri": 55
+        },
+        {
+          "igniteId": 15,
+          "name": "MEGA COLOUR KOTI DELUXE",
+          "qty": 1,
+          "sell": 300,
+          "buy": 288,
+          "profit": 12,
+          "fromSri": 56
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 87,
+          "name": "2.75\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 230,
+          "buy": 202,
+          "profit": 28,
+          "fromSri": 121
+        },
+        {
+          "igniteId": 90,
+          "name": "5\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 499,
+          "buy": 350,
+          "profit": 149,
+          "fromSri": 122
+        },
+        {
+          "igniteId": 88,
+          "name": "3 PCS FANCY (3 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 290,
+          "buy": 265,
+          "profit": 25,
+          "fromSri": 117
+        },
+        {
+          "igniteId": 98,
+          "name": "60 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 950,
+          "buy": 860,
+          "profit": 90,
+          "fromSri": 138
+        },
+        {
+          "igniteId": 94,
+          "name": "12 SHOT STAR BOMB",
+          "qty": 1,
+          "sell": 160,
+          "buy": 144,
+          "profit": 16,
+          "fromSri": 135
+        },
+        {
+          "igniteId": 47,
+          "name": "1 K WALA CRACKERS - PREMIUM",
+          "qty": 1,
+          "sell": 410,
+          "buy": 330,
+          "profit": 80,
+          "fromSri": 30
+        },
+        {
+          "igniteId": 44,
+          "name": "2 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 499,
+          "buy": 370,
+          "profit": 129,
+          "fromSri": 31
+        },
+        {
+          "igniteId": 41,
+          "name": "1 KG PAPER BOMB CRACKERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 230,
+          "profit": -80,
+          "fromSri": 42
+        },
+        {
+          "igniteId": 55,
+          "name": "MEGA WHIZLING ROCKET BOMB",
+          "qty": 1,
+          "sell": 199,
+          "buy": 184,
+          "profit": 15,
+          "fromSri": 39
+        },
+        {
+          "igniteId": 71,
+          "name": "STAR SHOW (RED & GREEN)",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 88
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 95
+        },
+        {
+          "igniteId": 95,
+          "name": "12 SHOT BIG MULTI COLOUR",
+          "qty": 1,
+          "sell": 299,
+          "buy": 259,
+          "profit": 40,
+          "fromSri": 148
+        },
+        {
+          "igniteId": 135,
+          "name": "25 ITEMS GIFT BOX",
+          "qty": 1,
+          "sell": 449,
+          "buy": 420,
+          "profit": 29,
+          "fromSri": 184
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "premium-kit",
+      "name": "Premium Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "Premium · ~₹10,000",
+      "sriSell": 10207,
+      "sriBuy": 10000,
+      "sriProfit": 207,
+      "igniteSell": 9107,
+      "igniteBuy": 8103,
+      "igniteProfit": 1004,
+      "profitDelta": 797,
+      "sellDelta": -1100,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 24,
+          "name": "5\" PAGUBALI / VIKRAM CRACKERS",
+          "qty": 2,
+          "sell": 50,
+          "buy": 41,
+          "profit": 18,
+          "fromSri": 5
+        },
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 2,
+          "sell": 86,
+          "buy": 75,
+          "profit": 22,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 7,
+          "name": "TREND / LOTUS WHEEL CHAKKAR",
+          "qty": 1,
+          "sell": 170,
+          "buy": 156,
+          "profit": 14,
+          "fromSri": 50
+        },
+        {
+          "igniteId": 15,
+          "name": "MEGA COLOUR KOTI DELUXE",
+          "qty": 1,
+          "sell": 300,
+          "buy": 288,
+          "profit": 12,
+          "fromSri": 56
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 87,
+          "name": "2.75\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 230,
+          "buy": 202,
+          "profit": 28,
+          "fromSri": 121
+        },
+        {
+          "igniteId": 90,
+          "name": "5\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 499,
+          "buy": 350,
+          "profit": 149,
+          "fromSri": 122
+        },
+        {
+          "igniteId": 92,
+          "name": "6\" FANCY (2 PCS) (4 VARIETIES)",
+          "qty": 1,
+          "sell": 900,
+          "buy": 800,
+          "profit": 100,
+          "fromSri": 125
+        },
+        {
+          "igniteId": 98,
+          "name": "60 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 950,
+          "buy": 860,
+          "profit": 90,
+          "fromSri": 138
+        },
+        {
+          "igniteId": 99,
+          "name": "120 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 1849,
+          "buy": 1725,
+          "profit": 124,
+          "fromSri": 143
+        },
+        {
+          "igniteId": 44,
+          "name": "2 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 499,
+          "buy": 370,
+          "profit": 129,
+          "fromSri": 31
+        },
+        {
+          "igniteId": 45,
+          "name": "5 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 1099,
+          "buy": 920,
+          "profit": 179,
+          "fromSri": 33
+        },
+        {
+          "igniteId": 95,
+          "name": "12 SHOT BIG MULTI COLOUR",
+          "qty": 1,
+          "sell": 299,
+          "buy": 259,
+          "profit": 40,
+          "fromSri": 148
+        },
+        {
+          "igniteId": 41,
+          "name": "1 KG PAPER BOMB CRACKERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 230,
+          "profit": -80,
+          "fromSri": 42
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 95
+        },
+        {
+          "igniteId": 82,
+          "name": "LOLLY POP - LONG STICK",
+          "qty": 1,
+          "sell": 269,
+          "buy": 242,
+          "profit": 27,
+          "fromSri": 104
+        },
+        {
+          "igniteId": 138,
+          "name": "40 ITEMS GIFT BOX",
+          "qty": 1,
+          "sell": 849,
+          "buy": 799,
+          "profit": 50,
+          "fromSri": 185
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "open-ground-kit",
+      "name": "Open Ground Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "Open ground · ~₹15,000",
+      "sriSell": 15168,
+      "sriBuy": 14525,
+      "sriProfit": 643,
+      "igniteSell": 13087,
+      "igniteBuy": 11896,
+      "igniteProfit": 1191,
+      "profitDelta": 548,
+      "sellDelta": -2081,
+      "gapCount": 0,
+      "gaps": [],
+      "ignLines": [
+        {
+          "igniteId": 24,
+          "name": "5\" PAGUBALI / VIKRAM CRACKERS",
+          "qty": 2,
+          "sell": 50,
+          "buy": 41,
+          "profit": 18,
+          "fromSri": 5
+        },
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 2,
+          "sell": 86,
+          "buy": 75,
+          "profit": 22,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 7,
+          "name": "TREND / LOTUS WHEEL CHAKKAR",
+          "qty": 1,
+          "sell": 170,
+          "buy": 156,
+          "profit": 14,
+          "fromSri": 50
+        },
+        {
+          "igniteId": 15,
+          "name": "MEGA COLOUR KOTI DELUXE",
+          "qty": 1,
+          "sell": 300,
+          "buy": 288,
+          "profit": 12,
+          "fromSri": 56
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 87,
+          "name": "2.75\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 230,
+          "buy": 202,
+          "profit": 28,
+          "fromSri": 121
+        },
+        {
+          "igniteId": 90,
+          "name": "5\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 499,
+          "buy": 350,
+          "profit": 149,
+          "fromSri": 122
+        },
+        {
+          "igniteId": 92,
+          "name": "6\" FANCY (2 PCS) (4 VARIETIES)",
+          "qty": 1,
+          "sell": 900,
+          "buy": 800,
+          "profit": 100,
+          "fromSri": 125
+        },
+        {
+          "igniteId": 91,
+          "name": "5\" FANCY (2 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 750,
+          "buy": 700,
+          "profit": 50,
+          "fromSri": 126
+        },
+        {
+          "igniteId": 99,
+          "name": "120 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 1849,
+          "buy": 1725,
+          "profit": 124,
+          "fromSri": 143
+        },
+        {
+          "igniteId": 100,
+          "name": "240 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 3499,
+          "buy": 3335,
+          "profit": 164,
+          "fromSri": 157
+        },
+        {
+          "igniteId": 44,
+          "name": "2 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 499,
+          "buy": 370,
+          "profit": 129,
+          "fromSri": 31
+        },
+        {
+          "igniteId": 45,
+          "name": "5 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 1099,
+          "buy": 920,
+          "profit": 179,
+          "fromSri": 33
+        },
+        {
+          "igniteId": 95,
+          "name": "12 SHOT BIG MULTI COLOUR",
+          "qty": 1,
+          "sell": 299,
+          "buy": 259,
+          "profit": 40,
+          "fromSri": 148
+        },
+        {
+          "igniteId": 98,
+          "name": "60 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 950,
+          "buy": 860,
+          "profit": 90,
+          "fromSri": 149
+        },
+        {
+          "igniteId": 41,
+          "name": "1 KG PAPER BOMB CRACKERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 230,
+          "profit": -80,
+          "fromSri": 42
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 95
+        },
+        {
+          "igniteId": 138,
+          "name": "40 ITEMS GIFT BOX",
+          "qty": 1,
+          "sell": 849,
+          "buy": 799,
+          "profit": 50,
+          "fromSri": 185
+        }
+      ],
+      "coveragePct": 100
+    },
+    {
+      "id": "mega-kit",
+      "name": "Mega Combo",
+      "section": "One-tap Diwali combos",
+      "badge": "Mega · ~₹19,000",
+      "sriSell": 19355,
+      "sriBuy": 18285,
+      "sriProfit": 1070,
+      "igniteSell": 16089,
+      "igniteBuy": 14915,
+      "igniteProfit": 1174,
+      "profitDelta": 104,
+      "sellDelta": -3266,
+      "gapCount": 1,
+      "gaps": [
+        {
+          "sriId": 6,
+          "name": "6\" Mega Jallikattu Machine Fuse",
+          "qty": 2,
+          "cat": "Single Sound"
+        }
+      ],
+      "ignLines": [
+        {
+          "igniteId": 27,
+          "name": "4\" TWINKLING STAR",
+          "qty": 2,
+          "sell": 86,
+          "buy": 75,
+          "profit": 22,
+          "fromSri": 11
+        },
+        {
+          "igniteId": 124,
+          "name": "50CM COLOUR SPARKLERS",
+          "qty": 1,
+          "sell": 175,
+          "buy": 163,
+          "profit": 12,
+          "fromSri": 172
+        },
+        {
+          "igniteId": 90,
+          "name": "5\" FANCY (1 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 499,
+          "buy": 350,
+          "profit": 149,
+          "fromSri": 122
+        },
+        {
+          "igniteId": 92,
+          "name": "6\" FANCY (2 PCS) (4 VARIETIES)",
+          "qty": 1,
+          "sell": 900,
+          "buy": 800,
+          "profit": 100,
+          "fromSri": 125
+        },
+        {
+          "igniteId": 91,
+          "name": "5\" FANCY (2 PCS) (6 VARIETIES)",
+          "qty": 1,
+          "sell": 750,
+          "buy": 700,
+          "profit": 50,
+          "fromSri": 126
+        },
+        {
+          "igniteId": 99,
+          "name": "120 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 1849,
+          "buy": 1725,
+          "profit": 124,
+          "fromSri": 143
+        },
+        {
+          "igniteId": 100,
+          "name": "240 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 3499,
+          "buy": 3335,
+          "profit": 164,
+          "fromSri": 157
+        },
+        {
+          "igniteId": 100,
+          "name": "240 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 3499,
+          "buy": 3335,
+          "profit": 164,
+          "fromSri": 161
+        },
+        {
+          "igniteId": 45,
+          "name": "5 K WALA CRACKERS - NORMAL",
+          "qty": 1,
+          "sell": 1099,
+          "buy": 920,
+          "profit": 179,
+          "fromSri": 33
+        },
+        {
+          "igniteId": 95,
+          "name": "12 SHOT BIG MULTI COLOUR",
+          "qty": 1,
+          "sell": 299,
+          "buy": 259,
+          "profit": 40,
+          "fromSri": 148
+        },
+        {
+          "igniteId": 98,
+          "name": "60 SHOT MULTI COLOUR",
+          "qty": 1,
+          "sell": 950,
+          "buy": 860,
+          "profit": 90,
+          "fromSri": 149
+        },
+        {
+          "igniteId": 62,
+          "name": "PEACOCK FUNCTION MEDIUM",
+          "qty": 1,
+          "sell": 199,
+          "buy": 161,
+          "profit": 38,
+          "fromSri": 106
+        },
+        {
+          "igniteId": 61,
+          "name": "SMOKE COLOUR FUNCTION",
+          "qty": 1,
+          "sell": 199,
+          "buy": 173,
+          "profit": 26,
+          "fromSri": 67
+        },
+        {
+          "igniteId": 79,
+          "name": "DRONE (5 PCS) SKY FLY",
+          "qty": 1,
+          "sell": 180,
+          "buy": 161,
+          "profit": 19,
+          "fromSri": 105
+        },
+        {
+          "igniteId": 140,
+          "name": "VIP GIFT BOX",
+          "qty": 1,
+          "sell": 1200,
+          "buy": 1149,
+          "profit": 51,
+          "fromSri": 186
+        },
+        {
+          "igniteId": 41,
+          "name": "1 KG PAPER BOMB CRACKERS",
+          "qty": 1,
+          "sell": 150,
+          "buy": 230,
+          "profit": -80,
+          "fromSri": 42
+        },
+        {
+          "igniteId": 7,
+          "name": "TREND / LOTUS WHEEL CHAKKAR",
+          "qty": 1,
+          "sell": 170,
+          "buy": 156,
+          "profit": 14,
+          "fromSri": 50
+        },
+        {
+          "igniteId": 15,
+          "name": "MEGA COLOUR KOTI DELUXE",
+          "qty": 1,
+          "sell": 300,
+          "buy": 288,
+          "profit": 12,
+          "fromSri": 56
+        }
+      ],
+      "coveragePct": 95
+    }
+  ],
+  "criticalGaps": {
+    "Kids Special branded (Hulk, Cocomelon, Frozen-like)": "MISSING on Ignite — only generic fountain/fancy proxies",
+    "Touchable Limited": "MISSING — Soft Colour / Kids Stage rely on these",
+    "Setouts / 10x10 / Double Wave": "MISSING — Open Ground & Mega need proxies (240 shot)",
+    "Special Edition Mega Pipes (6\")": "MISSING — Premium/Mega",
+    "Whistling Sky depth": "WEAK — 1 whistling rocket only",
+    "Dual/Triple Sky Attractions": "MISSING",
+    "Sonny Sky Series": "MISSING",
+    "Pencil branded (Thor/Wolverine)": "WEAK — Pop Cart Pencil only",
+    "Rockets range": "WEAK — 1 SKU vs 3",
+    "Gift box item-count ladder": "PARTIAL — different counts but 8 boxes exist",
+    "Core: sound, bijili, wala, flower, chakkar, sparkler, fancy, shots": "STRONG on Ignite"
+  },
+  "ignCats": [
+    "Chakras",
+    "Flower Pots",
+    "Lakshmi Crackers",
+    "Twinkling Star / Pencil Items",
+    "Bomb Items",
+    "Wala Crackers",
+    "Bijili Crackers",
+    "Rockets",
+    "Colour Crackling",
+    "Amazing Fountain",
+    "Fancy Items",
+    "Sky Shot Fancy",
+    "Sparklers",
+    "Colour Matches",
+    "Gift Boxes",
+    "Best Combo"
+  ],
+  "sriCats": [
+    "Single Sound",
+    "Bijili/Twin Star",
+    "Pencil Varieties",
+    "Sound Bomb",
+    "Florals Crackers",
+    "Rocket",
+    "Adiyal and Money Bomb",
+    "Ground Chakkars Varieties",
+    "Flower Pots Varieties",
+    "Tri Colour Varieties",
+    "Night Splendid Items",
+    "Splendid Chakkar Varieties",
+    "Kids Special",
+    "Touchable Items (Limited Edition)",
+    "Peacock Varieties",
+    "Muti Sky Shot Varieties",
+    "Fancy Sky Shots Pipes",
+    "Special Edition Mega Pipes - New Arrival (Limited!!)",
+    "Dual and Triple Sky Attractions",
+    "Repeating Sky Shots",
+    "30 Shots New Arrivals - Limited!!",
+    "Whistling Sky Shots",
+    "Sonny's Sky Series - Limited!!",
+    "Setouts - Mega Continuous Sky Display",
+    "Sparklers",
+    "Color Matches",
+    "Roll Cap and Tablets",
+    "Gift Boxes"
+  ]
+}

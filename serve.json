@@ -1,6 +1,8 @@
 {
   "redirects": [
     { "source": "/bill", "destination": "/bill.html" },
-    { "source": "/bill/", "destination": "/bill.html" }
+    { "source": "/bill/", "destination": "/bill.html" },
+    { "source": "/ignite-images", "destination": "/ignite-images.html" },
+    { "source": "/ignite-images/", "destination": "/ignite-images.html" }
   ]
 }

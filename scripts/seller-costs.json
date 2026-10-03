@@ -1,0 +1,1304 @@
+[
+  {
+    "sno": 1,
+    "name": "2 ¾” Kuruvi",
+    "cost": 10.0,
+    "unit": "1 Packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 2,
+    "name": "3 ½” Lakshmi",
+    "cost": 16.0,
+    "unit": "1 packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 3,
+    "name": "4” Lakshmi",
+    "cost": 23.0,
+    "unit": "1 packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 4,
+    "name": "4” Lakshmi Deluxe / Gold",
+    "cost": 32.0,
+    "unit": "1 packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 5,
+    "name": "5” Tiger",
+    "cost": 45.0,
+    "unit": "1 Packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 6,
+    "name": "6” Mega Jallikattu / Tiger - Machine Fuse",
+    "cost": 70.0,
+    "unit": "1 Packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 7,
+    "name": "2 Sound",
+    "cost": 36.0,
+    "unit": "1 Packet",
+    "category": "Single Sound"
+  },
+  {
+    "sno": 8,
+    "name": "Red Bijili Premium 100 Pcs",
+    "cost": 40.0,
+    "unit": "1 packet",
+    "category": "Bijili/Twin Star"
+  },
+  {
+    "sno": 9,
+    "name": "Stripped Bijili Extra Power 100 Pcs",
+    "cost": 45.0,
+    "unit": "1 packet",
+    "category": "Bijili/Twin Star"
+  },
+  {
+    "sno": 10,
+    "name": "1.5” Twin Star 10 pcs",
+    "cost": 30.0,
+    "unit": "1 box",
+    "category": "Bijili/Twin Star"
+  },
+  {
+    "sno": 11,
+    "name": "4” Deluxe Twin Stars 10 pcs",
+    "cost": 75.0,
+    "unit": "1 box",
+    "category": "Bijili/Twin Star"
+  },
+  {
+    "sno": 12,
+    "name": "Amazing Pencil R&G (3 Piece Pack)",
+    "cost": 80.0,
+    "unit": "1 box",
+    "category": "Pencil Varieties"
+  },
+  {
+    "sno": 13,
+    "name": "Red Flare (5 Piece Pack) - Red colour",
+    "cost": 175.0,
+    "unit": "1 box",
+    "category": "Pencil Varieties"
+  },
+  {
+    "sno": 14,
+    "name": "Anandha's Pencil Items - 2 Varities New Arrival!!",
+    "cost": 175.0,
+    "unit": "1 box",
+    "category": "Pencil Varieties"
+  },
+  {
+    "sno": 15,
+    "name": "Wolverine - Golden Falls (5 Piece Pack)",
+    "cost": 160.0,
+    "unit": "1 box",
+    "category": "Pencil Varieties"
+  },
+  {
+    "sno": 16,
+    "name": "Thor Hammer (2pcs) New arrival Limited!!",
+    "cost": 270.0,
+    "unit": "1 box",
+    "category": "Pencil Varieties"
+  },
+  {
+    "sno": 17,
+    "name": "Hydro Bomb",
+    "cost": 75.0,
+    "unit": "1 box",
+    "category": "Sound Bomb"
+  },
+  {
+    "sno": 18,
+    "name": "King Bomb",
+    "cost": 100.0,
+    "unit": "1 box",
+    "category": "Sound Bomb"
+  },
+  {
+    "sno": 19,
+    "name": "Classic Bomb",
+    "cost": 160.0,
+    "unit": "1 box",
+    "category": "Sound Bomb"
+  },
+  {
+    "sno": 20,
+    "name": "Agni Bomb",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Sound Bomb"
+  },
+  {
+    "sno": 21,
+    "name": "Red Digital / 7G Boys Bomb",
+    "cost": 250.0,
+    "unit": "1 box",
+    "category": "Sound Bomb"
+  },
+  {
+    "sno": 22,
+    "name": "28 Chorsa",
+    "cost": 18.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 23,
+    "name": "28 Giant",
+    "cost": 30.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 24,
+    "name": "56 Giant",
+    "cost": 60.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 25,
+    "name": "24 Deluxe Powerful",
+    "cost": 60.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 26,
+    "name": "50 Deluxe Ultra Power",
+    "cost": 140.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 27,
+    "name": "100 Deluxe Extreme Power",
+    "cost": 270.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 28,
+    "name": "100 Wala",
+    "cost": 45.0,
+    "unit": "1 packet",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 29,
+    "name": "1000 Wala Super",
+    "cost": 250.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 30,
+    "name": "1000 Wala Premium (Extra Power)",
+    "cost": 360.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 31,
+    "name": "2000 Wala Super",
+    "cost": 500.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 32,
+    "name": "2000 Wala Premium (Extra Power)",
+    "cost": 720.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 33,
+    "name": "5000 Wala Super",
+    "cost": 1250.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 34,
+    "name": "5000 Wala Premium (Extra Power)",
+    "cost": 1800.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 35,
+    "name": "10000 Wala Super",
+    "cost": 2500.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 36,
+    "name": "10000 Wala Premium (Extra Power)",
+    "cost": 3600.0,
+    "unit": "1 box",
+    "category": "Florals Crackers"
+  },
+  {
+    "sno": 37,
+    "name": "Rocket Bomb",
+    "cost": 65.0,
+    "unit": "1 box",
+    "category": "Rocket"
+  },
+  {
+    "sno": 38,
+    "name": "Lunik Rocket",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Rocket"
+  },
+  {
+    "sno": 39,
+    "name": "Sky Whistling Rocket",
+    "cost": 150.0,
+    "unit": "1 box",
+    "category": "Rocket"
+  },
+  {
+    "sno": 40,
+    "name": "1/4 KG Bomb",
+    "cost": 55.0,
+    "unit": "1 box",
+    "category": "Adiyal and Money Bomb"
+  },
+  {
+    "sno": 41,
+    "name": "1/2 KG Bomb",
+    "cost": 110.0,
+    "unit": "1 box",
+    "category": "Adiyal and Money Bomb"
+  },
+  {
+    "sno": 42,
+    "name": "1 KG Bomb",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Adiyal and Money Bomb"
+  },
+  {
+    "sno": 43,
+    "name": "Candy Crush (25pcs) -New Arrival",
+    "cost": 100.0,
+    "unit": "1 box",
+    "category": "Adiyal and Money Bomb"
+  },
+  {
+    "sno": 44,
+    "name": "Children's day out gifts",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Adiyal and Money Bomb"
+  },
+  {
+    "sno": 45,
+    "name": "Magic Show or Money Heist - 2 pieces",
+    "cost": 210.0,
+    "unit": "1 box",
+    "category": "Adiyal and Money Bomb"
+  },
+  {
+    "sno": 46,
+    "name": "Ground Chakkars Big",
+    "cost": 40.0,
+    "unit": "1 box",
+    "category": "Ground Chakkars Varities"
+  },
+  {
+    "sno": 47,
+    "name": "Ground Chakkars Special",
+    "cost": 80.0,
+    "unit": "1 box",
+    "category": "Ground Chakkars Varities"
+  },
+  {
+    "sno": 48,
+    "name": "Ground Chakkars Deluxe",
+    "cost": 160.0,
+    "unit": "1 box",
+    "category": "Ground Chakkars Varities"
+  },
+  {
+    "sno": 49,
+    "name": "Maska Chaska - Red and Green",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Ground Chakkars Varities"
+  },
+  {
+    "sno": 50,
+    "name": "Rathna's Mega Chakkar Deluxe",
+    "cost": 250.0,
+    "unit": "1 box",
+    "category": "Ground Chakkars Varities"
+  },
+  {
+    "sno": 51,
+    "name": "Flower Pot Big",
+    "cost": 70.0,
+    "unit": "1 box",
+    "category": "Flower Pots Varities"
+  },
+  {
+    "sno": 52,
+    "name": "Flower Pot Special",
+    "cost": 90.0,
+    "unit": "1 box",
+    "category": "Flower Pots Varities"
+  },
+  {
+    "sno": 53,
+    "name": "Flower Pot Ashoka",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Flower Pots Varities"
+  },
+  {
+    "sno": 54,
+    "name": "Colour Koti",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Flower Pots Varities"
+  },
+  {
+    "sno": 55,
+    "name": "Colour Koti Deluxe",
+    "cost": 270.0,
+    "unit": "1 box",
+    "category": "Flower Pots Varities"
+  },
+  {
+    "sno": 56,
+    "name": "Mega Deluxe Colour Koti - Red and Green",
+    "cost": 525.0,
+    "unit": "1 box",
+    "category": "Flower Pots Varities"
+  },
+  {
+    "sno": 57,
+    "name": "Kids  Tri Colour",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Tri Colour Varieties"
+  },
+  {
+    "sno": 58,
+    "name": "Yo-Yo Tri Colour Dlx",
+    "cost": 250.0,
+    "unit": "1 box",
+    "category": "Tri Colour Varieties"
+  },
+  {
+    "sno": 59,
+    "name": "HI-HI Bus (limited) New Arrival!!  Continuous Shower",
+    "cost": 270.0,
+    "unit": "1 box",
+    "category": "Tri Colour Varieties"
+  },
+  {
+    "sno": 60,
+    "name": "Ayyan's Little Dove Mix - 5 varities",
+    "cost": 90.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 61,
+    "name": "Glittering / Candy / Golden Pops",
+    "cost": 90.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 62,
+    "name": "Volcono Mix - 3 varities (New Arrival)",
+    "cost": 75.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 63,
+    "name": "Tin Shower (5 Varieties)",
+    "cost": 85.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 64,
+    "name": "Cherry Mix (5 Varieties - New Arrival)",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 65,
+    "name": "Bambaram",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 66,
+    "name": "Rang Lava R&G (20 secs)",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 67,
+    "name": "Colour Smoke - 3 Colours - Superb Timing",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 68,
+    "name": "Butterfly",
+    "cost": 80.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 69,
+    "name": "Kit Kat / Little Hearts",
+    "cost": 30.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 70,
+    "name": "Photo Flash - 5 pieces",
+    "cost": 60.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 71,
+    "name": "Krishna's Assorted Cartoon",
+    "cost": 45.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 72,
+    "name": "Drone",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 73,
+    "name": "Ayyan's Helicopter",
+    "cost": 100.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 74,
+    "name": "Mini Siren - 5 pieces",
+    "cost": 150.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 75,
+    "name": "Mega Siren - 3 pieces",
+    "cost": 160.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 76,
+    "name": "Colour Pots- 5 colours",
+    "cost": 100.0,
+    "unit": "1 box",
+    "category": "Night Splendid Items"
+  },
+  {
+    "sno": 77,
+    "name": "Lotus Wheel - 2 in 1 (New Arrival) Limited !!",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Splendid Chakkar Varities"
+  },
+  {
+    "sno": 78,
+    "name": "Moon or Honda Wheel (Triple Spin)",
+    "cost": 150.0,
+    "unit": "1 box",
+    "category": "Splendid Chakkar Varities"
+  },
+  {
+    "sno": 79,
+    "name": "Kalis Wire Chakkar Spl  - 10 pieces (Hand held)",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Splendid Chakkar Varities"
+  },
+  {
+    "sno": 80,
+    "name": "Hot Wheels / Circus - 5 pieces",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Splendid Chakkar Varities"
+  },
+  {
+    "sno": 81,
+    "name": "Jio Wheel (Pink colour wheel) -Limited",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Splendid Chakkar Varities"
+  },
+  {
+    "sno": 82,
+    "name": "Classic Wheel - Silver wheel",
+    "cost": 100.0,
+    "unit": "1 box",
+    "category": "Splendid Chakkar Varities"
+  },
+  {
+    "sno": 83,
+    "name": "Retro / Lays - 5 Varieties",
+    "cost": 40.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 84,
+    "name": "WB Fountain - 5 Varieties",
+    "cost": 65.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 85,
+    "name": "DinoDem 4 steps (Hot Sale Product ) New arrival Limited!!",
+    "cost": 300.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 86,
+    "name": "Lion King - New Arrival -Limited!! 4steps",
+    "cost": 300.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 87,
+    "name": "Hulk - Star Crakling",
+    "cost": 150.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 88,
+    "name": "24 Carat Gold  / Trixx / Spike / Rockstar",
+    "cost": 190.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 89,
+    "name": "Color Galaxy - 5 Varities  - New Arrival- Limited!! (2pcs)",
+    "cost": 230.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 90,
+    "name": "Romeo Juliet  - pink colour New Arrival",
+    "cost": 230.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 91,
+    "name": "Mad Angles - 3 in 1 (New Arrival)",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 92,
+    "name": "Pink Panther (Limited)",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 93,
+    "name": "Flintstones / Dexter - New Arrival!!",
+    "cost": 95.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 94,
+    "name": "Smoke Gun (Crakling function with smoke )  - 5 Pieces",
+    "cost": 210.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 95,
+    "name": "Monkey Dance - 4 steps - (New Arrival)",
+    "cost": 300.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 96,
+    "name": "Tropical Mushroom",
+    "cost": 190.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 97,
+    "name": "Pink Pearls - 2 pieces  (New Arrival)",
+    "cost": 250.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 98,
+    "name": "Cocomelons (5in1) New Arrival - Limited !!",
+    "cost": 360.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 99,
+    "name": "Cylinder with smoke - 2 pieces (new Arrival)",
+    "cost": 300.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 100,
+    "name": "Fruit Mix - 5 varieties (New Arrival)",
+    "cost": 230.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 101,
+    "name": "Hybrid 2 in 1 New Arrival",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 102,
+    "name": "Frozen  - Touchable",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 103,
+    "name": "Ice Cream Cone  -  Limited !!",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 104,
+    "name": "Feel the Fire Gun - Touchable",
+    "cost": 320.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 105,
+    "name": "Kulfi 3 pieces (New Arrival)",
+    "cost": 250.0,
+    "unit": "1 box",
+    "category": "Kids Special"
+  },
+  {
+    "sno": 106,
+    "name": "Belly Dance Peacock - 4 varieties",
+    "cost": 180.0,
+    "unit": "1 box",
+    "category": "Peacock Varieties"
+  },
+  {
+    "sno": 107,
+    "name": "Anandha's Peacock - 5 Sides",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Peacock Varieties"
+  },
+  {
+    "sno": 108,
+    "name": "Bada Peacock Purple",
+    "cost": 450.0,
+    "unit": "1 box",
+    "category": "Peacock Varieties"
+  },
+  {
+    "sno": 109,
+    "name": "Bada Peacock 2in1  (Limited)",
+    "cost": 420.0,
+    "unit": "1 box",
+    "category": "Peacock Varieties"
+  },
+  {
+    "sno": 110,
+    "name": "7 Shots - 5 piece",
+    "cost": 100.0,
+    "unit": "1 box",
+    "category": "Muti Sky Shot Varieties"
+  },
+  {
+    "sno": 111,
+    "name": "Penta Magic / Battle Ship - 5 colors in 1",
+    "cost": 125.0,
+    "unit": "1 box",
+    "category": "Muti Sky Shot Varieties"
+  },
+  {
+    "sno": 112,
+    "name": "Hi-Fi - 5 colors",
+    "cost": 95.0,
+    "unit": "1 box",
+    "category": "Muti Sky Shot Varieties"
+  },
+  {
+    "sno": 113,
+    "name": "Sky Shot- 10 piece",
+    "cost": 140.0,
+    "unit": "1 box",
+    "category": "Muti Sky Shot Varieties"
+  },
+  {
+    "sno": 114,
+    "name": "Chotta Fancy (5 Varieities)",
+    "cost": 42.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 115,
+    "name": "2” Fancy (5 Varieties)",
+    "cost": 100.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 116,
+    "name": "2.5” Fancy - SPL (5 Varieties)",
+    "cost": 140.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 117,
+    "name": "3 in 1 Fancy - 3 piece pack (6 Varieties) premium",
+    "cost": 270.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 118,
+    "name": "3.5” Fancy Premium (7 Varieties)",
+    "cost": 285.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 119,
+    "name": "3.5\" Spl colour Blue Perals or Pink Bingo Boom-Limited",
+    "cost": 300.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 120,
+    "name": "3.5” Niagra Falls Bluestar  Fancy - Limited",
+    "cost": 300.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 121,
+    "name": "4\" Fancy Marine / Candy Series spl colour(8 Varieties) New Arrival",
+    "cost": 400.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 122,
+    "name": "5” Fancy Elite (6 Varieties)",
+    "cost": 600.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 123,
+    "name": "4” Fancy Premium - 2 piece pack (5 Varieties)",
+    "cost": 750.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 124,
+    "name": "Krishna's 4” Fancy - 2 piece pack (5 Varieties) - Limited",
+    "cost": 800.0,
+    "unit": "1 piece",
+    "category": "Fancy Sky Shots Pipes"
+  },
+  {
+    "sno": 125,
+    "name": "Sony 6\" 3 Varities Awesome Display",
+    "cost": 2000.0,
+    "unit": "1 piece",
+    "category": "Special Edition Mega Pipes-New Arrival (Limited!!)"
+  },
+  {
+    "sno": 126,
+    "name": "Spnka 4\" Gambling series (3 in 1) - 4 Varities -3 pcs pack",
+    "cost": 1200.0,
+    "unit": "1 box",
+    "category": "Special Edition Mega Pipes-New Arrival (Limited!!)"
+  },
+  {
+    "sno": 127,
+    "name": "Bindu's spl 6\" 4 Varities wonderful display",
+    "cost": 1400.0,
+    "unit": "1 box",
+    "category": "Special Edition Mega Pipes-New Arrival (Limited!!)"
+  },
+  {
+    "sno": 128,
+    "name": "Spnka 4\" Fruits series (Spl Color) - 4 Varities -2 pcs pack",
+    "cost": 1200.0,
+    "unit": "1 box",
+    "category": "Special Edition Mega Pipes-New Arrival (Limited!!)"
+  },
+  {
+    "sno": 129,
+    "name": "Sri Krishna 5\" Elite series (Pink Panther ,Lone wolf)",
+    "cost": 1400.0,
+    "unit": "1 piece",
+    "category": "Special Edition Mega Pipes-New Arrival (Limited!!)"
+  },
+  {
+    "sno": 130,
+    "name": "Double Ball Premium ( 5 Varieties)",
+    "cost": 420.0,
+    "unit": "1 piece",
+    "category": "Dual and Triple Sky Attractions"
+  },
+  {
+    "sno": 131,
+    "name": "8 Steps Premium ( 5 Varieties)",
+    "cost": 350.0,
+    "unit": "1 piece",
+    "category": "Dual and Triple Sky Attractions"
+  },
+  {
+    "sno": 132,
+    "name": "Triple Ball Premium ( 5 Varieties)",
+    "cost": 600.0,
+    "unit": "1 piece",
+    "category": "Dual and Triple Sky Attractions"
+  },
+  {
+    "sno": 133,
+    "name": "Dancing Shooters (Flying Mines)",
+    "cost": 230.0,
+    "unit": "1 piece",
+    "category": "Dual and Triple Sky Attractions"
+  },
+  {
+    "sno": 134,
+    "name": "12 Steps Sky Shot (4 Varieties)",
+    "cost": 360.0,
+    "unit": "1 piece",
+    "category": "Dual and Triple Sky Attractions"
+  },
+  {
+    "sno": 135,
+    "name": "Love dose - 6 shot (New Arrival)",
+    "cost": 100.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 136,
+    "name": "10 Shots - Multi Color",
+    "cost": 190.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 137,
+    "name": "5G+ New Arrival - 5 in 1",
+    "cost": 190.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 138,
+    "name": "30 Shots Premium",
+    "cost": 400.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 139,
+    "name": "30 Shots Elite",
+    "cost": 475.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 140,
+    "name": "30 Peacock Dance (30 Mines Attraction)",
+    "cost": 390.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 141,
+    "name": "30 Flash Joker/ Chariot (30 Flash With Sky shots)",
+    "cost": 450.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 142,
+    "name": "60 Shots Premium",
+    "cost": 800.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 143,
+    "name": "60 Shots Elite",
+    "cost": 950.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 144,
+    "name": "120 Shots Premium",
+    "cost": 1600.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 145,
+    "name": "120 Shots Elite",
+    "cost": 1900.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 146,
+    "name": "240 Shots Premium",
+    "cost": 3200.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 147,
+    "name": "240 Shots Elite",
+    "cost": 3800.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 148,
+    "name": "510 Shots Elite (Exclusive for festivals)",
+    "cost": 7900.0,
+    "unit": "1 piece",
+    "category": "Repeating Sky Shots"
+  },
+  {
+    "sno": 149,
+    "name": "Krishna's Singing Dolls (10 Whistles)",
+    "cost": 210.0,
+    "unit": "1 box",
+    "category": "Whistling Sky Shots"
+  },
+  {
+    "sno": 150,
+    "name": "Sonny 25 cukatoo (Whistle with Boom)",
+    "cost": 700.0,
+    "unit": "1 box",
+    "category": "Whistling Sky Shots"
+  },
+  {
+    "sno": 151,
+    "name": "Krishna's Wedding Singer (50 Whistles)",
+    "cost": 1300.0,
+    "unit": "1 box",
+    "category": "Whistling Sky Shots"
+  },
+  {
+    "sno": 152,
+    "name": "Golden Octopusy (golden fall) - 2pcs",
+    "cost": 1300.0,
+    "unit": "1 box",
+    "category": "Sonny's Sky Series - Limited!!"
+  },
+  {
+    "sno": 153,
+    "name": "4\" Great wall series (10 varities) -2pcs",
+    "cost": 1400.0,
+    "unit": "1 box",
+    "category": "Sonny's Sky Series - Limited!!"
+  },
+  {
+    "sno": 154,
+    "name": "Neega Angels (blue) -2pcs",
+    "cost": 1300.0,
+    "unit": "1 box",
+    "category": "Sonny's Sky Series - Limited!!"
+  },
+  {
+    "sno": 155,
+    "name": "5\" Happy Ring or Duos Series (dual function)-2pcs",
+    "cost": 1600.0,
+    "unit": "1 box",
+    "category": "Sonny's Sky Series - Limited!!"
+  },
+  {
+    "sno": 156,
+    "name": "2 inch Setout - 30 shots",
+    "cost": 3300.0,
+    "unit": "1 box",
+    "category": "Setouts -Mega Continuous  Sky Display"
+  },
+  {
+    "sno": 157,
+    "name": "Air Strike - 4x4 (New Arrival)",
+    "cost": 3000.0,
+    "unit": "1 box",
+    "category": "Setouts -Mega Continuous  Sky Display"
+  },
+  {
+    "sno": 158,
+    "name": "3.5 inch Setout - 20 shots (Champion Nights)",
+    "cost": 5400.0,
+    "unit": "1 box",
+    "category": "Setouts -Mega Continuous  Sky Display"
+  },
+  {
+    "sno": 159,
+    "name": "Double Wave - 5x10 (New Arrival) - 2 in 1",
+    "cost": 2700.0,
+    "unit": "1 box",
+    "category": "Setouts -Mega Continuous  Sky Display"
+  },
+  {
+    "sno": 160,
+    "name": "10x10 - Sizzling (100 Rider shots - New Arrival Limited)",
+    "cost": 3300.0,
+    "unit": "1 box",
+    "category": "Setouts -Mega Continuous  Sky Display"
+  },
+  {
+    "sno": 161,
+    "name": "10x10 - Thunder Lights (100 shots - New Arrival Limited)",
+    "cost": 4300.0,
+    "unit": "1 box",
+    "category": "Setouts -Mega Continuous  Sky Display"
+  },
+  {
+    "sno": 162,
+    "name": "10 cm Electric",
+    "cost": 20.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 163,
+    "name": "10 cm Red",
+    "cost": 27.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 164,
+    "name": "10 cm Green",
+    "cost": 25.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 165,
+    "name": "15 cm Electric",
+    "cost": 45.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 166,
+    "name": "15 cm Red",
+    "cost": 48.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 167,
+    "name": "15 cm Green",
+    "cost": 45.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 168,
+    "name": "30 cm Electric",
+    "cost": 45.0,
+    "unit": "1 box - 5 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 169,
+    "name": "30 cm Red",
+    "cost": 48.0,
+    "unit": "1 box - 5 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 170,
+    "name": "30 cm Green",
+    "cost": 45.0,
+    "unit": "1 box - 5 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 171,
+    "name": "50 cm Electric - Tube",
+    "cost": 180.0,
+    "unit": "1 box - 5 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 172,
+    "name": "50 cm Super Mix - Tube (4 in 1)",
+    "cost": 230.0,
+    "unit": "1 box - 5 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 173,
+    "name": "15 cm Orange (New Arrival Limited)",
+    "cost": 75.0,
+    "unit": "1 box - 10 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 174,
+    "name": "15 cm Pink (New Arrival Limited)",
+    "cost": 75.0,
+    "unit": "1 box - 10 pcs",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 175,
+    "name": "Merry Go Go Rotating Sparkles (New Arrival Limited!!)",
+    "cost": 220.0,
+    "unit": "1 box",
+    "category": "Sparkelrs"
+  },
+  {
+    "sno": 176,
+    "name": "5 Men Army - 5 in 1 or diamond",
+    "cost": 63.0,
+    "unit": "1 box",
+    "category": "Colour Matches"
+  },
+  {
+    "sno": 177,
+    "name": "Butterfly - 8 in 1",
+    "cost": 120.0,
+    "unit": "1 box",
+    "category": "Colour Matches"
+  },
+  {
+    "sno": 178,
+    "name": "Dhasara - 10 in 1 (10 boxes)",
+    "cost": 200.0,
+    "unit": "1 box",
+    "category": "Colour Matches"
+  },
+  {
+    "sno": 179,
+    "name": "Roll Cap Box",
+    "cost": 75.0,
+    "unit": "1 box",
+    "category": "Roll Cap And Tablets"
+  },
+  {
+    "sno": 180,
+    "name": "Sonny Big Snake Serpent",
+    "cost": 30.0,
+    "unit": "1 box",
+    "category": "Roll Cap And Tablets"
+  },
+  {
+    "sno": 181,
+    "name": "MIB (gun with Ring Cap) New Arrival",
+    "cost": 125.0,
+    "unit": "1 box",
+    "category": "Roll Cap And Tablets"
+  },
+  {
+    "sno": 182,
+    "name": "19 Items",
+    "cost": 330.0,
+    "unit": "1 box",
+    "category": "Gift Boxes"
+  },
+  {
+    "sno": 183,
+    "name": "23 Items",
+    "cost": 390.0,
+    "unit": "1 box",
+    "category": "Gift Boxes"
+  },
+  {
+    "sno": 184,
+    "name": "27 Items",
+    "cost": 450.0,
+    "unit": "1 box",
+    "category": "Gift Boxes"
+  },
+  {
+    "sno": 185,
+    "name": "41 Items",
+    "cost": 750.0,
+    "unit": "1 box",
+    "category": "Gift Boxes"
+  },
+  {
+    "sno": 186,
+    "name": "52 Items",
+    "cost": 950.0,
+    "unit": "1 box",
+    "category": "Gift Boxes"
+  }
+]

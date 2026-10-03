@@ -547,6 +547,10 @@ window.VishApp = (function () {
   }
 
   function updateCatalogVendorNote() {
+    const matched = hasNightMatch();
+    const dock = $('prefs-dock-link');
+    if (dock) dock.hidden = !matched;
+
     const note = $('catalog-vendor-note');
     if (!note) return;
     const meta = window.VishLane ? VishLane.getMeta(activeLaneId()) : null;
@@ -556,9 +560,7 @@ window.VishApp = (function () {
       return;
     }
     note.hidden = false;
-    note.innerHTML =
-      'Products shown in a curated order for your celebration. ' +
-      '<button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>';
+    note.innerHTML = 'Products shown in a curated order for your celebration.';
   }
 
   function showToast(message) {
@@ -1136,7 +1138,7 @@ window.VishApp = (function () {
     if (!hasNightMatch()) {
       note.innerHTML =
         '<strong>Match your celebration to see recommended combos.</strong>' +
-        ' <button type="button" class="link-action" data-edit-prefs="1">Set preferences</button>' +
+        ' <button type="button" class="link-action prefs-quiet" data-edit-prefs="1">Set preferences</button>' +
         help;
       return;
     }
@@ -1144,7 +1146,7 @@ window.VishApp = (function () {
       '<strong>Combos in a curated order' +
       (budgetLabel ? ' · ' + escapeHtml(budgetLabel) : '') +
       '.</strong> ' +
-      '<button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>' +
+      '<button type="button" class="link-action prefs-quiet" data-edit-prefs="1">Edit preferences</button>' +
       help;
   }
 
@@ -2168,13 +2170,22 @@ window.VishApp = (function () {
     injectIcons(document);
   }
 
+  function catalogFingerprint(sri, ignite) {
+    try {
+      return JSON.stringify({ s: sri || [], i: ignite || [] });
+    } catch (e) {
+      return '';
+    }
+  }
+
   async function refreshProductsFromSheet(options) {
     options = options || {};
-    const shouldPaint = options.paint === true;
+    const shouldPaint = options.paint !== false;
     const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 25000;
     const url = (cfg().appsScriptUrl || '').trim();
     if (!url) return false;
 
+    const before = catalogFingerprint(sriProductsData, igniteProductsData);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -2185,7 +2196,15 @@ window.VishApp = (function () {
       });
       const data = await res.json();
       if (data && Array.isArray(data.products) && data.products.length) {
-        sriProductsData = tagVendor(data.products, 'sri');
+        const nextSri = tagVendor(data.products, 'sri');
+        const nextIgnite =
+          Array.isArray(data.productsIgnite) && data.productsIgnite.length
+            ? tagVendor(data.productsIgnite, 'ignite')
+            : igniteProductsData;
+        const after = catalogFingerprint(nextSri, nextIgnite);
+        if (after && after === before) return true;
+        sriProductsData = nextSri;
+        igniteProductsData = nextIgnite;
         syncActiveCatalog();
         if (shouldPaint) paintCatalog();
         return true;
@@ -2240,10 +2259,9 @@ window.VishApp = (function () {
       }
     } catch (err) {}
 
-    // One paint only: wait for live sheet (or timeout), never flash cached then updated prices.
-    paintPricesLoading();
-    await refreshProductsFromSheet({ paint: false, timeoutMs: 12000 });
+    // Local catalogue first (instant). Sheet refresh in background; silent re-paint only if changed.
     paintCatalog();
+    refreshProductsFromSheet({ paint: true, timeoutMs: 25000 }).catch(function () {});
   }
 
   return { init };

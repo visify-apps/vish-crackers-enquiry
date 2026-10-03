@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Ignite image fix | Vish Fireworks Store</title>
+  <meta name="theme-color" content="#140c0a" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css?v=ux5" />
+  <link rel="stylesheet" href="css/bill.css?v=bill9" />
+  <link rel="stylesheet" href="css/ignite-images.css?v=img4" />
+</head>
+<body class="bill-page ignite-images-page">
+  <div class="festive-bg" aria-hidden="true"></div>
+
+  <main class="bill-shell ignite-shell">
+    <section class="bill-gate" id="img-gate">
+      <h1>Ignite image desk</h1>
+      <p>Temporary private tool — review each Ignite product photo and rematch it to a Sri asset. Same password as bill desk.</p>
+      <div class="bill-field">
+        <label for="img-password">Password</label>
+        <input id="img-password" type="password" autocomplete="current-password" />
+      </div>
+      <div class="bill-actions">
+        <button type="button" class="btn-primary" id="img-unlock">Unlock</button>
+      </div>
+      <p class="bill-msg" id="img-gate-msg" role="status"></p>
+    </section>
+
+    <section class="bill-desk" id="img-desk" hidden>
+      <div class="ignite-toolbar">
+        <div>
+          <h1>Fix Ignite images</h1>
+          <p class="bill-hint" id="img-stats">Loading…</p>
+        </div>
+        <div class="bill-actions bill-actions-wrap">
+          <button type="button" class="btn-secondary" id="img-filter-all">All</button>
+          <button type="button" class="btn-secondary" id="img-filter-ph">Placeholders</button>
+          <button type="button" class="btn-secondary" id="img-filter-changed">Changed</button>
+          <button type="button" class="btn-secondary" id="img-push-sheet">Push all → Sheet</button>
+          <button type="button" class="btn-secondary" id="img-export">Download JS</button>
+          <button type="button" class="btn-secondary" id="img-lock">Lock</button>
+        </div>
+      </div>
+      <p class="bill-msg" id="img-desk-msg" role="status"></p>
+      <p class="ignite-sheet-note">
+        Saves to Google Sheet <code>Products_v2</code> → <code>image</code> column (same idea as Products).
+        Site loads Ignite photos from the sheet after Apps Script redeploy.
+        Optional: Download JS to keep the local fallback file in sync.
+      </p>
+
+      <div class="ignite-filmstrip-wrap">
+        <p class="ignite-picker-hint">Quick reference — current Ignite photos (tap to jump)</p>
+        <div class="ignite-filmstrip" id="img-filmstrip"></div>
+      </div>
+
+      <div class="ignite-review" id="img-review">
+        <div class="ignite-current">
+          <div class="ignite-nav">
+            <button type="button" class="btn-secondary" id="img-prev">← Prev</button>
+            <span id="img-position">0 / 0</span>
+            <button type="button" class="btn-secondary" id="img-next">Next →</button>
+          </div>
+          <p class="ignite-meta" id="img-meta"></p>
+          <h2 id="img-name">—</h2>
+          <p class="ignite-path" id="img-path"></p>
+          <div class="ignite-preview-wrap">
+            <img id="img-preview" alt="Current Ignite product image" />
+          </div>
+          <div class="ignite-url-import">
+            <div class="bill-field">
+              <label for="img-url">Import from internet URL</label>
+              <input id="img-url" type="url" placeholder="https://…/photo.jpg" autocomplete="off" />
+            </div>
+            <p class="ignite-picker-hint">
+              Needs <code>npm run import-server</code> in a terminal (writes next S.No into
+              <code>assets/optimized/</code>, compresses, then assigns to this product).
+            </p>
+            <div class="bill-actions bill-actions-wrap">
+              <button type="button" class="btn-primary" id="img-import-url">Download · compress · assign</button>
+            </div>
+          </div>
+          <div class="bill-actions bill-actions-wrap">
+            <button type="button" class="btn-secondary" id="img-use-placeholder">Use placeholder</button>
+            <button type="button" class="btn-secondary" id="img-revert">Revert change</button>
+            <button type="button" class="btn-primary" id="img-mark-next">Save &amp; next</button>
+          </div>
+        </div>
+
+        <div class="ignite-picker">
+          <div class="bill-field">
+            <label for="img-search">Find Sri product / image</label>
+            <input id="img-search" type="search" placeholder="e.g. chakkar, peacock, sparkler…" autocomplete="off" />
+          </div>
+          <p class="ignite-picker-hint">Tap a Sri item to assign its photo to this Ignite product.</p>
+          <div class="ignite-picker-grid" id="img-picker-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/config.js?v=img4"></script>
+  <script src="data/products.js?v=sync1"></script>
+  <script src="data/products-ignite.js?v=sync1"></script>
+  <script src="js/ignite-images.js?v=img4" defer></script>
+</body>
+</html>

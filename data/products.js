@@ -6,64 +6,71 @@ window.PRODUCTS_DATA = [
         "id": 1,
         "name": "2 ¾\" Kuruvi",
         "originalPrice": 30,
-        "price": 10,
+        "price": 12,
         "unit": "1 Packet",
         "image": "assets/optimized/1.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 2,
         "name": "3 ½\" Lakshmi",
         "originalPrice": 50,
-        "price": 15,
+        "price": 18,
         "unit": "1 Packet",
         "image": "assets/optimized/2.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 3,
         "name": "4\" Lakshmi",
         "originalPrice": 70,
-        "price": 23,
+        "price": 25,
         "unit": "1 Packet",
         "image": "assets/optimized/2.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 4,
         "name": "4\" Lakshmi Deluxe / Gold",
         "originalPrice": 80,
-        "price": 32,
+        "price": 35,
         "unit": "1 Packet",
         "image": "assets/optimized/3.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 5,
         "name": "5\" Tiger",
         "originalPrice": 90,
-        "price": 44,
+        "price": 47,
         "unit": "1 Packet",
         "image": "assets/optimized/4.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 6,
         "name": "6\" Mega Jallikattu Machine Fuse",
         "originalPrice": 100,
-        "price": 70,
+        "price": 73,
         "unit": "1 Packet",
         "image": "assets/optimized/5.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 7,
         "name": "2 Sound",
         "originalPrice": 60,
-        "price": 35,
+        "price": 40,
         "unit": "1 Packet",
         "image": "assets/optimized/6.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -74,19 +81,21 @@ window.PRODUCTS_DATA = [
         "id": 8,
         "name": "Red Bijili Premium 100 Pcs",
         "originalPrice": 110,
-        "price": 40,
+        "price": 45,
         "unit": "1 Packet",
         "image": "assets/optimized/7.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 9,
         "name": "Stripped Bijili Extra Power 100 Pcs",
         "originalPrice": 120,
-        "price": 45,
+        "price": 50,
         "unit": "1 Packet",
         "image": "assets/optimized/8.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 10,
@@ -95,7 +104,8 @@ window.PRODUCTS_DATA = [
         "price": 38,
         "unit": "1 Box",
         "image": "assets/optimized/9.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 11,
@@ -104,7 +114,8 @@ window.PRODUCTS_DATA = [
         "price": 85,
         "unit": "1 Box",
         "image": "assets/optimized/10.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -118,35 +129,38 @@ window.PRODUCTS_DATA = [
         "price": 85,
         "unit": "1 Box",
         "image": "assets/optimized/11.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 13,
         "name": "Red Flare (5 Piece Pack) - Red colour",
         "originalPrice": 250,
-        "price": 175,
+        "price": 180,
         "unit": "1 Box",
         "image": "assets/optimized/13.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 14,
-        "name": "50 Seconds Torch (5 Piece Pack) - limited!!",
-        "originalPrice": 220,
-        "price": 150,
+        "name": "Anandha's Pencil Items - 2 Varities - New arrival!!",
+        "originalPrice": 255,
+        "price": 180,
         "unit": "1 Box",
         "image": "assets/optimized/14.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 15,
         "name": "Wolverine - Golden Falls (5 Piece Pack)",
         "originalPrice": 300,
-        "price": 150,
+        "price": 170,
         "unit": "1 Box",
         "image": "assets/optimized/15.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 16,
@@ -156,7 +170,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 Box",
         "image": "assets/optimized/15.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       }
     ]
   },
@@ -167,46 +181,51 @@ window.PRODUCTS_DATA = [
         "id": 17,
         "name": "Hydro Bomb",
         "originalPrice": 160,
-        "price": 75,
+        "price": 80,
         "unit": "1 Box",
         "image": "assets/optimized/16.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 18,
         "name": "King Bomb",
         "originalPrice": 180,
-        "price": 95,
+        "price": 110,
         "unit": "1 Box",
         "image": "assets/optimized/17.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 19,
         "name": "Classic Bomb",
         "originalPrice": 300,
-        "price": 145,
+        "price": 165,
         "unit": "1 Box",
         "image": "assets/optimized/18.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 20,
         "name": "Agni Bomb",
         "originalPrice": 350,
-        "price": 200,
+        "price": 210,
         "unit": "1 Box",
         "image": "assets/optimized/19.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 21,
         "name": "Red Digital / 7G Boys Bomb",
         "originalPrice": 400,
-        "price": 240,
+        "price": 260,
         "unit": "1 Box",
         "image": "assets/optimized/20.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -216,29 +235,32 @@ window.PRODUCTS_DATA = [
       {
         "id": 22,
         "name": "28 Chorsa",
-        "originalPrice": 320,
-        "price": 165,
-        "unit": "10 Packets",
+        "originalPrice": 32,
+        "price": 20,
+        "unit": "1 piece",
         "image": "assets/optimized/21.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 23,
         "name": "28 Giant",
-        "originalPrice": 300,
-        "price": 160,
-        "unit": "5 Packets",
+        "originalPrice": 62,
+        "price": 33,
+        "unit": "1 piece",
         "image": "assets/optimized/22.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 24,
         "name": "56 Giant",
         "originalPrice": 160,
-        "price": 55,
+        "price": 65,
         "unit": "1 Packet",
         "image": "assets/optimized/23.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 25,
@@ -247,7 +269,8 @@ window.PRODUCTS_DATA = [
         "price": 65,
         "unit": "1 Packet",
         "image": "assets/optimized/24.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 26,
@@ -256,7 +279,8 @@ window.PRODUCTS_DATA = [
         "price": 150,
         "unit": "1 Packet",
         "image": "assets/optimized/25.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 27,
@@ -265,7 +289,8 @@ window.PRODUCTS_DATA = [
         "price": 285,
         "unit": "1 Packet",
         "image": "assets/optimized/26.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 28,
@@ -274,16 +299,18 @@ window.PRODUCTS_DATA = [
         "price": 49,
         "unit": "1 Packet",
         "image": "assets/optimized/27.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 29,
         "name": "1000 Wala Super",
         "originalPrice": 590,
-        "price": 280,
+        "price": 299,
         "unit": "1 Box",
         "image": "assets/optimized/28.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 30,
@@ -292,61 +319,68 @@ window.PRODUCTS_DATA = [
         "price": 399,
         "unit": "1 Box",
         "image": "assets/optimized/300.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 31,
         "name": "2000 Wala Super",
         "originalPrice": 790,
-        "price": 565,
+        "price": 550,
         "unit": "1 Box",
         "image": "assets/optimized/31.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 32,
         "name": "2000 Wala Premium (Extra Power)",
         "originalPrice": 1100,
-        "price": 790,
+        "price": 750,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 33,
         "name": "5000 Wala Super",
         "originalPrice": 2200,
-        "price": 1400,
+        "price": 1350,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 34,
         "name": "5000 Wala Premium (Extra Power)",
         "originalPrice": 2800,
-        "price": 1999,
+        "price": 1950,
         "unit": "1 Box",
         "image": "assets/optimized/34.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 35,
         "name": "10000 Wala Super",
         "originalPrice": 5800,
-        "price": 2950,
+        "price": 2700,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 36,
         "name": "10000 Wala Premium (Extra Power)",
         "originalPrice": 7200,
-        "price": 3999,
+        "price": 3800,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -360,26 +394,28 @@ window.PRODUCTS_DATA = [
         "price": 75,
         "unit": "1 Box",
         "image": "assets/optimized/37.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 38,
-        "name": "Predator or Mission to Mars (New Arrival) Limited",
-        "originalPrice": 530,
-        "price": 245,
+        "name": "Lunik Roclet",
+        "originalPrice": 300,
+        "price": 135,
         "unit": "1 Box",
         "image": "assets/optimized/38.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 39,
         "name": "Sky Whistling Rocket",
         "originalPrice": 450,
-        "price": 185,
+        "price": 170,
         "unit": "1 Box",
         "image": "assets/optimized/39.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -393,7 +429,8 @@ window.PRODUCTS_DATA = [
         "price": 65,
         "unit": "1 Box",
         "image": "assets/optimized/29.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 41,
@@ -402,7 +439,8 @@ window.PRODUCTS_DATA = [
         "price": 130,
         "unit": "1 Box",
         "image": "assets/optimized/30.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 42,
@@ -411,7 +449,8 @@ window.PRODUCTS_DATA = [
         "price": 250,
         "unit": "1 Box",
         "image": "assets/optimized/31.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 43,
@@ -420,16 +459,18 @@ window.PRODUCTS_DATA = [
         "price": 115,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 44,
-        "name": "Supreme's Magic thunder Show - 5 pieces",
-        "originalPrice": 280,
-        "price": 150,
+        "name": "Childrens Day Out gifts",
+        "originalPrice": 400,
+        "price": 199,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 45,
@@ -438,7 +479,8 @@ window.PRODUCTS_DATA = [
         "price": 245,
         "unit": "1 Box",
         "image": "assets/optimized/45.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -449,10 +491,11 @@ window.PRODUCTS_DATA = [
         "id": 46,
         "name": "Ground Chakkars Big",
         "originalPrice": 90,
-        "price": 42,
+        "price": 45,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 47,
@@ -461,7 +504,8 @@ window.PRODUCTS_DATA = [
         "price": 85,
         "unit": "1 Box",
         "image": "assets/optimized/47.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 48,
@@ -470,25 +514,28 @@ window.PRODUCTS_DATA = [
         "price": 170,
         "unit": "1 Box",
         "image": "assets/optimized/48.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 49,
-        "name": "Tinto 50-50 (Red and Green) Wheel",
+        "name": "Maska Chaska (Red and Green) Wheel",
         "originalPrice": 340,
         "price": 225,
         "unit": "1 Box",
         "image": "assets/optimized/49.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 50,
-        "name": "Krishna's Mega Chakkar Deluxe",
+        "name": "Rathna's Mega Chakkar Deluxe",
         "originalPrice": 380,
         "price": 270,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -499,28 +546,31 @@ window.PRODUCTS_DATA = [
         "id": 51,
         "name": "Flower Pot Big",
         "originalPrice": 260,
-        "price": 70,
+        "price": 80,
         "unit": "1 Box",
         "image": "assets/optimized/51.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 52,
         "name": "Flower Pot Special",
         "originalPrice": 300,
-        "price": 85,
+        "price": 99,
         "unit": "1 Box",
         "image": "assets/optimized/52.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 53,
         "name": "Flower Pot Ashoka",
         "originalPrice": 320,
-        "price": 120,
+        "price": 130,
         "unit": "1 Box",
         "image": "assets/optimized/53.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 54,
@@ -529,7 +579,8 @@ window.PRODUCTS_DATA = [
         "price": 199,
         "unit": "1 Box",
         "image": "assets/optimized/54.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 55,
@@ -538,16 +589,18 @@ window.PRODUCTS_DATA = [
         "price": 299,
         "unit": "1 Box",
         "image": "assets/optimized/55.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 56,
-        "name": "Monster Deluxe Colour Koti or Super Koti",
+        "name": "Mega Deluxe Colour Koti (Red and Green)",
         "originalPrice": 890,
-        "price": 525,
+        "price": 550,
         "unit": "1 Box",
         "image": "assets/optimized/56.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -558,19 +611,21 @@ window.PRODUCTS_DATA = [
         "id": 57,
         "name": "Kids Tri Colour",
         "originalPrice": 320,
-        "price": 199,
+        "price": 220,
         "unit": "1 Box",
         "image": "assets/optimized/57.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 58,
         "name": "Yo-Yo Tri Colour Dlx",
         "originalPrice": 385,
-        "price": 265,
+        "price": 270,
         "unit": "1 Box",
         "image": "assets/optimized/58.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 59,
@@ -580,7 +635,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 Box",
         "image": "assets/optimized/59.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       }
     ]
   },
@@ -589,30 +644,33 @@ window.PRODUCTS_DATA = [
     "items": [
       {
         "id": 60,
-        "name": "Web coin & Golden Chain",
-        "originalPrice": 120,
-        "price": 65,
+        "name": "Ayyan's Little Dove Mix - 5 varities",
+        "originalPrice": 199,
+        "price": 110,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 61,
-        "name": "starlight/moonlight/peacock feathers",
-        "originalPrice": 170,
-        "price": 95,
+        "name": "Glittering/Candy/Golden Pops",
+        "originalPrice": 199,
+        "price": 110,
         "unit": "1 Box",
         "image": "assets/optimized/61.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 62,
-        "name": "Snow Fall (new arrival)",
-        "originalPrice": 350,
-        "price": 95,
+        "name": "Volcono Mix - 3 varities (New arrival)",
+        "originalPrice": 190,
+        "price": 90,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 63,
@@ -621,34 +679,38 @@ window.PRODUCTS_DATA = [
         "price": 99,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 64,
-        "name": "Dallas Shower R&G - 5pcs",
-        "originalPrice": 370,
-        "price": 99,
+        "name": "Cherry Mix (5 varities)",
+        "originalPrice": 350,
+        "price": 150,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 65,
         "name": "Bambaram with smoke (New Arrival)",
         "originalPrice": 250,
-        "price": 120,
+        "price": 135,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 66,
         "name": "Rang Lava R&G (20 secs)",
         "originalPrice": 270,
-        "price": 120,
+        "price": 140,
         "unit": "1 Box",
         "image": "assets/optimized/66.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 67,
@@ -657,7 +719,8 @@ window.PRODUCTS_DATA = [
         "price": 200,
         "unit": "1 Box",
         "image": "assets/optimized/67.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 68,
@@ -666,25 +729,28 @@ window.PRODUCTS_DATA = [
         "price": 95,
         "unit": "1 Box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 69,
         "name": "Kit Kat / Little Hearts",
         "originalPrice": 90,
-        "price": 35,
+        "price": 40,
         "unit": "1 Box",
         "image": "assets/optimized/69.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 70,
-        "name": "SS Colour Flash - 3 Colours - 5 pieces",
-        "originalPrice": 390,
-        "price": 115,
+        "name": "Photo Flash - 5 pieces",
+        "originalPrice": 180,
+        "price": 75,
         "unit": "1 Box",
         "image": "assets/optimized/70.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 71,
@@ -693,52 +759,58 @@ window.PRODUCTS_DATA = [
         "price": 60,
         "unit": "1 box",
         "image": "assets/optimized/71.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 72,
         "name": "Drone",
         "originalPrice": 230,
-        "price": 115,
+        "price": 130,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 73,
         "name": "Ayyan's Helicopter",
         "originalPrice": 220,
-        "price": 99,
+        "price": 120,
         "unit": "1 box",
         "image": "assets/optimized/73.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 74,
         "name": "Mini Siren - 5 pieces",
         "originalPrice": 440,
-        "price": 155,
+        "price": 160,
         "unit": "1 box",
         "image": "assets/optimized/74.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 75,
         "name": "Mega Siren - 3 pieces",
         "originalPrice": 460,
-        "price": 165,
+        "price": 170,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 76,
         "name": "Colour Pots- 5 colours",
         "originalPrice": 260,
-        "price": 99,
+        "price": 120,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -747,22 +819,13 @@ window.PRODUCTS_DATA = [
     "items": [
       {
         "id": 77,
-        "name": "Merry go round R&G (New Arrival) Limited !!",
+        "name": "Lotus wheel 2 in 1 (New Arrival) Limited !!",
         "originalPrice": 400,
         "price": 199,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
-        "limited": true
-      },
-      {
-        "id": 78,
-        "name": "Sri Krsihna Whistling Wheel",
-        "originalPrice": 420,
-        "price": 165,
-        "unit": "1 box",
-        "image": "assets/optimized/78.jpg",
-        "active": true
+        "limited": false
       },
       {
         "id": 79,
@@ -771,16 +834,18 @@ window.PRODUCTS_DATA = [
         "price": 165,
         "unit": "1 box",
         "image": "assets/optimized/79.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 80,
         "name": "Kalis Wire Chakkar Spl - 10 pieces (Hand held)",
         "originalPrice": 520,
-        "price": 185,
+        "price": 199,
         "unit": "1 box",
         "image": "assets/optimized/80.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 81,
@@ -789,7 +854,8 @@ window.PRODUCTS_DATA = [
         "price": 220,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 82,
@@ -799,7 +865,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 box",
         "image": "assets/optimized/82.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 83,
@@ -808,7 +874,8 @@ window.PRODUCTS_DATA = [
         "price": 115,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -817,106 +884,113 @@ window.PRODUCTS_DATA = [
     "items": [
       {
         "id": 84,
-        "name": "Robo Kids - 5 Varieties",
-        "originalPrice": 90,
-        "price": 40,
+        "name": "Retro / Lays - 5 Varieties",
+        "originalPrice": 110,
+        "price": 60,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 85,
-        "name": "Kung Fu mix - 5 Varieties",
+        "name": "WB Fountain - 5 Varieties",
         "originalPrice": 150,
-        "price": 70,
+        "price": 75,
         "unit": "1 box",
         "image": "assets/optimized/85.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 86,
-        "name": "Cannon (Hot Sale Product) New arrival Limited!!",
-        "originalPrice": 410,
-        "price": 200,
+        "name": "DinoDem 4 steps (Hot Sale Product) New arrival Limited!!",
+        "originalPrice": 549,
+        "price": 330,
         "unit": "1 box",
         "image": "assets/optimized/86.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 87,
         "name": "Lion King - New Arrival - Limited!! 4 steps",
         "originalPrice": 520,
-        "price": 315,
+        "price": 350,
         "unit": "1 box",
         "image": "assets/optimized/87.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 88,
-        "name": "Star Wars",
-        "originalPrice": 210,
-        "price": 115,
+        "name": "Hulk - Star Crackling",
+        "originalPrice": 249,
+        "price": 180,
         "unit": "1 box",
         "image": "assets/optimized/88.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 89,
         "name": "24 Carat Gold - New Arrival",
         "originalPrice": 380,
-        "price": 215,
+        "price": 220,
         "unit": "1 box",
         "image": "assets/optimized/89.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 90,
-        "name": "Toy Fountain 4 varieties - New Arrival - Limited!! (2pcs)",
+        "name": "Color Galaxy - 5 varieties - New Arrival - Limited!! (2pcs)",
         "originalPrice": 530,
         "price": 265,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 91,
-        "name": "Purple Dove - purple colour New Arrival",
-        "originalPrice": 210,
-        "price": 99,
+        "name": "Romeo Juliet - pink colour New Arrival",
+        "originalPrice": 530,
+        "price": 265,
         "unit": "1 box",
         "image": "assets/optimized/91.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 92,
-        "name": "Alice I Cindrella",
-        "originalPrice": 210,
-        "price": 115,
+        "name": "Mad Angles - 3 in 1 - New Arrival!!",
+        "originalPrice": 510,
+        "price": 249,
         "unit": "1 box",
         "image": "assets/optimized/92.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 93,
         "name": "Pink Panther (Limited)",
         "originalPrice": 380,
-        "price": 185,
+        "price": 199,
         "unit": "1 box",
         "image": "assets/optimized/93.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 94,
-        "name": "Lemon Tree 4 Varieties 2 step function New Arrival!!",
+        "name": "Flintstones / Dexter - New Arrival!!",
         "originalPrice": 310,
-        "price": 150,
+        "price": 125,
         "unit": "1 box",
         "image": "assets/optimized/94.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 95,
@@ -925,17 +999,18 @@ window.PRODUCTS_DATA = [
         "price": 240,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 96,
-        "name": "Raavan / Naragasura - Limited",
-        "originalPrice": 490,
-        "price": 285,
+        "name": "Monkey Dance - 4 step - New Arrival!!",
+        "originalPrice": 530,
+        "price": 350,
         "unit": "1 box",
         "image": "assets/optimized/96.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 97,
@@ -944,16 +1019,18 @@ window.PRODUCTS_DATA = [
         "price": 210,
         "unit": "1 box",
         "image": "assets/optimized/97.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 98,
         "name": "Trixx - area full of red (New Arrival)",
         "originalPrice": 380,
-        "price": 210,
+        "price": 220,
         "unit": "1 box",
         "image": "assets/optimized/98.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 99,
@@ -963,35 +1040,67 @@ window.PRODUCTS_DATA = [
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 100,
         "name": "Spike - Area full of green (new Arrival)",
-        "originalPrice": 250,
-        "price": 199,
+        "originalPrice": 380,
+        "price": 220,
         "unit": "1 box",
         "image": "assets/optimized/100.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 101,
-        "name": "Oscar butterfly - (Limited) 3 in 1",
-        "originalPrice": 780,
-        "price": 495,
+        "name": "Pink Pearls - 2 pieces",
+        "originalPrice": 580,
+        "price": 280,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 102,
-        "name": "SS Android - 4 pieces",
-        "originalPrice": 560,
-        "price": 245,
+        "name": "Cylinder with smoke - 2 pieces - New Arrival!!",
+        "originalPrice": 599,
+        "price": 330,
         "unit": "1 box",
         "image": "assets/optimized/102.jpg",
-        "active": true
+        "active": true,
+        "limited": false
+      },
+      {
+        "id": 188,
+        "name": "Fruit Mix - 5 varities - New Arrival!!",
+        "originalPrice": 499,
+        "price": 260,
+        "unit": "1 box",
+        "image": "assets/optimized/placeholder.jpg",
+        "active": true,
+        "limited": false
+      },
+      {
+        "id": 189,
+        "name": "Hybrid 2 in 1 - New Arrival!!",
+        "originalPrice": 399,
+        "price": 210,
+        "unit": "1 box",
+        "image": "assets/optimized/placeholder.jpg",
+        "active": true,
+        "limited": false
+      },
+      {
+        "id": 190,
+        "name": "Kulfi - 3 pieces - New Arrival!!",
+        "originalPrice": 549,
+        "price": 280,
+        "unit": "1 box",
+        "image": "assets/optimized/placeholder.jpg",
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1005,7 +1114,8 @@ window.PRODUCTS_DATA = [
         "price": 150,
         "unit": "1 box",
         "image": "assets/optimized/103.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 104,
@@ -1015,7 +1125,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 box",
         "image": "assets/optimized/104.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 105,
@@ -1024,7 +1134,8 @@ window.PRODUCTS_DATA = [
         "price": 380,
         "unit": "1 box",
         "image": "assets/optimized/105.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1035,38 +1146,41 @@ window.PRODUCTS_DATA = [
         "id": 106,
         "name": "Belly Dance Peacock - 4 varieties",
         "originalPrice": 540,
-        "price": 195,
+        "price": 199,
         "unit": "1 box",
         "image": "assets/optimized/106.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 107,
-        "name": "Ping Pong - Pink colour",
-        "originalPrice": 760,
-        "price": 399,
+        "name": "Anandha's Peacock - 5 sides",
+        "originalPrice": 449,
+        "price": 230,
         "unit": "1 box",
         "image": "assets/optimized/107.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 108,
-        "name": "Bada Peacock Tricolour",
+        "name": "Bada Peacock Purple",
         "originalPrice": 800,
-        "price": 460,
+        "price": 470,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 109,
         "name": "Bada Peacock 2in1 (Limited)",
-        "originalPrice": 850,
-        "price": 485,
+        "originalPrice": 780,
+        "price": 450,
         "unit": "1 box",
         "image": "assets/optimized/109.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       }
     ]
   },
@@ -1077,10 +1191,11 @@ window.PRODUCTS_DATA = [
         "id": 110,
         "name": "7 Shots - 5 piece",
         "originalPrice": 450,
-        "price": 115,
+        "price": 120,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 111,
@@ -1089,25 +1204,18 @@ window.PRODUCTS_DATA = [
         "price": 150,
         "unit": "1 box",
         "image": "assets/optimized/111.jpg",
-        "active": true
-      },
-      {
-        "id": 112,
-        "name": "Yellow Robo - 5 piece",
-        "originalPrice": 470,
-        "price": 135,
-        "unit": "1 box",
-        "image": "assets/optimized/112.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 113,
-        "name": "Red Robo - 5 piece",
-        "originalPrice": 470,
-        "price": 135,
+        "name": "Hi-Fi - 5 colors",
+        "originalPrice": 250,
+        "price": 110,
         "unit": "1 box",
         "image": "assets/optimized/113.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 114,
@@ -1116,7 +1224,8 @@ window.PRODUCTS_DATA = [
         "price": 170,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1127,28 +1236,31 @@ window.PRODUCTS_DATA = [
         "id": 115,
         "name": "Chotta Fancy (5 Varieities)",
         "originalPrice": 120,
-        "price": 45,
+        "price": 52,
         "unit": "1 piece",
         "image": "assets/optimized/115.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 116,
         "name": "2\" Fancy (5 Varieties)",
         "originalPrice": 210,
-        "price": 115,
+        "price": 120,
         "unit": "1 piece",
         "image": "assets/optimized/116.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 117,
         "name": "3 in 1 Fancy - 3 piece pack (6 Varieties) premium",
         "originalPrice": 580,
-        "price": 285,
+        "price": 290,
         "unit": "1 piece",
         "image": "assets/optimized/117.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 118,
@@ -1157,27 +1269,28 @@ window.PRODUCTS_DATA = [
         "price": 299,
         "unit": "1 piece",
         "image": "assets/optimized/118.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 119,
         "name": "3.5\" Sp! colour Blue Perals or Pink Bingo Boom-Limited",
         "originalPrice": 880,
-        "price": 299,
+        "price": 320,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 120,
         "name": "3.5\" Niagra Falls Bluestar Fancy - Limited",
         "originalPrice": 880,
-        "price": 299,
+        "price": 340,
         "unit": "1 piece",
         "image": "assets/optimized/120.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 121,
@@ -1186,7 +1299,8 @@ window.PRODUCTS_DATA = [
         "price": 460,
         "unit": "1 piece",
         "image": "assets/optimized/121.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 122,
@@ -1195,7 +1309,8 @@ window.PRODUCTS_DATA = [
         "price": 650,
         "unit": "1 piece",
         "image": "assets/optimized/122.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 123,
@@ -1204,7 +1319,8 @@ window.PRODUCTS_DATA = [
         "price": 799,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 124,
@@ -1214,7 +1330,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 piece",
         "image": "assets/optimized/124.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       }
     ]
   },
@@ -1223,12 +1339,13 @@ window.PRODUCTS_DATA = [
     "items": [
       {
         "id": 125,
-        "name": "Anadhas 6\" 3 Varities Awesome Display",
-        "originalPrice": 2150,
-        "price": 1450,
+        "name": "Sony 6\" 3 Varities Awesome Display",
+        "originalPrice": 3499,
+        "price": 2200,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 126,
@@ -1237,25 +1354,28 @@ window.PRODUCTS_DATA = [
         "price": 1350,
         "unit": "1 box",
         "image": "assets/optimized/126.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 127,
         "name": "Bindu's spl 6\" 4 Varities wonderful display",
         "originalPrice": 2150,
-        "price": 1450,
+        "price": 1499,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 128,
         "name": "Sri Krishna 5\" Elite series (Pink Panther, Lone wolf)",
         "originalPrice": 2250,
-        "price": 1350,
+        "price": 1499,
         "unit": "1 piece",
         "image": "assets/optimized/128.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1269,16 +1389,18 @@ window.PRODUCTS_DATA = [
         "price": 450,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 130,
         "name": "8 Steps Premium (5 Varieties)",
         "originalPrice": 980,
-        "price": 380,
+        "price": 399,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 131,
@@ -1287,16 +1409,18 @@ window.PRODUCTS_DATA = [
         "price": 650,
         "unit": "1 piece",
         "image": "assets/optimized/131.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 132,
         "name": "Dancing Shooters (Flying Mines with Sky shot)",
         "originalPrice": 870,
-        "price": 285,
+        "price": 280,
         "unit": "1 piece",
         "image": "assets/optimized/132.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 133,
@@ -1305,7 +1429,8 @@ window.PRODUCTS_DATA = [
         "price": 399,
         "unit": "1 piece",
         "image": "assets/optimized/133.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1316,46 +1441,51 @@ window.PRODUCTS_DATA = [
         "id": 134,
         "name": "Love dose - 6 shot (New Arrival)",
         "originalPrice": 420,
-        "price": 115,
+        "price": 120,
         "unit": "1 piece",
         "image": "assets/optimized/134.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 135,
-        "name": "12 Shot R&G with Crackling",
-        "originalPrice": 600,
-        "price": 199,
+        "name": "10 shots - Multi color",
+        "originalPrice": 499,
+        "price": 210,
         "unit": "1 piece",
         "image": "assets/optimized/135.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 136,
-        "name": "Krishna's 12 Sky Wheel",
-        "originalPrice": 600,
-        "price": 260,
+        "name": "5G+ - 5 in 1 - New Arrival!!",
+        "originalPrice": 499,
+        "price": 210,
         "unit": "1 piece",
         "image": "assets/optimized/136.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 137,
         "name": "30 Shots Premium",
         "originalPrice": 980,
-        "price": 425,
+        "price": 450,
         "unit": "1 piece",
         "image": "assets/optimized/137.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 138,
         "name": "30 Shots Elite",
-        "originalPrice": 980,
-        "price": 499,
+        "originalPrice": 1070,
+        "price": 525,
         "unit": "1 piece",
         "image": "assets/optimized/138.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1369,7 +1499,8 @@ window.PRODUCTS_DATA = [
         "price": 450,
         "unit": "1 piece",
         "image": "assets/optimized/139.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 140,
@@ -1378,25 +1509,28 @@ window.PRODUCTS_DATA = [
         "price": 499,
         "unit": "1 piece",
         "image": "assets/optimized/140.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 141,
         "name": "60 Shots Premium",
         "originalPrice": 1700,
-        "price": 835,
+        "price": 849,
         "unit": "1 piece",
         "image": "assets/optimized/141.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 142,
         "name": "60 Shots Elite",
         "originalPrice": 1800,
-        "price": 999,
+        "price": 1050,
         "unit": "1 piece",
         "image": "assets/optimized/142.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 143,
@@ -1405,7 +1539,8 @@ window.PRODUCTS_DATA = [
         "price": 1750,
         "unit": "1 piece",
         "image": "assets/optimized/143.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 144,
@@ -1414,7 +1549,8 @@ window.PRODUCTS_DATA = [
         "price": 1999,
         "unit": "1 piece",
         "image": "assets/optimized/144.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 145,
@@ -1423,7 +1559,8 @@ window.PRODUCTS_DATA = [
         "price": 3300,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 146,
@@ -1432,16 +1569,18 @@ window.PRODUCTS_DATA = [
         "price": 3999,
         "unit": "1 piece",
         "image": "assets/optimized/146.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 147,
         "name": "510 Shots Elite (Exclusive for festivals)",
         "originalPrice": 18000,
-        "price": 8500,
+        "price": 8199,
         "unit": "1 piece",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1455,7 +1594,8 @@ window.PRODUCTS_DATA = [
         "price": 240,
         "unit": "1 box",
         "image": "assets/optimized/148.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 149,
@@ -1464,7 +1604,8 @@ window.PRODUCTS_DATA = [
         "price": 750,
         "unit": "1 box",
         "image": "assets/optimized/149.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 150,
@@ -1473,7 +1614,8 @@ window.PRODUCTS_DATA = [
         "price": 1350,
         "unit": "1 box",
         "image": "assets/optimized/150.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1481,49 +1623,34 @@ window.PRODUCTS_DATA = [
     "category": "Sonny's Sky Series - Limited!!",
     "items": [
       {
-        "id": 151,
-        "name": "Sky Traffic (blue & Violet) - 2pcs",
-        "originalPrice": 2100,
-        "price": 1450,
-        "unit": "1 box",
-        "image": "assets/optimized/151.jpg",
-        "active": true
-      },
-      {
-        "id": 152,
-        "name": "Magic Cystral (purple) - 2pcs",
-        "originalPrice": 2100,
-        "price": 1450,
-        "unit": "1 box",
-        "image": "assets/optimized/152.jpg",
-        "active": true
-      },
-      {
         "id": 153,
         "name": "Golden Octopusy (golden fall) - 2pcs",
         "originalPrice": 1990,
-        "price": 1350,
+        "price": 1400,
         "unit": "1 box",
         "image": "assets/optimized/153.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 154,
         "name": "4\" Great wall series (10 varities) - 2pcs",
         "originalPrice": 1990,
-        "price": 1350,
+        "price": 1500,
         "unit": "1 box",
         "image": "assets/optimized/154.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 155,
         "name": "Neega Angels (blue) - 2pcs",
         "originalPrice": 1990,
-        "price": 1350,
+        "price": 1400,
         "unit": "1 box",
         "image": "assets/optimized/155.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 156,
@@ -1532,7 +1659,8 @@ window.PRODUCTS_DATA = [
         "price": 1700,
         "unit": "1 box",
         "image": "assets/optimized/156.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1546,16 +1674,18 @@ window.PRODUCTS_DATA = [
         "price": 3600,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
-        "id": 158,
-        "name": "2.75 inch setout - 9 shots (Power Pack)",
-        "originalPrice": 4900,
-        "price": 2350,
+        "id": 187,
+        "name": "Double Wave 5x10 (New Arrival) - 2 in 1",
+        "originalPrice": 5900,
+        "price": 2900,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 159,
@@ -1564,7 +1694,8 @@ window.PRODUCTS_DATA = [
         "price": 5999,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 160,
@@ -1573,7 +1704,8 @@ window.PRODUCTS_DATA = [
         "price": 3600,
         "unit": "1 box",
         "image": "assets/optimized/160.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 161,
@@ -1582,7 +1714,8 @@ window.PRODUCTS_DATA = [
         "price": 4800,
         "unit": "1 box",
         "image": "assets/optimized/160.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1593,10 +1726,11 @@ window.PRODUCTS_DATA = [
         "id": 162,
         "name": "10cm electric",
         "originalPrice": 52,
-        "price": 23,
+        "price": 25,
         "unit": "1 box",
         "image": "assets/optimized/162.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 163,
@@ -1605,7 +1739,8 @@ window.PRODUCTS_DATA = [
         "price": 30,
         "unit": "1 box",
         "image": "assets/optimized/163.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 164,
@@ -1614,16 +1749,18 @@ window.PRODUCTS_DATA = [
         "price": 30,
         "unit": "1 box",
         "image": "assets/optimized/164.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 165,
         "name": "15 cm Electric",
         "originalPrice": 120,
-        "price": 55,
+        "price": 50,
         "unit": "1 box",
         "image": "assets/optimized/165.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 166,
@@ -1632,7 +1769,8 @@ window.PRODUCTS_DATA = [
         "price": 55,
         "unit": "1 box",
         "image": "assets/optimized/166.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 167,
@@ -1641,7 +1779,8 @@ window.PRODUCTS_DATA = [
         "price": 55,
         "unit": "1 box",
         "image": "assets/optimized/167.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 168,
@@ -1650,7 +1789,8 @@ window.PRODUCTS_DATA = [
         "price": 50,
         "unit": "1 box - 5 piece",
         "image": "assets/optimized/168.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 169,
@@ -1659,7 +1799,8 @@ window.PRODUCTS_DATA = [
         "price": 55,
         "unit": "1 box - 5 piece",
         "image": "assets/optimized/169.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 170,
@@ -1668,16 +1809,18 @@ window.PRODUCTS_DATA = [
         "price": 55,
         "unit": "1 box - 5 piece",
         "image": "assets/optimized/170.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 171,
         "name": "50 cm Electric - Tube",
         "originalPrice": 450,
-        "price": 175,
+        "price": 185,
         "unit": "1 box - 5 piece",
         "image": "assets/optimized/171.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 172,
@@ -1686,7 +1829,8 @@ window.PRODUCTS_DATA = [
         "price": 245,
         "unit": "1 box - 5 piece",
         "image": "assets/optimized/172.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 173,
@@ -1696,7 +1840,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 box - 10 piece",
         "image": "assets/optimized/173.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 174,
@@ -1706,7 +1850,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 box - 10 piece",
         "image": "assets/optimized/174.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       },
       {
         "id": 175,
@@ -1716,7 +1860,7 @@ window.PRODUCTS_DATA = [
         "unit": "1 box",
         "image": "assets/optimized/175.jpg",
         "active": true,
-        "limited": true
+        "limited": false
       }
     ]
   },
@@ -1730,16 +1874,8 @@ window.PRODUCTS_DATA = [
         "price": 70,
         "unit": "1 box",
         "image": "assets/optimized/176.jpg",
-        "active": true
-      },
-      {
-        "id": 177,
-        "name": "Carnival or Jothi - 5in1",
-        "originalPrice": 530,
-        "price": 135,
-        "unit": "1 box",
-        "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 178,
@@ -1748,7 +1884,8 @@ window.PRODUCTS_DATA = [
         "price": 235,
         "unit": "1 box",
         "image": "assets/optimized/178.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1759,10 +1896,11 @@ window.PRODUCTS_DATA = [
         "id": 179,
         "name": "Roll Cap Box",
         "originalPrice": 120,
-        "price": 72,
+        "price": 80,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 180,
@@ -1771,7 +1909,8 @@ window.PRODUCTS_DATA = [
         "price": 45,
         "unit": "1 box",
         "image": "assets/optimized/180.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 181,
@@ -1780,7 +1919,8 @@ window.PRODUCTS_DATA = [
         "price": 145,
         "unit": "1 box",
         "image": "assets/optimized/181.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   },
@@ -1791,19 +1931,21 @@ window.PRODUCTS_DATA = [
         "id": 182,
         "name": "19 items",
         "originalPrice": 330,
-        "price": 330,
+        "price": 350,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 183,
         "name": "23 items",
         "originalPrice": 399,
-        "price": 399,
+        "price": 420,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 184,
@@ -1812,7 +1954,8 @@ window.PRODUCTS_DATA = [
         "price": 460,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 185,
@@ -1821,7 +1964,8 @@ window.PRODUCTS_DATA = [
         "price": 770,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       },
       {
         "id": 186,
@@ -1830,7 +1974,8 @@ window.PRODUCTS_DATA = [
         "price": 990,
         "unit": "1 box",
         "image": "assets/optimized/placeholder.jpg",
-        "active": true
+        "active": true,
+        "limited": false
       }
     ]
   }

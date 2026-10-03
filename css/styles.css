@@ -1349,6 +1349,30 @@ a {
   font: inherit;
 }
 
+.link-action.prefs-quiet {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.9em;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.link-action.prefs-quiet:hover {
+  color: var(--ink-soft);
+}
+
+.prefs-dock-link {
+  margin: 6px 0 0;
+  text-align: right;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.prefs-dock-link .prefs-quiet {
+  font-size: inherit;
+}
+
 /* Cart bar */
 .cart-bar {
   position: fixed;
@@ -3787,8 +3811,448 @@ a {
 
 /* —— Night matcher + lane banner (dual night types) —— */
 body.night-matcher-open,
-body.pdf-chooser-open {
+body.pdf-chooser-open,
+body.night-reveal-open {
   overflow: hidden;
+}
+
+/* Compact post-match reveal (7s) — Diwali fireworks */
+.night-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 125;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+}
+
+.night-reveal[hidden] {
+  display: none !important;
+}
+
+.night-reveal-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 35%, rgba(255, 120, 40, 0.14), transparent 60%),
+    rgba(8, 4, 2, 0.78);
+  backdrop-filter: blur(7px);
+  animation: night-reveal-backdrop-in 0.5s ease-out both;
+}
+
+.night-reveal.is-out .night-reveal-backdrop {
+  animation: night-reveal-backdrop-out 0.55s ease-in forwards;
+}
+
+.night-reveal-sky {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.night-fw {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 0 rgba(255, 210, 120, 0.9),
+    0 0 14px 4px rgba(255, 160, 60, 0.55);
+  animation: night-fw-burst 2.4s ease-out infinite;
+}
+
+.night-fw::before,
+.night-fw::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 220, 140, 0.55);
+  animation: night-fw-ring 2.4s ease-out infinite;
+}
+
+.night-fw::after {
+  animation-delay: 0.15s;
+  border-color: rgba(255, 120, 80, 0.4);
+}
+
+.night-fw-a {
+  top: 18%;
+  left: 16%;
+  background: #ffd36a;
+  animation-delay: 0s;
+}
+
+.night-fw-b {
+  top: 12%;
+  right: 18%;
+  background: #ff8a4a;
+  animation-delay: 0.7s;
+  animation-duration: 2.8s;
+}
+
+.night-fw-c {
+  bottom: 22%;
+  left: 22%;
+  background: #ffb347;
+  animation-delay: 1.2s;
+  animation-duration: 2.6s;
+}
+
+.night-fw-d {
+  top: 28%;
+  left: 52%;
+  background: #ffe9a0;
+  animation-delay: 1.8s;
+  animation-duration: 2.2s;
+}
+
+.night-rocket {
+  position: absolute;
+  bottom: -8%;
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(to top, transparent, #ffd27a 40%, #fff6d0);
+  box-shadow: 0 0 10px rgba(255, 200, 100, 0.8);
+  animation: night-rocket-up 2.2s ease-in infinite;
+  opacity: 0;
+}
+
+.night-rocket-1 {
+  left: 24%;
+  animation-delay: 0.2s;
+}
+
+.night-rocket-2 {
+  left: 55%;
+  animation-delay: 0.9s;
+  animation-duration: 2.5s;
+}
+
+.night-rocket-3 {
+  left: 78%;
+  animation-delay: 1.5s;
+  animation-duration: 2s;
+}
+
+.night-reveal-card {
+  position: relative;
+  z-index: 1;
+  width: min(320px, 100%);
+  padding: 20px 18px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(240, 199, 94, 0.42);
+  background:
+    radial-gradient(ellipse 90% 70% at 50% -10%, rgba(255, 170, 70, 0.28), transparent 55%),
+    radial-gradient(circle at 80% 90%, rgba(255, 90, 40, 0.12), transparent 45%),
+    linear-gradient(165deg, #2c1810 0%, #140c08 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 210, 120, 0.08),
+    0 0 40px rgba(255, 140, 50, 0.18),
+    0 22px 50px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: night-reveal-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.night-reveal.is-out .night-reveal-card {
+  animation: night-reveal-out 0.55s ease-in forwards;
+}
+
+.night-reveal-sparks {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 28%, #ffe7a8, transparent),
+    radial-gradient(1.5px 1.5px at 28% 14%, #ffd89a, transparent),
+    radial-gradient(1.5px 1.5px at 72% 18%, #ffe7a8, transparent),
+    radial-gradient(1.5px 1.5px at 64% 42%, #ffc29a, transparent),
+    radial-gradient(1.5px 1.5px at 40% 70%, #ffe0c8, transparent),
+    radial-gradient(1.5px 1.5px at 82% 62%, #fff1b0, transparent),
+    radial-gradient(1.5px 1.5px at 18% 78%, #ff9a5c, transparent);
+  animation: night-reveal-spark 2.2s ease-in-out infinite alternate;
+}
+
+.night-reveal-burst {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #ffe7a8;
+  box-shadow:
+    0 0 12px 4px rgba(255, 200, 100, 0.55),
+    18px -8px 0 -2px #ffb347,
+    -16px -10px 0 -2px #ff8a4a,
+    12px 14px 0 -2px #ffe9a0,
+    -14px 12px 0 -2px #ffd36a,
+    0 -18px 0 -2px #fff1b0,
+    22px 6px 0 -3px #ff9a5c,
+    -22px 4px 0 -3px #ffc29a;
+  animation: night-card-burst 1.8s ease-out infinite;
+  opacity: 0.85;
+}
+
+.night-reveal-eyebrow {
+  position: relative;
+  margin: 0 0 6px;
+  color: rgba(240, 201, 120, 0.92);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.night-reveal-title {
+  position: relative;
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #f7efe3;
+}
+
+.night-reveal-body {
+  position: relative;
+  margin: 0 0 14px;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.night-reveal-track {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.night-reveal-bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f0c75e, #ff9a4a 55%, #e2ad3a);
+  box-shadow: 0 0 10px rgba(255, 180, 80, 0.55);
+  animation: night-reveal-bar 7s linear forwards;
+}
+
+.night-reveal-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.night-reveal-combos {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.night-reveal-combos:hover {
+  color: #f7e4a8;
+}
+
+@keyframes night-reveal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes night-reveal-backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes night-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+    filter: brightness(1.4);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes night-reveal-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: brightness(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.86) translateY(10px);
+    filter: brightness(1.6);
+  }
+}
+
+@keyframes night-reveal-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes night-reveal-spark {
+  from {
+    opacity: 0.5;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.04);
+  }
+}
+
+@keyframes night-fw-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+    box-shadow: 0 0 0 0 rgba(255, 210, 120, 0);
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.6);
+    opacity: 0.95;
+    box-shadow:
+      0 0 0 18px rgba(255, 210, 120, 0),
+      0 0 28px 8px rgba(255, 140, 50, 0.35);
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+    box-shadow: 0 0 0 36px rgba(255, 210, 120, 0);
+  }
+}
+
+@keyframes night-fw-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(4.5);
+    opacity: 0;
+  }
+}
+
+@keyframes night-rocket-up {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scaleY(0.6);
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-72vh) scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-88vh) scaleY(0.3);
+  }
+}
+
+@keyframes night-card-burst {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.35;
+  }
+  40% {
+    transform: scale(1.15);
+    opacity: 0.95;
+  }
+  70% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+
+.night-reveal.is-out .night-fw,
+.night-reveal.is-out .night-rocket {
+  animation-duration: 0.45s;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-out;
+}
+
+.night-reveal.is-out .night-reveal-burst {
+  animation: night-card-burst-exit 0.55s ease-out forwards;
+}
+
+@keyframes night-card-burst-exit {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+    box-shadow:
+      0 0 40px 20px rgba(255, 180, 80, 0.25),
+      40px -20px 0 2px transparent,
+      -36px -24px 0 2px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .night-reveal-card,
+  .night-reveal-backdrop,
+  .night-reveal.is-out .night-reveal-card,
+  .night-reveal.is-out .night-reveal-backdrop {
+    animation: none;
+  }
+
+  .night-reveal-sparks,
+  .night-reveal-burst,
+  .night-fw,
+  .night-rocket {
+    animation: none !important;
+    opacity: 0.45;
+  }
+
+  .night-rocket {
+    display: none;
+  }
+
+  .night-reveal-bar {
+    animation-duration: 1.5s;
+  }
 }
 
 body.has-lane-banner {

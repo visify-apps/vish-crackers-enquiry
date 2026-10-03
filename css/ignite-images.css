@@ -1,0 +1,248 @@
+/* Temporary Ignite image review desk */
+.ignite-shell {
+  width: min(1100px, calc(100% - 28px));
+}
+
+.ignite-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ignite-toolbar h1 {
+  margin: 0 0 6px;
+}
+
+.ignite-sheet-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 199, 94, 0.35);
+  background: rgba(240, 199, 94, 0.08);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.ignite-sheet-note code {
+  color: var(--gold);
+  font-size: 0.78rem;
+}
+
+.ignite-filmstrip-wrap {
+  margin-bottom: 14px;
+}
+
+.ignite-filmstrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  scroll-snap-type: x proximity;
+}
+
+.ignite-film-card {
+  flex: 0 0 108px;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  scroll-snap-align: start;
+}
+
+.ignite-film-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #111;
+}
+
+.ignite-film-card strong {
+  font-size: 0.66rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ignite-film-card small {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+.ignite-film-card.is-on {
+  border-color: rgba(240, 199, 94, 0.85);
+  background: rgba(240, 199, 94, 0.14);
+}
+
+.ignite-film-card.is-ph {
+  outline: 1px dashed rgba(255, 140, 140, 0.55);
+}
+
+.ignite-review {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.ignite-current,
+.ignite-picker {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.ignite-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ignite-nav span {
+  font-weight: 700;
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.ignite-meta {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.ignite-current h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+
+.ignite-url-import {
+  margin: 0 0 14px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 199, 94, 0.28);
+  background: rgba(240, 199, 94, 0.06);
+}
+
+.ignite-url-import .bill-field {
+  margin-bottom: 6px;
+}
+
+.ignite-url-import .ignite-picker-hint {
+  margin: 0 0 10px;
+}
+
+.ignite-url-import code {
+  color: var(--gold);
+  font-size: 0.75rem;
+}
+
+.ignite-path {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  color: var(--gold);
+  word-break: break-all;
+}
+
+.ignite-preview-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.ignite-preview-wrap img {
+  max-width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  display: block;
+}
+
+.ignite-picker-hint {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.ignite-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  max-height: 70vh;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.ignite-pick-card {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.ignite-pick-card:hover,
+.ignite-pick-card.is-current {
+  border-color: rgba(240, 199, 94, 0.7);
+  background: rgba(240, 199, 94, 0.1);
+}
+
+.ignite-pick-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #111;
+}
+
+.ignite-pick-card strong {
+  font-size: 0.74rem;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.ignite-pick-card small {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.ignite-filter-on {
+  border-color: rgba(240, 199, 94, 0.85) !important;
+  background: rgba(240, 199, 94, 0.16) !important;
+}
+
+@media (max-width: 860px) {
+  .ignite-review {
+    grid-template-columns: 1fr;
+  }
+
+  .ignite-picker-grid {
+    max-height: 50vh;
+  }
+}

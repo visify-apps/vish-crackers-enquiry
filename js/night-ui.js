@@ -8,6 +8,8 @@ window.VishNightUI = (function () {
   let vibe = '';
   let pdfChooser = null;
   let bannerEl = null;
+  let revealEl = null;
+  let revealTimer = null;
   let onLaneChanged = null;
 
   function $(id) {
@@ -90,22 +92,6 @@ window.VishNightUI = (function () {
       .replace(/"/g, '&quot;');
   }
 
-  /** Split “A, or B” lane titles so both halves read clearly. */
-  function formatLaneTitle(title) {
-    const text = String(title || '');
-    const parts = text.split(', or ');
-    if (parts.length === 2) {
-      return (
-        '<span class="night-title-main">' +
-        escapeHtml(parts[0]) +
-        ',</span> <span class="night-title-or">or</span> <span class="night-title-alt">' +
-        escapeHtml(parts[1]) +
-        '</span>'
-      );
-    }
-    return '<span class="night-title-main">' + escapeHtml(text) + '</span>';
-  }
-
   function setCallbacks(hooks) {
     onLaneChanged = hooks && hooks.onLaneChanged;
   }
@@ -157,13 +143,8 @@ window.VishNightUI = (function () {
       '<span class="lane-sticky-label">Curated for you</span>' +
       '<strong class="lane-sticky-name">Products in a curated order</strong>' +
       '</div>' +
-      '<button type="button" class="btn-secondary lane-sticky-plan" data-lane-plan="1">Edit preferences</button>' +
       '</div>';
-    el.onclick = (e) => {
-      if (e.target.closest('[data-lane-plan]')) {
-        requestEditPreferences();
-      }
-    };
+    el.onclick = null;
 
     bannerHideTimer = setTimeout(function () {
       bannerHideTimer = null;
@@ -251,49 +232,144 @@ window.VishNightUI = (function () {
     };
   }
 
+  function reduceMotion() {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function ensureReveal() {
+    if (revealEl && document.body.contains(revealEl)) return revealEl;
+    revealEl = document.createElement('div');
+    revealEl.id = 'night-reveal';
+    revealEl.className = 'night-reveal';
+    revealEl.hidden = true;
+    revealEl.setAttribute('role', 'status');
+    revealEl.setAttribute('aria-live', 'polite');
+    revealEl.innerHTML =
+      '<div class="night-reveal-backdrop"></div>' +
+      '<div class="night-reveal-sky" aria-hidden="true">' +
+      '<span class="night-fw night-fw-a"></span>' +
+      '<span class="night-fw night-fw-b"></span>' +
+      '<span class="night-fw night-fw-c"></span>' +
+      '<span class="night-fw night-fw-d"></span>' +
+      '<span class="night-rocket night-rocket-1"></span>' +
+      '<span class="night-rocket night-rocket-2"></span>' +
+      '<span class="night-rocket night-rocket-3"></span>' +
+      '</div>' +
+      '<div class="night-reveal-card">' +
+      '<div class="night-reveal-sparks" aria-hidden="true"></div>' +
+      '<div class="night-reveal-burst" aria-hidden="true"></div>' +
+      '<p class="night-reveal-eyebrow">Matching</p>' +
+      '<h2 id="night-reveal-title" class="night-reveal-title">Your celebration, sorted</h2>' +
+      '<p class="night-reveal-body">Crackling the best packs…</p>' +
+      '<div class="night-reveal-track" aria-hidden="true"><span class="night-reveal-bar"></span></div>' +
+      '<div class="night-reveal-actions">' +
+      '<a class="night-reveal-combos" href="combos.html" data-reveal-combos="1">Explore combos</a>' +
+      '</div>' +
+      '</div>';
+    document.body.appendChild(revealEl);
+    revealEl.addEventListener('click', (e) => {
+      if (e.target.closest('[data-reveal-combos]')) {
+        e.preventDefault();
+        dismissReveal('combos');
+      }
+    });
+    return revealEl;
+  }
+
+  function clearRevealTimer() {
+    if (revealTimer) {
+      clearTimeout(revealTimer);
+      revealTimer = null;
+    }
+  }
+
+  function goHomeAfterReveal() {
+    const path = (location.pathname || '').split('/').pop() || '';
+    if (path === 'combos.html') {
+      location.href = 'index.html';
+      return;
+    }
+    if (location.hash) {
+      try {
+        history.replaceState({}, '', location.pathname);
+      } catch (e) {}
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+  }
+
+  function finishRevealDismiss(dest) {
+    if (revealEl) {
+      revealEl.hidden = true;
+      revealEl.classList.remove('is-reduced', 'is-out');
+      const bar = revealEl.querySelector('.night-reveal-bar');
+      if (bar) {
+        bar.style.animation = '';
+        bar.style.animationDuration = '';
+      }
+    }
+    document.body.classList.remove('night-reveal-open');
+    paintBanner({ forceShow: true });
+    if (typeof onLaneChanged === 'function') onLaneChanged();
+    if (dest === 'combos') {
+      location.href = 'combos.html';
+      return;
+    }
+    goHomeAfterReveal();
+  }
+
+  function dismissReveal(dest) {
+    clearRevealTimer();
+    if (!revealEl || revealEl.hidden) {
+      finishRevealDismiss(dest);
+      return;
+    }
+    if (reduceMotion()) {
+      finishRevealDismiss(dest);
+      return;
+    }
+    revealEl.classList.add('is-out');
+    revealTimer = setTimeout(function () {
+      revealTimer = null;
+      finishRevealDismiss(dest);
+    }, 620);
+  }
+
+  function showReveal() {
+    const el = ensureReveal();
+    clearRevealTimer();
+    el.classList.remove('is-out');
+    const ms = reduceMotion() ? 1500 : 4000;
+    el.classList.toggle('is-reduced', ms < 4000);
+    const bar = el.querySelector('.night-reveal-bar');
+    if (bar) {
+      bar.style.animation = 'none';
+      void bar.offsetWidth;
+      bar.style.animation = '';
+      bar.style.animationDuration = ms + 'ms';
+    }
+    el.hidden = false;
+    document.body.classList.add('night-reveal-open');
+    revealTimer = setTimeout(function () {
+      revealTimer = null;
+      dismissReveal('home');
+    }, ms);
+  }
+
   function goResult() {
     const answers = currentAnswers();
     VishLane.saveAnswers(answers);
     VishLane.setLane(answers.lane);
-    step = 'result';
-    renderStep();
-    paintBanner();
+    hideMatcher();
     if (typeof onLaneChanged === 'function') onLaneChanged();
+    showReveal();
   }
 
   function renderStep() {
     const el = ensureRoot();
-    if (step === 'result') {
-      const answers = currentAnswers();
-      const lane = answers.lane || VishLane.resolveLane(place, who, vibe);
-      const copy = VishLane.resultCopy(lane, answers);
-      el.innerHTML =
-        '<div class="night-matcher-panel night-result">' +
-        '<p class="eyebrow">Matched for you</p>' +
-        '<h2 id="night-matcher-title" class="night-result-title">' +
-        escapeHtml(copy.title) +
-        '</h2>' +
-        '<p class="night-result-body">' +
-        escapeHtml(copy.body) +
-        '</p>' +
-        '<div class="night-chips">' +
-        copy.chips.map((c) => '<span class="night-chip">' + escapeHtml(c) + '</span>').join('') +
-        '</div>' +
-        '<div class="night-result-actions">' +
-        '<a class="btn-hero featured" href="combos.html" data-enter-lane="1">' +
-        '<span class="featured-copy"><strong>See recommended combos</strong><small>' +
-        escapeHtml((copy.meta && copy.meta.combosHint) || 'Start with a pack') +
-        '</small></span></a>' +
-        '<a class="btn-hero featured is-muted" href="index.html#catalog" data-enter-lane="1">' +
-        '<span class="featured-copy"><strong>Browse items</strong><small>Add or tweak after a combo</small></span></a>' +
-        '</div>' +
-        '<div class="night-result-links">' +
-        '<button type="button" class="night-soft-link" data-night-back="vibe">Change answers</button>' +
-        '</div>' +
-        '</div>';
-      return;
-    }
-
     if (step === 'vibe') {
       el.innerHTML =
         '<div class="night-matcher-panel">' +
@@ -392,11 +468,6 @@ window.VishNightUI = (function () {
       if (back) {
         step = back.getAttribute('data-night-back') || 'place';
         renderStep();
-        return;
-      }
-      if (e.target.closest('[data-enter-lane]')) {
-        hideMatcher();
-        if (typeof onLaneChanged === 'function') onLaneChanged();
         return;
       }
       const placeBtn = e.target.closest('[data-night-place]');

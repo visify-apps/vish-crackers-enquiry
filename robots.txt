@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /bill.html
+Disallow: /ignite-images.html
 
 Sitemap: https://vishcrackers.online/sitemap.xml

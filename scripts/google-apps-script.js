@@ -28,7 +28,8 @@
  * 7. Only then delete Enquiry_Log if you still have that tab.
  * 8. Profit analysis: run setupProfitSheets() once, then rebuildProfitAnalysis()
  *    after price changes. New enquiries also append to Enquiry_Profit.
- * 9. Ignite price list → Products_v2: run seedProductsV2() (Vish Profit menu).
+ * 9. Ignite → Products_v2 (incl. image column like Products). Ensure column via menu
+ *    or seedProductsV2(); site loads productsIgnite; /ignite-images writes image paths.
  */
 
 var PRODUCTS_SHEET = 'Products';
@@ -41,7 +42,8 @@ var PRODUCTS_V2_HEADERS = [
   'price',
   'sellingPrice',
   'active',
-  'limited'
+  'limited',
+  'image'
 ];
 /** Sole enquiry / order book — website writes here; bill desk reads here only */
 var ENQUIRIES_SHEET = 'Enquiries';
@@ -342,7 +344,11 @@ function saveEnquiryRows_(fields) {
 function doGet(e) {
   var action = e && e.parameter && e.parameter.action;
   if (action === 'products') {
-    return jsonOutput({ status: 'ok', products: readProducts() });
+    return jsonOutput({
+      status: 'ok',
+      products: readProducts(),
+      productsIgnite: readProductsV2()
+    });
   }
   return jsonOutput({ status: 'ok' });
 }
@@ -629,6 +635,29 @@ function doPost(e) {
         return jsonOutput({ status: 'error', message: 'Unauthorized' });
       }
       return jsonOutput({ status: 'ok' });
+    }
+
+    if (data.action === 'updateIgniteImage') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      var updated = updateIgniteImage_(data.sourceId || data.id, data.image);
+      if (!updated.ok) {
+        return jsonOutput({ status: 'error', message: updated.message || 'Update failed' });
+      }
+      return jsonOutput({ status: 'ok', sourceId: updated.sourceId, image: updated.image });
+    }
+
+    if (data.action === 'setIgniteImages') {
+      if (!billPasswordOk_(data.billPassword)) {
+        return jsonOutput({ status: 'error', message: 'Unauthorized' });
+      }
+      var batch = setIgniteImages_(data.images || {});
+      return jsonOutput({
+        status: 'ok',
+        updated: batch.updated,
+        skipped: batch.skipped
+      });
     }
 
     if (data.action === 'getEnquiry') {
@@ -1351,6 +1380,162 @@ function readProducts() {
   });
 }
 
+/** Ensure Products_v2 has an image column (does not wipe existing data). */
+function ensureProductsV2ImageColumn_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(PRODUCTS_V2_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(PRODUCTS_V2_SHEET);
+    sheet.appendRow(PRODUCTS_V2_HEADERS);
+    sheet.setFrozenRows(1);
+    return sheet;
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(PRODUCTS_V2_HEADERS);
+    sheet.setFrozenRows(1);
+    return sheet;
+  }
+  var meta = readEnquiryHeaderMap_(sheet);
+  if (headerCol_(meta.map, ['image', 'Image', 'photo', 'Photo'])) return sheet;
+  var col = Math.max(meta.colCount, 0) + 1;
+  sheet.getRange(1, col).setValue('image');
+  return sheet;
+}
+
+/**
+ * Ignite catalogue for the website — same shape as readProducts().
+ * Site ids = 10000 + Products_v2 id. Sell from sellingPrice. Image from image column.
+ */
+function readProductsV2() {
+  ensureProductsV2ImageColumn_();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PRODUCTS_V2_SHEET);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var idx = {};
+  for (var h = 0; h < headers.length; h++) {
+    idx[normalizeHeader_(headers[h])] = h;
+  }
+  function col_(names) {
+    for (var i = 0; i < names.length; i++) {
+      var k = normalizeHeader_(names[i]);
+      if (idx[k] != null) return idx[k];
+    }
+    return -1;
+  }
+  var idCol = col_(['id', 'product id', 'sno']);
+  var catCol = col_(['category']);
+  var nameCol = col_(['name', 'product', 'item']);
+  var mrpCol = col_(['mrp', 'originalprice', 'original price']);
+  var sellCol = col_(['sellingprice', 'selling price', 'price']);
+  var imageCol = col_(['image', 'photo']);
+  var activeCol = col_(['active']);
+  var limitedCol = col_(['limited']);
+  var unitCol = col_(['unit']);
+  if (idCol < 0 || nameCol < 0) return [];
+
+  var byCategory = {};
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var sourceId = Number(row[idCol]);
+    if (!sourceId) continue;
+    if (activeCol >= 0) {
+      var active = row[activeCol];
+      if (String(active).toLowerCase() === 'false' || active === false || active === 0) continue;
+    }
+    var sell = sellCol >= 0 ? Number(row[sellCol]) || 0 : 0;
+    var mrp = mrpCol >= 0 && row[mrpCol] !== '' && row[mrpCol] != null ? Number(row[mrpCol]) || sell : sell;
+    var image =
+      imageCol >= 0 && row[imageCol]
+        ? String(row[imageCol]).trim()
+        : 'assets/optimized/placeholder.jpg';
+    if (!image) image = 'assets/optimized/placeholder.jpg';
+    var cat = catCol >= 0 ? String(row[catCol] || 'Other') : 'Other';
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push({
+      id: 10000 + sourceId,
+      sourceId: sourceId,
+      name: String(row[nameCol] || ''),
+      originalPrice: mrp,
+      price: sell,
+      unit: unitCol >= 0 && row[unitCol] ? String(row[unitCol]) : '1 Pack',
+      image: image,
+      active: true,
+      limited:
+        limitedCol >= 0 &&
+        (String(row[limitedCol]).toLowerCase() === 'true' ||
+          row[limitedCol] === true ||
+          row[limitedCol] === 1),
+      vendor: 'ignite'
+    });
+  }
+
+  return Object.keys(byCategory).map(function (category) {
+    return { category: category, vendor: 'ignite', items: byCategory[category] };
+  });
+}
+
+/** Write one Ignite image path onto Products_v2 (by sheet id / sourceId). */
+function updateIgniteImage_(sourceIdOrSiteId, imagePath) {
+  var n = Number(sourceIdOrSiteId);
+  if (!n) return { ok: false, message: 'Missing product id' };
+  var sourceId = n >= 10000 ? n - 10000 : n;
+  var image = String(imagePath || '').trim();
+  if (!image) image = 'assets/optimized/placeholder.jpg';
+  if (image.indexOf('assets/optimized/') !== 0) {
+    return { ok: false, message: 'Image must be under assets/optimized/' };
+  }
+
+  var sheet = ensureProductsV2ImageColumn_();
+  var meta = readEnquiryHeaderMap_(sheet);
+  var idCol = headerCol_(meta.map, ['id', 'product id', 'sno']);
+  var imageCol = headerCol_(meta.map, ['image', 'Image', 'photo', 'Photo']);
+  if (!idCol || !imageCol) return { ok: false, message: 'Products_v2 id/image columns missing' };
+
+  var lastRow = Math.max(sheet.getLastRow(), 2);
+  var ids = sheet.getRange(2, idCol, lastRow, idCol).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (Number(ids[i][0]) === sourceId) {
+      sheet.getRange(i + 2, imageCol).setValue(image);
+      return { ok: true, sourceId: sourceId, image: image };
+    }
+  }
+  return { ok: false, message: 'Product id ' + sourceId + ' not found on Products_v2' };
+}
+
+/** Batch set images: { "1": "assets/optimized/47.jpg", ... } keyed by Products_v2 id */
+function setIgniteImages_(images) {
+  var sheet = ensureProductsV2ImageColumn_();
+  var meta = readEnquiryHeaderMap_(sheet);
+  var idCol = headerCol_(meta.map, ['id', 'product id', 'sno']);
+  var imageCol = headerCol_(meta.map, ['image', 'Image', 'photo', 'Photo']);
+  var updated = 0;
+  var skipped = 0;
+  if (!idCol || !imageCol || !images || typeof images !== 'object') {
+    return { updated: 0, skipped: 0 };
+  }
+  var lastRow = Math.max(sheet.getLastRow(), 2);
+  var ids = sheet.getRange(2, idCol, lastRow, idCol).getValues();
+  var rowById = {};
+  for (var i = 0; i < ids.length; i++) {
+    var sid = Number(ids[i][0]);
+    if (sid) rowById[sid] = i + 2;
+  }
+  Object.keys(images).forEach(function (key) {
+    var sourceId = Number(key);
+    if (sourceId >= 10000) sourceId = sourceId - 10000;
+    var row = rowById[sourceId];
+    var image = String(images[key] || '').trim();
+    if (!row || !image || image.indexOf('assets/optimized/') !== 0) {
+      skipped++;
+      return;
+    }
+    sheet.getRange(row, imageCol).setValue(image);
+    updated++;
+  });
+  return { updated: updated, skipped: skipped };
+}
+
 function jsonOutput(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
@@ -2006,10 +2191,9 @@ function appendEnquiryProfitRow_(info) {
 
 /**
  * Ignite Crackers price list → Products_v2.
- * originalPrice & price left empty; PDF rate goes in sellingPrice.
- * No unit / image columns (not in source PDF).
+ * sellingPrice = list rate; image column included (fill via /ignite-images desk).
+ * WARNING: clears Products_v2. Prefer Ensure image column for existing sheets.
  * Run from sheet menu: Vish Profit → Seed Products_v2 (Ignite)
- * or run seedProductsV2() in the Apps Script editor.
  */
 function seedProductsV2() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -2021,7 +2205,12 @@ function seedProductsV2() {
   }
   sheet.appendRow(PRODUCTS_V2_HEADERS);
   var values = PRODUCTS_V2_SEED.map(function (row) {
-    return row.slice();
+    var copy = row.slice();
+    while (copy.length < PRODUCTS_V2_HEADERS.length) copy.push('');
+    if (!copy[PRODUCTS_V2_HEADERS.indexOf('image')]) {
+      copy[PRODUCTS_V2_HEADERS.indexOf('image')] = 'assets/optimized/placeholder.jpg';
+    }
+    return copy;
   });
   if (values.length) {
     sheet.getRange(2, 1, values.length, PRODUCTS_V2_HEADERS.length).setValues(values);
@@ -2031,7 +2220,7 @@ function seedProductsV2() {
     SpreadsheetApp.getUi().alert(
       'Products_v2 ready',
       values.length +
-        ' Ignite items written. originalPrice & price are empty; sellingPrice has the list rate.',
+        ' Ignite items written (incl. image column). Set photos via /ignite-images.',
       SpreadsheetApp.getUi().ButtonSet.OK
     );
   } catch (e) {
@@ -2039,19 +2228,27 @@ function seedProductsV2() {
   }
 }
 
-/** [id, category, name, originalPrice, price, sellingPrice, active, limited] */
+/** Run once on existing Products_v2 — adds image column if missing. */
+function ensureProductsV2ImageColumn() {
+  ensureProductsV2ImageColumn_();
+  try {
+    SpreadsheetApp.getUi().alert('Products_v2 image column is ready.');
+  } catch (e) {}
+}
+
+/** [id, category, name, originalPrice, price, sellingPrice, active, limited, image] */
 var PRODUCTS_V2_SEED = [
-  [1, 'Chakras', 'CHAKKAR BIG (10PCS)', '', '', 35, true, false],
-  [2, 'Chakras', 'CHAKKAR BIG (25 PCS)', '', '', 75, true, false],
-  [3, 'Chakras', 'CHAKKAR SPECIAL', '', '', 69, true, false],
-  [4, 'Chakras', 'CHAKKAR DELUXE', '', '', 127, true, false],
-  [5, 'Chakras', 'DISCO / TAITANIC WHEEL CHAKKAR', '', '', 75, true, false],
-  [6, 'Chakras', 'WHIZLING WHEEL CHAKKAR', '', '', 98, true, false],
-  [7, 'Chakras', 'TREND / LOTUS WHEEL CHAKKAR', '', '', 156, true, false],
-  [8, 'Flower Pots', 'FLOWER POT SMALL', '', '', 52, true, false],
-  [9, 'Flower Pots', 'FLOWER POT BIG', '', '', 64, true, false],
-  [10, 'Flower Pots', 'FLOWER POT SPECIAL', '', '', 75, true, false],
-  [11, 'Flower Pots', 'FLOWER POT ASHOKA', '', '', 98, true, false],
+  [1, 'Chakras', 'CHAKKAR BIG (10PCS)', '', '', 35, true, false, 'assets/optimized/placeholder.jpg'],
+  [2, 'Chakras', 'CHAKKAR BIG (25 PCS)', '', '', 75, true, false, 'assets/optimized/placeholder.jpg'],
+  [3, 'Chakras', 'CHAKKAR SPECIAL', '', '', 69, true, false, 'assets/optimized/47.jpg'],
+  [4, 'Chakras', 'CHAKKAR DELUXE', '', '', 127, true, false, 'assets/optimized/3.jpg'],
+  [5, 'Chakras', 'DISCO / TAITANIC WHEEL CHAKKAR', '', '', 75, true, false, 'assets/optimized/placeholder.jpg'],
+  [6, 'Chakras', 'WHIZLING WHEEL CHAKKAR', '', '', 98, true, false, 'assets/optimized/placeholder.jpg'],
+  [7, 'Chakras', 'TREND / LOTUS WHEEL CHAKKAR', '', '', 156, true, false, 'assets/optimized/placeholder.jpg'],
+  [8, 'Flower Pots', 'FLOWER POT SMALL', '', '', 52, true, false, 'assets/optimized/placeholder.jpg'],
+  [9, 'Flower Pots', 'FLOWER POT BIG', '', '', 64, true, false, 'assets/optimized/placeholder.jpg'],
+  [10, 'Flower Pots', 'FLOWER POT SPECIAL', '', '', 75, true, false, 'assets/optimized/placeholder.jpg'],
+  [11, 'Flower Pots', 'FLOWER POT ASHOKA', '', '', 98, true, false, 'assets/optimized/placeholder.jpg'],
   [12, 'Flower Pots', 'FLOWER POT DELUXE (5 PCS)', '', '', 170, true, false],
   [13, 'Flower Pots', 'FLOWER POT SUPER (2PCS)', '', '', 81, true, false],
   [14, 'Flower Pots', 'COLOUR KOTI / GYPSY', '', '', 173, true, false],
@@ -2191,6 +2388,7 @@ function onOpen() {
       .createMenu('Vish Profit')
       .addItem('Setup / rebuild Profit_Analysis', 'rebuildProfitAnalysis')
       .addItem('Ensure Enquiry_Profit sheet', 'ensureEnquiryProfitSheet_')
+      .addItem('Ensure Products_v2 image column', 'ensureProductsV2ImageColumn')
       .addItem('Seed Products_v2 (Ignite)', 'seedProductsV2')
       .addToUi();
   } catch (e) {

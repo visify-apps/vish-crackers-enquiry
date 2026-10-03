@@ -5,6 +5,9 @@
   "description": "Vish Fireworks Store enquiry website",
   "scripts": {
     "optimize-images": "node scripts/optimize-images.mjs",
+    "import-image": "node scripts/import-image-url.mjs",
+    "import-server": "node scripts/import-image-url.mjs --server",
+    "sync-products": "node scripts/sync-products.mjs",
     "start": "npx --yes serve . -l 5173"
   },
   "devDependencies": {
