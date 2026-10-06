@@ -8,7 +8,7 @@ window.SITE_CONFIG = {
   address: 'Near Hayagrivas School, Vembakottai Road, Sivakasi – 626189',
   siteUrl: 'https://vishcrackers.online',
   /* false = catalogue-only; hide Combos nav, hero pack CTA, and combos.html */
-  combosEnabled: true,
+  combosEnabled: false,
   deliveryNote:
     'Pan India delivery. Charges usually ₹250–₹1,500 based on location, order size and how close we are to festival week — earlier enquiries usually get better transport rates.',
   orderDeadline: '25 October 2026',
@@ -56,9 +56,21 @@ window.SITE_CONFIG = {
     }
   },
   responsePromise: 'We will contact you on WhatsApp within 24 hours to confirm delivery and payment.',
-  appsScriptUrl:
-    'https://script.google.com/macros/s/AKfycbyq9hJBdtdriXBL8YMxM75701MWh84VrP3zXJ6r2tBPeVEBtr7YhthaWsnyyENJlI5H/exec',
+  /*
+   * DEMO / SHOWCASE (Netlify free URL, pitch to shop owners):
+   *   demoMode: true  → browse / cart OK; NEVER posts to Sheet; NEVER opens enquiry WhatsApp.
+   * REAL SHOP (paid handover on their domain + their Google account):
+   *   demoMode: false → set appsScriptUrl + enquiryIngestKey below, then enquiries hit THEIR sheet.
+   */
+  demoMode: true,
+  /* Leave blank while demoMode is true. Wire only for a real shop integration. */
+  appsScriptUrl: '',
   /* Must match Apps Script → Project Settings → Script properties → ENQUIRY_INGEST_KEY */
-  enquiryIngestKey: 'vish_7LWxtlPM4jKG7Fx9RhCivAeF2z7NU88t',
+  enquiryIngestKey: '',
+  /*
+   * Vish live shop backup (do NOT paste into customer demos — only your own production site):
+   * appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyq9hJBdtdriXBL8YMxM75701MWh84VrP3zXJ6r2tBPeVEBtr7YhthaWsnyyENJlI5H/exec',
+   * enquiryIngestKey: 'vish_7LWxtlPM4jKG7Fx9RhCivAeF2z7NU88t',
+   */
   currency: '₹'
 };

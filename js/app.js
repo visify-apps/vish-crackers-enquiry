@@ -54,6 +54,17 @@ window.VishApp = (function () {
     return cfg().combosEnabled !== false;
   }
 
+  function isDemoMode() {
+    return cfg().demoMode === true;
+  }
+
+  function demoSubmitBlockedMessage() {
+    return (
+      'This is a demo storefront for shop owners — enquiries are not saved and WhatsApp is not opened. ' +
+      'On a real shop, orders go to that owner’s Google Sheet.'
+    );
+  }
+
   function applyCombosUi() {
     const on = combosEnabled();
     document.body.classList.toggle('combos-off', !on);
@@ -1689,6 +1700,12 @@ window.VishApp = (function () {
     e.preventDefault();
     if (submitting) return;
 
+    if (isDemoMode()) {
+      if ($('form-msg')) $('form-msg').textContent = demoSubmitBlockedMessage();
+      showToast(demoSubmitBlockedMessage());
+      return;
+    }
+
     const cart = VishCart.getCart();
     if (VishCart.cartCount(cart) === 0) {
       if ($('form-msg')) $('form-msg').textContent = 'Add at least one product before submitting.';
@@ -1713,6 +1730,7 @@ window.VishApp = (function () {
    * Never treat opaque/no-cors as success — that opened WhatsApp with no Sheet row.
    */
   async function postEnquiry(payload) {
+    if (isDemoMode()) return { ok: false, reason: 'demo-mode' };
     const url = (cfg().appsScriptUrl || '').trim();
     if (!url) return { ok: false, reason: 'missing-url' };
 
@@ -1754,6 +1772,13 @@ window.VishApp = (function () {
 
   async function finishEnquiry(wantPdf) {
     if (submitting) return;
+
+    if (isDemoMode()) {
+      hideEnquiryConfirm();
+      if ($('form-msg')) $('form-msg').textContent = demoSubmitBlockedMessage();
+      showToast(demoSubmitBlockedMessage());
+      return;
+    }
 
     const cart = VishCart.getCart();
     if (VishCart.cartCount(cart) === 0) return;
@@ -1810,7 +1835,9 @@ window.VishApp = (function () {
       resetConfirmButtons(withPdfBtn, waOnlyBtn, backBtn);
       hideEnquiryConfirm();
       let errText = 'Could not save your enquiry. Please try Submit again — your list is still here.';
-      if (result.reason === 'missing-url') {
+      if (result.reason === 'demo-mode') {
+        errText = demoSubmitBlockedMessage();
+      } else if (result.reason === 'missing-url') {
         errText = 'Enquiry service is not configured. Please contact us on WhatsApp directly.';
       } else if (result.reason && result.reason !== 'network' && result.reason !== 'bad-response') {
         errText = result.reason + ' — your list is still here. Try again in a minute or use another number.';
@@ -2168,9 +2195,11 @@ window.VishApp = (function () {
       }
     } catch (err) {}
 
-    // Local catalogue first (instant). Sheet refresh in background; silent re-paint only if changed.
+    // Local catalogue first (instant). Sheet refresh only for real shops (demo has no appsScriptUrl).
     paintCatalog();
-    refreshProductsFromSheet({ paint: true, timeoutMs: 25000 }).catch(function () {});
+    if (!isDemoMode()) {
+      refreshProductsFromSheet({ paint: true, timeoutMs: 25000 }).catch(function () {});
+    }
 
     try {
       if (combosEnabled() && new URLSearchParams(location.search).get('staffpdf') === 'combos') {

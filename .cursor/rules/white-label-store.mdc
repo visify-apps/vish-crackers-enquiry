@@ -19,7 +19,9 @@ Deadline (per shop, every season): `orderDeadline` (display) + `orderDeadlineISO
 
 Combos: `combosEnabled: true` only if they want ready packs. `false` hides Combos UI and sends `combos.html` home. If true, fill `data/packs.js` with **their** SKUs (ids must exist in their catalogue).
 
-Backend: new Apps Script deploy URL → `appsScriptUrl`. New random `enquiryIngestKey` matching Script property `ENQUIRY_INGEST_KEY`. Never reuse Vish’s URL or key.
+Backend: set `demoMode: false`. New Apps Script deploy URL → `appsScriptUrl`. New random `enquiryIngestKey` matching Script property `ENQUIRY_INGEST_KEY`. Never reuse Vish’s URL or key.
+
+**Demo / Netlify showcase:** keep `demoMode: true` and blank `appsScriptUrl` / `enquiryIngestKey` so try-enquiries never write a Sheet or open WhatsApp.
 
 ## 2. SEO / PWA / host
 
