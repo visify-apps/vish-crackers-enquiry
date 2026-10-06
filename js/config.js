@@ -58,9 +58,11 @@ window.SITE_CONFIG = {
   responsePromise: 'We will contact you on WhatsApp within 24 hours to confirm delivery and payment.',
   /*
    * DEMO / SHOWCASE (Netlify free URL, pitch to shop owners):
-   *   demoMode: true  → browse / cart OK; NEVER posts to Sheet; NEVER opens enquiry WhatsApp.
+   *   demoMode: true  → storefront never posts to Sheet / enquiry WhatsApp.
+   *                     /bill unlocks with public password "demo" + fake sample orders only
+   *                     (never your real BILL_PAGE_PASSWORD or live Sheet).
    * REAL SHOP (paid handover on their domain + their Google account):
-   *   demoMode: false → set appsScriptUrl + enquiryIngestKey below, then enquiries hit THEIR sheet.
+   *   demoMode: false → set appsScriptUrl + enquiryIngestKey; bill uses their Sheet password.
    */
   demoMode: true,
   /* Leave blank while demoMode is true. Wire only for a real shop integration. */

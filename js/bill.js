@@ -1,7 +1,9 @@
-/* Private bill desk — password only typed by you; checked by Apps Script */
+/* Private bill desk — password only typed by you; checked by Apps Script.
+   When SITE_CONFIG.demoMode is true: public password "demo" + fake sample orders only. */
 (function () {
   var SESSION_FLAG = 'vish_bill_unlocked_v1';
   var SESSION_PW = 'vish_bill_pw_v1';
+  var DEMO_BILL_PASSWORD = 'demo';
   var lines = [];
   var enquirySno = '';
   var enquiryStatus = '';
@@ -14,6 +16,144 @@
 
   function cfg() {
     return window.SITE_CONFIG || {};
+  }
+
+  function isDemoMode() {
+    return cfg().demoMode === true;
+  }
+
+  /** Fake enquiries for showcase — never from your live Sheet. */
+  function sampleEnquiries() {
+    return [
+      {
+        serialNo: '1',
+        name: 'Demo Customer',
+        phone: '9876501234',
+        pincode: '600001',
+        area: 'Chennai GPO',
+        city: 'Chennai',
+        state: 'Tamil Nadu',
+        address: 'Nearest parcel / courier office',
+        orderStatus: 'New',
+        totalPrice: 2480,
+        date: '06/10/2026',
+        fulfillVendor: 'sri',
+        source: 'Enquiries',
+        cart: {
+          '101': {
+            id: 101,
+            name: '15 cm Green Sparkler',
+            unit: '1 Box',
+            quantity: 2,
+            price: 40,
+            originalPrice: 80
+          },
+          '102': {
+            id: 102,
+            name: 'Ground Chakkar Deluxe',
+            unit: '1 Box',
+            quantity: 1,
+            price: 120,
+            originalPrice: 240
+          },
+          '103': {
+            id: 103,
+            name: 'Colour Smoke - 3 Colours',
+            unit: '1 Pack',
+            quantity: 3,
+            price: 90,
+            originalPrice: 180
+          },
+          '104': {
+            id: 104,
+            name: 'Kids Fancy Assorted',
+            unit: '1 Box',
+            quantity: 1,
+            price: 450,
+            originalPrice: 900
+          },
+          '105': {
+            id: 105,
+            name: '30 Shots Premium',
+            unit: '1 Box',
+            quantity: 1,
+            price: 1100,
+            originalPrice: 2200
+          }
+        }
+      },
+      {
+        serialNo: '2',
+        name: 'Sample Family Order',
+        phone: '9988776655',
+        pincode: '560001',
+        area: 'Bengaluru GPO',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        address: 'Preferred hub: Bengaluru GPO',
+        orderStatus: 'Confirmed',
+        totalPrice: 5200,
+        date: '05/10/2026',
+        fulfillVendor: 'sri',
+        source: 'Enquiries',
+        cart: {
+          '201': {
+            id: 201,
+            name: 'Gift Box Medium',
+            unit: '1 Box',
+            quantity: 1,
+            price: 2500,
+            originalPrice: 5000
+          },
+          '202': {
+            id: 202,
+            name: 'Rocket Deluxe',
+            unit: '1 Pack',
+            quantity: 2,
+            price: 180,
+            originalPrice: 360
+          },
+          '203': {
+            id: 203,
+            name: '5000 Wala Super',
+            unit: '1 Bundle',
+            quantity: 1,
+            price: 1900,
+            originalPrice: 3800
+          }
+        }
+      }
+    ];
+  }
+
+  function findSampleEnquiry(sno) {
+    var key = String(sno || '').trim();
+    return (
+      sampleEnquiries().find(function (e) {
+        return String(e.serialNo) === key;
+      }) || null
+    );
+  }
+
+  function paintDemoGate() {
+    if (!isDemoMode()) return;
+    var hint = $('bill-demo-hint');
+    if (hint) hint.hidden = false;
+    var copy = $('bill-gate-copy');
+    if (copy) {
+      copy.textContent =
+        'Showcase bill desk — unlock with password demo. Sample data only; not linked to a live shop Sheet.';
+    }
+    var deskHint = $('bill-desk-hint');
+    if (deskHint) {
+      deskHint.textContent =
+        'Demo: try Load with S.No 1 or 2, or phone 9876501234. Preview bill PDF works. WhatsApp / CSV Sheet export stay off.';
+    }
+    var pw = $('bill-password');
+    if (pw) {
+      pw.placeholder = 'demo';
+      pw.autocomplete = 'off';
+    }
   }
 
   function $(id) {
@@ -57,6 +197,7 @@
 
   function startWarmPing() {
     stopWarmPing();
+    if (isDemoMode()) return;
     warmTimer = setInterval(function () {
       var password = getSessionPassword();
       if (!password) return;
@@ -274,6 +415,9 @@
   }
 
   async function postBill(payload, attempts) {
+    if (isDemoMode()) {
+      throw new Error('Demo bill desk — live Sheet is disabled');
+    }
     var url = (cfg().appsScriptUrl || '').trim();
     if (!url) throw new Error('Apps Script URL missing in config');
     var maxTries = attempts || 3;
@@ -410,12 +554,30 @@
 
   async function unlock() {
     var password = ($('bill-password').value || '').trim();
-    setMsg($('gate-msg'), 'Checking… (Google Script can take 10–20s first time)');
     try {
       if (!password) {
         setMsg($('gate-msg'), 'Enter password');
         return;
       }
+
+      if (isDemoMode()) {
+        if (password.toLowerCase() !== DEMO_BILL_PASSWORD) {
+          setMsg($('gate-msg'), 'Demo password is: demo');
+          return;
+        }
+        setUnlocked(true, DEMO_BILL_PASSWORD);
+        showDesk(true);
+        setMsg($('gate-msg'), '');
+        $('bill-password').value = '';
+        refreshBillNo();
+        applyEnquiry(sampleEnquiries()[0]);
+        if ($('load-sno')) $('load-sno').value = '1';
+        setMsg($('desk-msg'), 'Demo enquiry #1 loaded — edit lines, then Preview bill PDF', true);
+        loadRecent(true);
+        return;
+      }
+
+      setMsg($('gate-msg'), 'Checking… (Google Script can take 10–20s first time)');
       var data = await postBill({
         action: 'checkBillPassword',
         billPassword: password
@@ -443,6 +605,18 @@
     var password = requirePassword();
     if (!password) return;
     setMsg($('desk-msg'), 'Loading enquiry…');
+
+    if (isDemoMode()) {
+      var sample = findSampleEnquiry(sno);
+      if (!sample) {
+        setMsg($('desk-msg'), 'Demo has S.No 1 and 2 only');
+        return;
+      }
+      applyEnquiry(sample);
+      setMsg($('desk-msg'), 'Loaded demo #' + enquirySno + ' (sample data)', true);
+      return;
+    }
+
     var data = await postBill({
       action: 'getEnquiry',
       sno: sno,
@@ -472,10 +646,38 @@
   async function loadEnquiry() {
     var sno = ($('load-sno').value || '').trim();
     var phone = ($('load-phone').value || '').trim();
-    setMsg($('desk-msg'), 'Loading… (may retry if Google is slow)');
+    setMsg($('desk-msg'), isDemoMode() ? 'Loading sample…' : 'Loading… (may retry if Google is slow)');
     try {
       var password = requirePassword();
       if (!password) return;
+
+      if (isDemoMode()) {
+        if (sno) {
+          await loadBySno(sno);
+          return;
+        }
+        if (!phone) {
+          setMsg($('desk-msg'), 'Enter S.No 1 or 2, or phone 9876501234');
+          return;
+        }
+        var digits = phone.replace(/\D/g, '').slice(-10);
+        var matches = sampleEnquiries().filter(function (e) {
+          return String(e.phone).replace(/\D/g, '').slice(-10) === digits;
+        });
+        if (matches.length === 1) {
+          applyEnquiry(matches[0]);
+          if ($('load-sno')) $('load-sno').value = enquirySno;
+          setMsg($('desk-msg'), 'Loaded demo #' + enquirySno, true);
+          return;
+        }
+        if (matches.length > 1) {
+          renderMatchList(matches, 'bill-pick-list', 'Demo matches — tap one');
+          setMsg($('desk-msg'), matches.length + ' sample enquiries — pick one');
+          return;
+        }
+        setMsg($('desk-msg'), 'Try phone 9876501234 or 9988776655');
+        return;
+      }
 
       if (sno) {
         await loadBySno(sno);
@@ -517,6 +719,13 @@
       var password = requirePassword();
       if (!password) return;
       if (!silent) setMsg($('desk-msg'), 'Loading recent…');
+
+      if (isDemoMode()) {
+        renderMatchList(sampleEnquiries(), 'bill-recent', 'Demo sample enquiries — tap to load');
+        if (!silent) setMsg($('desk-msg'), 'Showing 2 sample enquiries', true);
+        return;
+      }
+
       var data = await postBill({
         action: 'listRecent',
         limit: 20,
@@ -539,6 +748,10 @@
   }
 
   async function exportCsv() {
+    if (isDemoMode()) {
+      setMsg($('desk-msg'), 'CSV export from Sheet is off in demo — real shops get full export.');
+      return;
+    }
     try {
       var password = requirePassword();
       if (!password) return;
@@ -724,6 +937,13 @@
   }
 
   function openCustomerWa(text) {
+    if (isDemoMode()) {
+      setMsg(
+        $('desk-msg'),
+        'Demo — WhatsApp to customers is off. Preview / download the bill PDF instead.'
+      );
+      return;
+    }
     var to = customerWaDigits();
     if (!to) {
       setMsg($('desk-msg'), 'Customer phone required for WhatsApp');
@@ -893,11 +1113,19 @@
   }
 
   function init() {
+    paintDemoGate();
     bind();
+    // Drop any old live-sheet session when this build is a public demo.
+    if (isDemoMode() && getSessionPassword() !== DEMO_BILL_PASSWORD) {
+      setUnlocked(false);
+    }
     if (isUnlocked()) {
       showDesk(true);
       refreshBillNo();
-      if (!lines.length) {
+      if (isDemoMode() && !enquirySno) {
+        applyEnquiry(sampleEnquiries()[0]);
+        if ($('load-sno')) $('load-sno').value = '1';
+      } else if (!lines.length) {
         lines = [{ name: '', unit: '', qty: 1, price: 0 }];
         renderLines();
       }

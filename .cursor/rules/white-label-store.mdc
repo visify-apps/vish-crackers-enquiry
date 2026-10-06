@@ -21,7 +21,7 @@ Combos: `combosEnabled: true` only if they want ready packs. `false` hides Combo
 
 Backend: set `demoMode: false`. New Apps Script deploy URL → `appsScriptUrl`. New random `enquiryIngestKey` matching Script property `ENQUIRY_INGEST_KEY`. Never reuse Vish’s URL or key.
 
-**Demo / Netlify showcase:** keep `demoMode: true` and blank `appsScriptUrl` / `enquiryIngestKey` so try-enquiries never write a Sheet or open WhatsApp.
+**Demo / Netlify showcase:** keep `demoMode: true` and blank `appsScriptUrl` / `enquiryIngestKey`. Storefront never writes a Sheet. `/bill` unlocks with public password `demo` and fake sample orders only — never the shop’s real `BILL_PAGE_PASSWORD` or live Enquiries.
 
 ## 2. SEO / PWA / host
 

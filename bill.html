@@ -19,7 +19,10 @@
   <main class="bill-shell">
     <section class="bill-gate" id="bill-gate">
       <h1>Private bill desk</h1>
-      <p>Proforma / order confirmation after negotiation. Not linked from the public site.</p>
+      <p id="bill-gate-copy">Proforma / order confirmation after negotiation. Not linked from the public site.</p>
+      <p class="bill-msg is-ok" id="bill-demo-hint" hidden>
+        Showcase demo — password is <strong>demo</strong>. Sample orders only; not a live shop Sheet.
+      </p>
       <div class="bill-field">
         <label for="bill-password">Password</label>
         <input id="bill-password" type="password" autocomplete="current-password" />
@@ -32,7 +35,7 @@
 
     <section class="bill-desk" id="bill-desk" hidden>
       <h1>Create bill PDF</h1>
-      <p class="bill-hint">Load by S.No or phone, edit lines &amp; charges, preview PDF, then WhatsApp the customer.</p>
+      <p class="bill-hint" id="bill-desk-hint">Load by S.No or phone, edit lines &amp; charges, preview PDF, then WhatsApp the customer.</p>
 
       <div class="bill-toolbar">
         <div class="bill-field">
@@ -201,8 +204,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=bill9" defer></script>
+  <script src="js/config.js?v=demo2" defer></script>
   <script src="js/pdf.js?v=bill9" defer></script>
-  <script src="js/bill.js?v=bill9" defer></script>
+  <script src="js/bill.js?v=demo2" defer></script>
 </body>
 </html>
