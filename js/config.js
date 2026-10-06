@@ -1,4 +1,4 @@
-/* Vish Fireworks Store — site config */
+/* White-label shop config — change this file first for every new store. */
 window.SITE_CONFIG = {
   brand: 'Vish Fireworks Store',
   brandShort: 'Vish Crackers',
@@ -6,11 +6,16 @@ window.SITE_CONFIG = {
   phone: '9994376845',
   whatsapp: '919994376845',
   address: 'Near Hayagrivas School, Vembakottai Road, Sivakasi – 626189',
+  siteUrl: 'https://vishcrackers.online',
+  /* false = catalogue-only; hide Combos nav, hero pack CTA, and combos.html */
+  combosEnabled: true,
   deliveryNote:
     'Pan India delivery. Charges usually ₹250–₹1,500 based on location, order size and how close we are to festival week — earlier enquiries usually get better transport rates.',
   orderDeadline: '25 October 2026',
-  /* Used for countdown (local midnight end of this day) */
+  /* Countdown ends at local midnight of this day */
   orderDeadlineISO: '2026-10-25',
+  /* Urgency bar start (same year as deadline unless rolling over) */
+  seasonStartISO: '2026-09-01',
   /* Suggested enquiry total — does not block submit */
   softMinOrder: 2000,
   softMinOrderNote:

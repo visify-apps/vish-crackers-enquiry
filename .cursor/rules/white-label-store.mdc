@@ -1,0 +1,42 @@
+---
+description: Per-shop white-label handover — what to change when cloning this site for a new fireworks owner
+alwaysApply: true
+---
+
+# White-label store (product)
+
+This repo is sold as **one fixed product**: the same enquiry storefront, transferred to the buyer’s name, domain, Google account, and Sheet. **No price tiers.** Combos are optional via `SITE_CONFIG.combosEnabled`.
+
+**Canonical template:** branch `single-vendor` (Vish Crackers Sri-only, lands on home). Do **not** copy dual-vendor, Ignite, night matcher, or questionnaire into a customer site.
+
+When the user says “new store”, “white-label”, “handover”, or names a new shop, change **only** the list below. Keep behaviour identical.
+
+## 1. Identity — `js/config.js`
+
+Set: `brand`, `brandShort`, `ownerName`, `phone`, `whatsapp` (country code, no +), `address`, `siteUrl`, `deliveryNote`, `responsePromise`, `currency`.
+
+Deadline (per shop, every season): `orderDeadline` (display) + `orderDeadlineISO` (`YYYY-MM-DD`) + `seasonStartISO`.
+
+Combos: `combosEnabled: true` only if they want ready packs. `false` hides Combos UI and sends `combos.html` home. If true, fill `data/packs.js` with **their** SKUs (ids must exist in their catalogue).
+
+Backend: new Apps Script deploy URL → `appsScriptUrl`. New random `enquiryIngestKey` matching Script property `ENQUIRY_INGEST_KEY`. Never reuse Vish’s URL or key.
+
+## 2. SEO / PWA / host
+
+- `index.html` + `combos.html`: `<title>`, description, apple-mobile-web-app-title, og/twitter/canonical URLs (`siteUrl`), AdSense (remove Vish `ca-pub-…` unless they have their own).
+- `manifest.webmanifest`: name, short_name, description.
+- `CNAME` + `sitemap.xml` (omit combos URL if `combosEnabled` is false).
+- Icons: `favicon.svg`, `icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image.jpg`.
+
+## 3. Catalogue (their data)
+
+- `data/products.js` — their items, MRP (`originalPrice`), sell (`price`), images `assets/optimized/{id}.jpg`.
+- Google Sheet on **their** Google account: Restricted sharing; paste `scripts/google-apps-script.js`; `setupSheet()`; deploy as Me / Anyone; then `npm run sync-products` against **their** script URL.
+- Do not ship Ignite / `products-ignite.js` / `ignite-images.html` on customer sites.
+- Bill desk: their `BILL_PAGE_PASSWORD`; GPay number in `js/bill.js` follows `cfg().phone`.
+
+## 4. Copy leftovers
+
+Grep the new brand vs `Vish`, `vishcrackers`, old phone. Footer “Sivakasi” seal is OK if they ship from Sivakasi; otherwise rewrite. Cart localStorage keys (`vish_*` in `js/cart.js`) may stay — they are storage ids, not customer-facing.
+
+Do not add feature flags, paid modules, or dual-vendor for a customer clone.

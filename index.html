@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=lane30" />
+  <link rel="stylesheet" href="css/styles.css?v=wl1" />
   <script>
     (function () {
       var h = String(location.hash || '').replace(/^#\/?/, '').toLowerCase();
@@ -51,7 +51,7 @@
         </div>
       </div>
       <nav class="header-actions" aria-label="Quick actions">
-        <a class="nav-link nav-link-kits" href="combos.html">Combos</a>
+        <a class="nav-link nav-link-kits" href="combos.html" data-combos-ui>Combos</a>
         <button type="button" class="nav-cta cart-badge-wrap is-idle" id="cart-badge-btn" aria-label="Open enquiry list">
           <span data-icon="cart"></span>
           <span id="enquiry-btn-label">Enquiry</span>
@@ -65,10 +65,11 @@
     <p class="legal-chip">Enquiry only · From ₹2,000</p>
     <p class="eyebrow">From Sivakasi</p>
     <h2 class="hero-title">Browse crackers. Build your list. Confirm on WhatsApp.</h2>
-    <p class="hero-sub">Ready combos or pick item by item. Prices are for enquiry — we confirm dispatch with you.</p>
+    <p class="hero-sub" data-combos-ui>Ready combos or pick item by item. Prices are for enquiry — we confirm dispatch with you.</p>
+    <p class="hero-sub" data-no-combos-ui hidden>Pick item by item. Prices are for enquiry — we confirm dispatch with you.</p>
     <p class="hero-delivery-note">Delivery to your parcel / courier office — not doorstep.</p>
 
-    <div class="hero-combo-panel">
+    <div class="hero-combo-panel" data-combos-ui>
       <a class="btn-hero featured" href="combos.html">
         <span data-icon="package"></span>
         <span class="featured-copy">
@@ -132,7 +133,7 @@
       <p class="empty-state">Loading catalogue…</p>
     </div>
     <p class="catalog-note" id="catalog-vendor-note" hidden></p>
-    <p class="catalog-note">Photos are for reference and may differ slightly from the packed item. Prefer a ready night? <a href="combos.html">See combos</a>.</p>
+    <p class="catalog-note">Photos are for reference and may differ slightly from the packed item. <span data-combos-ui>Prefer a ready night? <a href="combos.html">See combos</a>.</span></p>
   </main>
 
   <section class="visit-block shell" id="store-info" aria-labelledby="visit-title">
@@ -160,7 +161,7 @@
         </article>
         <article class="fact">
           <strong><span data-icon="file"></span> Full price list</strong>
-          <p>Need rates offline? Use <button type="button" class="link-action" id="download-pricelist-footer">Price list PDF</button> or jump to <a class="link-action" href="combos.html">ready combos</a>.</p>
+          <p>Need rates offline? Use <button type="button" class="link-action" id="download-pricelist-footer">Price list PDF</button><span data-combos-ui> or jump to <a class="link-action" href="combos.html">ready combos</a></span>.</p>
         </article>
       </div>
     </div>
@@ -364,14 +365,14 @@
   </div>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=lane1"></script>
+  <script src="js/config.js?v=wl1"></script>
   <script src="data/products.js?v=sync1"></script>
   <script src="data/packs.js?v=lane1"></script>
   <script src="js/icons.js?v=lane1"></script>
   <script src="js/cart.js?v=sri1"></script>
   <script src="js/dialog.js?v=lane26"></script>
   <script src="js/pdf.js?v=combo2"></script>
-  <script src="js/app.js?v=sri1" defer></script>
-  <script src="js/a2hs.js?v=a2hs3" defer></script>
+  <script src="js/app.js?v=sri2" defer></script>
+  <script src="js/a2hs.js?v=a2hs4" defer></script>
 </body>
 </html>

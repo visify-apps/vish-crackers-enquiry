@@ -57,7 +57,7 @@
       '<img class="a2hs-banner-icon" src="icons/icon-192.png" width="40" height="40" alt="" />' +
       '<div class="a2hs-banner-copy">' +
       '<strong id="a2hs-title">Add to Home Screen</strong>' +
-      '<p id="a2hs-text">Open Vish Crackers faster next time — like an app icon.</p>' +
+      '<p id="a2hs-text">Open faster next time — like an app icon.</p>' +
       '</div>' +
       '<div class="a2hs-banner-actions">' +
       '<button type="button" class="a2hs-btn" id="a2hs-install">Add</button>' +
@@ -105,9 +105,13 @@
     btn.hidden = false;
     btn.textContent = isIos() ? 'How?' : 'Add';
     title.textContent = 'Add to Home Screen';
+    var short =
+      (window.SITE_CONFIG && window.SITE_CONFIG.brandShort) ||
+      (window.SITE_CONFIG && window.SITE_CONFIG.brand) ||
+      'the store';
     text.textContent = isIos()
       ? 'Tap Share □↑ → Add to Home Screen for quick open.'
-      : 'Open Vish Crackers faster next time — like an app icon.';
+      : 'Open ' + short + ' faster next time — like an app icon.';
     el.hidden = false;
   }
 

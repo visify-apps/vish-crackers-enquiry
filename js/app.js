@@ -50,6 +50,24 @@ window.VishApp = (function () {
     return document.body.classList.contains('page-packs');
   }
 
+  function combosEnabled() {
+    return cfg().combosEnabled !== false;
+  }
+
+  function applyCombosUi() {
+    const on = combosEnabled();
+    document.body.classList.toggle('combos-off', !on);
+    document.querySelectorAll('[data-combos-ui]').forEach(function (el) {
+      el.hidden = !on;
+    });
+    document.querySelectorAll('[data-no-combos-ui]').forEach(function (el) {
+      el.hidden = on;
+    });
+    if (!on && isPacksPage()) {
+      location.replace('index.html');
+    }
+  }
+
   function money(n) {
     return '₹' + Number(n).toLocaleString('en-IN');
   }
@@ -71,7 +89,7 @@ window.VishApp = (function () {
 
   function wireWhatsAppFloat() {
     const waText = encodeURIComponent(
-      'Hi, I would like to enquire about fireworks from Vish Fireworks Store.'
+      'Hi, I would like to enquire about fireworks from ' + (cfg().brand || 'our store') + '.'
     );
     const waUrl = 'https://wa.me/' + cfg().whatsapp + '?text=' + waText;
     const waFloat = $('wa-float');
@@ -972,17 +990,19 @@ window.VishApp = (function () {
   }
 
   async function openStaffComboPdf() {
+    if (!combosEnabled()) return;
     const combos = comboCustomerList();
     if (!combos.length) {
       notify('No combos found.');
       return;
     }
     try {
+      const title = (cfg().brandShort || cfg().brand || 'Store') + ' Combos';
       const preview = await VishPdf.createComboListPreview(combos, {
         ...cfg(),
-        priceListFilename: 'Vish-Cracker-Combos-' + new Date().toISOString().slice(0, 10) + '.pdf'
+        priceListFilename: title.replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0, 10) + '.pdf'
       });
-      showPriceListPreview(preview, 'Vish Cracker Combos');
+      showPriceListPreview(preview, title);
     } catch (err) {
       console.error(err);
       notify(err.message || 'Could not create combo PDF.');
@@ -1391,7 +1411,7 @@ window.VishApp = (function () {
     if ($('cd-hours')) $('cd-hours').textContent = String(hours).padStart(2, '0');
     if ($('cd-mins')) $('cd-mins').textContent = String(mins).padStart(2, '0');
 
-    const seasonStart = new Date('2026-09-01T00:00:00');
+    const seasonStart = new Date((cfg().seasonStartISO || '2026-09-01') + 'T00:00:00');
     const total = Math.max(1, end - seasonStart);
     const done = Math.min(1, Math.max(0, (now - seasonStart) / total));
     if ($('urgency-progress')) $('urgency-progress').style.width = Math.round(done * 100) + '%';
@@ -1904,7 +1924,7 @@ window.VishApp = (function () {
     if ($('cart-badge-btn')) {
       $('cart-badge-btn').addEventListener('click', () => {
         if (VishCart.cartCount() === 0) {
-          showToast('Add a combo or products first');
+          showToast(combosEnabled() ? 'Add a combo or products first' : 'Add products first');
           return;
         }
         openSheet();
@@ -2037,9 +2057,11 @@ window.VishApp = (function () {
   }
 
   function hydrateHeader() {
-    if ($('brand-name')) $('brand-name').textContent = 'Vish Fireworks';
+    const brand = cfg().brand || 'Store';
+    const short = cfg().brandShort || brand;
+    if ($('brand-name')) $('brand-name').textContent = brand.replace(/\s+Store$/i, '') || brand;
     if ($('brand-tag') && !isPacksPage()) {
-      $('brand-tag').textContent = 'From Sivakasi · ' + cfg().brandShort;
+      $('brand-tag').textContent = 'From Sivakasi · ' + short;
     }
     if ($('biz-address')) $('biz-address').textContent = cfg().address;
     if ($('biz-phone')) $('biz-phone').textContent = cfg().ownerName + ' – ' + cfg().phone;
@@ -2125,6 +2147,7 @@ window.VishApp = (function () {
   }
 
   async function init() {
+    applyCombosUi();
     injectIcons(document);
     hydrateHeader();
     bindUi();
@@ -2150,7 +2173,7 @@ window.VishApp = (function () {
     refreshProductsFromSheet({ paint: true, timeoutMs: 25000 }).catch(function () {});
 
     try {
-      if (new URLSearchParams(location.search).get('staffpdf') === 'combos') {
+      if (combosEnabled() && new URLSearchParams(location.search).get('staffpdf') === 'combos') {
         openStaffComboPdf();
       }
     } catch (err) {}

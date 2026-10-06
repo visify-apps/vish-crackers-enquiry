@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=lane30" />
+  <link rel="stylesheet" href="css/styles.css?v=wl1" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
 </head>
 <body class="page-packs">
@@ -224,14 +224,19 @@
   <span id="catalog-status" hidden></span>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=lane1"></script>
+  <script src="js/config.js?v=wl1"></script>
+  <script>
+    if (window.SITE_CONFIG && window.SITE_CONFIG.combosEnabled === false) {
+      location.replace('index.html');
+    }
+  </script>
   <script src="data/products.js?v=sync1"></script>
   <script src="data/packs.js?v=lane1"></script>
   <script src="js/icons.js?v=lane1"></script>
   <script src="js/cart.js?v=sri1"></script>
   <script src="js/dialog.js?v=lane26"></script>
   <script src="js/pdf.js?v=combo2"></script>
-  <script src="js/app.js?v=sri1" defer></script>
-  <script src="js/a2hs.js?v=a2hs3" defer></script>
+  <script src="js/app.js?v=sri2" defer></script>
+  <script src="js/a2hs.js?v=a2hs4" defer></script>
 </body>
 </html>

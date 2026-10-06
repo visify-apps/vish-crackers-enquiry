@@ -57,6 +57,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+[data-combos-ui][hidden],
+[data-no-combos-ui][hidden] {
+  display: none !important;
+}
+
 body.sheet-open,
 body.picker-open,
 body.lightbox-open {
