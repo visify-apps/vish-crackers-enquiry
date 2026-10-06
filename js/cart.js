@@ -5,7 +5,7 @@ window.VishCart = (function () {
   const VENDOR_KEY = 'vish_cart_vendor_v1';
   const LEGACY_KEYS = ['vish_cart_v2'];
   const MAX_QTY = 999;
-  const VENDORS = { sri: true, ignite: true };
+  const VENDORS = { sri: true };
   let memoryFallback = null;
   let combosFallback = null;
   let vendorFallback = null;
@@ -91,7 +91,7 @@ window.VishCart = (function () {
   }
 
   function getVendor() {
-    if (vendorFallback === 'sri' || vendorFallback === 'ignite') return vendorFallback;
+    if (vendorFallback === 'sri') return vendorFallback;
     try {
       if (!window.localStorage) return '';
       return normalizeVendor(localStorage.getItem(VENDOR_KEY));

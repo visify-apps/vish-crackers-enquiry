@@ -101,63 +101,36 @@ window.VishApp = (function () {
   }
 
   function catalogForVendor(vendor) {
-    if (vendor === 'ignite') return igniteProductsData;
     return sriProductsData;
   }
 
   function syncActiveCatalog() {
-    const vendor = activeVendor();
-    productsData = vendor ? catalogForVendor(vendor) : [];
+    productsData = sriProductsData;
     return productsData;
   }
 
   function activeVendor() {
-    const fromCart = VishCart.getVendor();
-    if (fromCart) return fromCart;
-    if (window.VishLane) {
-      const lane = VishLane.getLane();
-      if (lane) return VishLane.laneToVendor(lane) || '';
-    }
-    return '';
+    return 'sri';
   }
 
-  /** Prefer cart/lane lock; else infer from first cart id (Ignite = 10000+). */
   function resolveFulfillVendor() {
-    const locked = activeVendor();
-    if (locked === 'ignite' || locked === 'sri') return locked;
-    const cart = VishCart.getCart();
-    const first = Object.values(cart)[0];
-    if (!first) return 'sri';
-    const tagged = String(first.vendor || '').toLowerCase();
-    if (tagged === 'ignite' || tagged === 'sri') return tagged;
-    const n = Number(first.id);
-    if (Number.isFinite(n) && n >= 10000) return 'ignite';
     return 'sri';
   }
 
   function activeLaneId() {
-    if (window.VishLane) {
-      const lane = VishLane.getLane();
-      if (lane) return lane;
-    }
     return '';
   }
 
   function hasNightMatch() {
-    return !!(window.VishLane && VishLane.getLane());
+    return true;
   }
 
   function requireNightMatch() {
-    if (hasNightMatch()) return true;
-    if (window.VishNightUI) VishNightUI.openMatcher({ force: true });
-    return false;
+    return true;
   }
 
   function vendorLockMessage() {
-    return (
-      'Your enquiry stays with this curated selection. ' +
-      'Clear the list and tap Edit preferences to change.'
-    );
+    return 'Please refresh and try again.';
   }
 
   function allProducts() {
@@ -165,8 +138,7 @@ window.VishApp = (function () {
   }
 
   function productById(id) {
-    const all = flattenCatalog(sriProductsData).concat(flattenCatalog(igniteProductsData));
-    return all.find((p) => String(p.id) === String(id)) || null;
+    return flattenCatalog(sriProductsData).find((p) => String(p.id) === String(id)) || null;
   }
 
   function productByIdInCatalog(categories, id) {
@@ -406,7 +378,6 @@ window.VishApp = (function () {
       add.className = 'btn btn-add';
       add.textContent = 'Add';
       add.addEventListener('click', () => {
-        if (!requireNightMatch()) return;
         const result = VishCart.addItem(item);
         if (result && result.ok === false) {
           notify(vendorLockMessage(result.vendor));
@@ -447,11 +418,6 @@ window.VishApp = (function () {
     const root = $('product-list');
     if (!root || isPacksPage()) return;
     root.innerHTML = '';
-    if (!hasNightMatch()) {
-      root.innerHTML =
-        '<p class="empty-state">Match your celebration first. <button type="button" class="link-action" data-edit-prefs="1">Set preferences</button></p>';
-      return;
-    }
     const grouped = groupedFiltered();
 
     if (grouped.size === 0) {
@@ -542,25 +508,16 @@ window.VishApp = (function () {
     renderPacks();
     updateCartBar();
     updateCatalogVendorNote();
-    if (window.VishNightUI) VishNightUI.paintBanner();
     if ($('sheet') && $('sheet').classList.contains('is-open')) renderSheet();
   }
 
   function updateCatalogVendorNote() {
-    const matched = hasNightMatch();
     const dock = $('prefs-dock-link');
-    if (dock) dock.hidden = !matched;
-
+    if (dock) dock.hidden = true;
     const note = $('catalog-vendor-note');
     if (!note) return;
-    const meta = window.VishLane ? VishLane.getMeta(activeLaneId()) : null;
-    if (!meta || !VishLane.getLane()) {
-      note.hidden = true;
-      note.innerHTML = '';
-      return;
-    }
-    note.hidden = false;
-    note.innerHTML = 'Products shown in a curated order for your celebration.';
+    note.hidden = true;
+    note.innerHTML = '';
   }
 
   function showToast(message) {
@@ -583,6 +540,11 @@ window.VishApp = (function () {
     const removed = [];
     Object.keys(cart).forEach((id) => {
       const live = liveProduct(id);
+      const n = Number(id);
+      if ((Number.isFinite(n) && n >= 10000) || (live && live.vendor === 'ignite')) {
+        VishCart.removeItem(id);
+        return;
+      }
       if (live && live.active === false) {
         VishCart.removeItem(id);
         removed.push(live.name || id);
@@ -833,13 +795,7 @@ window.VishApp = (function () {
   }
 
   function openPriceListViewer() {
-    if (!hasNightMatch()) {
-      requireNightMatch();
-      return;
-    }
-    const laneId = activeLaneId();
-    const vendor = window.VishLane ? VishLane.laneToVendor(laneId) : activeVendor();
-    openPriceListViewerForCatalog(catalogForVendor(vendor), 'Price list  |  Sivakasi  |  Enquiry only');
+    openPriceListViewerForCatalog(sriProductsData, 'Price list  |  Sivakasi  |  Enquiry only');
   }
 
   function downloadPriceListFromViewer() {
@@ -983,6 +939,9 @@ window.VishApp = (function () {
   function comboCustomerList() {
     const packs = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
     return packs
+      .filter(function (pack) {
+        return pack.vendor !== 'ignite';
+      })
       .map(function (pack) {
         const { total, mrp, saved, lines } = packTotals(pack);
         if (!lines.length) return null;
@@ -1032,44 +991,29 @@ window.VishApp = (function () {
 
   function addPack(pack) {
     const runAdd = function () {
-      if (!requireNightMatch()) return;
-      const vendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
-      const afterLane = function () {
-        const lock = VishCart.ensureVendor(vendor);
-        if (!lock.ok) {
-          notify(vendorLockMessage(lock.vendor));
-          return;
-        }
-        const { lines } = packTotals(pack);
-        if (!lines.length) {
-          notify('This combo has no available products right now.');
-          return;
-        }
-        for (let i = 0; i < lines.length; i++) {
-          const result = VishCart.addItem(lines[i].product, lines[i].qty);
-          if (result && result.ok === false) {
-            notify(vendorLockMessage(result.vendor));
-            refreshAfterCartChange();
-            return;
-          }
-        }
-        if (pack.id != null) VishCart.markComboAdded(pack.id);
-        refreshAfterCartChange();
-        showToast((pack.name || 'Combo') + ' added to enquiry');
-        openSheet();
-      };
-
-      if (window.VishLane) {
-        const laneVendor = VishLane.laneToVendor(VishLane.getLane());
-        if (laneVendor && laneVendor !== vendor) {
-          const p = VishNightUI.requestClearAndSwitch(VishLane.vendorToLane(vendor));
-          Promise.resolve(p).then(function (switched) {
-            if (switched) afterLane();
-          });
+      const vendor = 'sri';
+      const lock = VishCart.ensureVendor(vendor);
+      if (!lock.ok) {
+        notify(vendorLockMessage(lock.vendor));
+        return;
+      }
+      const { lines } = packTotals(pack);
+      if (!lines.length) {
+        notify('This combo has no available products right now.');
+        return;
+      }
+      for (let i = 0; i < lines.length; i++) {
+        const result = VishCart.addItem(lines[i].product, lines[i].qty);
+        if (result && result.ok === false) {
+          notify(vendorLockMessage(result.vendor));
+          refreshAfterCartChange();
           return;
         }
       }
-      afterLane();
+      if (pack.id != null) VishCart.markComboAdded(pack.id);
+      refreshAfterCartChange();
+      showToast((pack.name || 'Combo') + ' added to enquiry');
+      openSheet();
     };
 
     const already = pack.id != null && VishCart.hasCombo(pack.id);
@@ -1185,26 +1129,8 @@ window.VishApp = (function () {
   function updatePacksLaneNote() {
     const note = $('packs-lane-note');
     if (!note) return;
-    const answers = window.VishLane ? VishLane.getAnswers() : null;
-    const budgetLabel =
-      answers && answers.budget && VishLane.BUDGETS[answers.budget]
-        ? VishLane.BUDGETS[answers.budget].label
-        : '';
-    const help =
-      ' <button type="button" class="link-action" data-match-help="1">How we match</button>';
-    if (!hasNightMatch()) {
-      note.innerHTML =
-        '<strong>Match your celebration to see recommended combos.</strong>' +
-        ' <button type="button" class="link-action prefs-quiet" data-edit-prefs="1">Set preferences</button>' +
-        help;
-      return;
-    }
     note.innerHTML =
-      '<strong>Combos in a curated order' +
-      (budgetLabel ? ' · ' + escapeHtml(budgetLabel) : '') +
-      '.</strong> ' +
-      '<button type="button" class="link-action prefs-quiet" data-edit-prefs="1">Edit preferences</button>' +
-      help;
+      '<strong>Ready combos.</strong> Add one, then change quantities or mix items from the catalogue.';
   }
 
   function preferredSectionOrder(answers) {
@@ -1317,22 +1243,10 @@ window.VishApp = (function () {
     const oldBar = $('packs-toolbar');
     if (oldBar) oldBar.remove();
     const allPacks = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
-    const vendor = activeVendor();
-    const answers = window.VishLane ? VishLane.getAnswers() : null;
-    const budgetId = answers && answers.budget ? answers.budget : 'any';
-    const packs = allPacks.filter((pack) => {
-      const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
-      return packVendor === vendor;
-    });
+    const packs = allPacks.filter((pack) => pack.vendor !== 'ignite');
     root.innerHTML = '';
-    if (!hasNightMatch()) {
-      root.innerHTML =
-        '<p class="empty-state">Match your celebration first. <button type="button" class="link-action" data-edit-prefs="1">Set preferences</button></p>';
-      return;
-    }
     if (!packs.length) {
-      root.innerHTML =
-        '<p class="empty-state">No combos for this match yet. <button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>.</p>';
+      root.innerHTML = '<p class="empty-state">No combos right now. Browse the catalogue instead.</p>';
       return;
     }
 
@@ -1341,52 +1255,19 @@ window.VishApp = (function () {
       return {
         pack: pack,
         total: totals.total,
-        fit: window.VishLane ? VishLane.packFitsBudget(totals.total, budgetId) : true,
-        score: window.VishLane ? VishLane.budgetScore(totals.total, budgetId) : totals.total
+        fit: true,
+        score: totals.total
       };
     });
 
-    const showBudgetFirst = budgetId && budgetId !== 'any';
-    const recommended = showBudgetFirst
-      ? enriched.filter((e) => e.fit).sort((a, b) => a.score - b.score)
-      : [];
-
-    if (recommended.length) {
-      const block = document.createElement('section');
-      block.className = 'packs-section packs-section-recommended';
-      block.id = 'recommended-combos';
-      const heading = document.createElement('div');
-      heading.className = 'packs-section-head';
-      const bLabel = VishLane.budgetMeta(budgetId).label;
-      heading.innerHTML =
-        '<h2>Best for your budget</h2>' +
-        '<p>Closest matches to ' +
-        escapeHtml(bLabel) +
-        ' — add one, then customise.</p>';
-      block.appendChild(heading);
-      const grid = document.createElement('div');
-      grid.className = 'packs-section-grid';
-      recommended.forEach((e) => {
-        grid.appendChild(
-          renderPackCard(e.pack, {
-            tone: sectionTone(e.pack.section || ''),
-            budgetFit: true
-          })
-        );
-      });
-      block.appendChild(grid);
-      root.appendChild(block);
-    }
-
     const bySection = new Map();
     enriched.forEach((e) => {
-      if (showBudgetFirst && e.fit) return;
       const key = e.pack.section || 'Combos';
       if (!bySection.has(key)) bySection.set(key, []);
       bySection.get(key).push(e);
     });
 
-    const preferred = preferredSectionOrder(answers);
+    const preferred = preferredSectionOrder({});
     const sectionOrder = Array.from(bySection.keys()).sort((a, b) => {
       const ai = preferred.indexOf(a);
       const bi = preferred.indexOf(b);
@@ -1412,7 +1293,7 @@ window.VishApp = (function () {
       heading.className = 'packs-section-head';
       heading.innerHTML =
         '<h2>' +
-        escapeHtml(showBudgetFirst ? 'More · ' + sectionName : sectionName) +
+        escapeHtml(sectionName) +
         '</h2>' +
         '<p>' +
         escapeHtml(sectionBlurb(sectionName)) +
@@ -1526,14 +1407,6 @@ window.VishApp = (function () {
     if (VishCart.cartCount(cart) === 0) {
       list.innerHTML = '<p class="empty-state">Your enquiry list is empty.</p>';
     } else {
-      if (activeVendor()) {
-        const banner = document.createElement('p');
-        banner.className = 'catalog-vendor-note';
-        banner.style.marginBottom = '10px';
-        banner.textContent =
-          'This enquiry uses your curated selection. Clear the list or Edit preferences to change.';
-        list.appendChild(banner);
-      }
       Object.values(cart).forEach((item) => {
         const live = liveProduct(item.id);
         const unavailable = live && live.active === false;
@@ -1969,7 +1842,6 @@ window.VishApp = (function () {
     hideEnquiryConfirm();
     closeSheet();
     showSuccess(true, wantPdf, false);
-    if (window.VishNightUI) VishNightUI.paintBanner();
     if ($('enquiry-form')) $('enquiry-form').reset();
     resolvedArea = { city: '', state: '', officeName: '', offices: [] };
     clearOfficeSelect();
@@ -2134,26 +2006,8 @@ window.VishApp = (function () {
     wireWhatsAppFloat();
 
     document.addEventListener('click', (e) => {
-      const editPrefs = e.target.closest('[data-edit-prefs], [data-plan-again]');
-      if (editPrefs) {
+      if (e.target.closest('[data-edit-prefs], [data-plan-again], [data-match-help], [data-why-two-lists]')) {
         e.preventDefault();
-        if (window.VishNightUI) {
-          if (hasNightMatch()) VishNightUI.requestEditPreferences();
-          else VishNightUI.openMatcher({ force: true });
-        }
-        return;
-      }
-      if (e.target.closest('[data-match-help]') || e.target.closest('[data-why-two-lists]')) {
-        e.preventDefault();
-        if (window.VishDialog) {
-          VishDialog.notice({
-            kicker: 'Quick match',
-            title: 'How we match your celebration',
-            body: window.VishLane
-              ? VishLane.MATCH_HELP
-              : 'A few answers help us show packs that fit your celebration.'
-          });
-        }
         return;
       }
       if (e.target.closest('[data-pack-photos]')) {
@@ -2200,10 +2054,10 @@ window.VishApp = (function () {
 
   function useLocalProducts() {
     const sri = Array.isArray(window.PRODUCTS_DATA) ? window.PRODUCTS_DATA : [];
-    const ignite = Array.isArray(window.PRODUCTS_IGNITE_DATA) ? window.PRODUCTS_IGNITE_DATA : [];
     if (!sri.length) return false;
     sriProductsData = tagVendor(sri, 'sri');
-    igniteProductsData = tagVendor(ignite, 'ignite');
+    igniteProductsData = [];
+    VishCart.setVendor('sri');
     syncActiveCatalog();
     return true;
   }
@@ -2224,7 +2078,6 @@ window.VishApp = (function () {
     renderPacks();
     updateCartBar();
     updateCatalogVendorNote();
-    if (window.VishNightUI) VishNightUI.paintBanner();
     injectIcons(document);
   }
 
@@ -2255,14 +2108,10 @@ window.VishApp = (function () {
       const data = await res.json();
       if (data && Array.isArray(data.products) && data.products.length) {
         const nextSri = tagVendor(data.products, 'sri');
-        const nextIgnite =
-          Array.isArray(data.productsIgnite) && data.productsIgnite.length
-            ? tagVendor(data.productsIgnite, 'ignite')
-            : igniteProductsData;
-        const after = catalogFingerprint(nextSri, nextIgnite);
+        const after = catalogFingerprint(nextSri, []);
         if (after && after === before) return true;
         sriProductsData = nextSri;
-        igniteProductsData = nextIgnite;
+        igniteProductsData = [];
         syncActiveCatalog();
         if (shouldPaint) paintCatalog();
         return true;
@@ -2290,27 +2139,6 @@ window.VishApp = (function () {
       throw new Error('Product data missing');
     }
 
-    if (window.VishNightUI) {
-      VishNightUI.setCallbacks({
-        onLaneChanged: function () {
-          paintCatalog();
-        }
-      });
-      // Legacy cart without prefs: infer match from cart vendor once
-      if (!VishLane.getLane() && VishCart.cartCount() > 0) {
-        let v = VishCart.getVendor();
-        if (!v) {
-          const first = Object.values(VishCart.getCart())[0];
-          const n = Number(first && first.id);
-          v = Number.isFinite(n) && n >= 10000 ? 'ignite' : 'sri';
-          VishCart.setVendor(v);
-        }
-        VishLane.setLane(VishLane.vendorToLane(v));
-      }
-      VishNightUI.ensureGate();
-    }
-
-    // Share-cart links removed for dual-lane model — ignore legacy ?cart=
     try {
       if (new URLSearchParams(location.search).has('cart')) {
         history.replaceState({}, '', location.pathname + location.hash);
