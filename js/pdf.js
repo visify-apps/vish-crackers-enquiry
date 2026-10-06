@@ -770,24 +770,248 @@ window.VishPdf = (function () {
     return doc;
   }
 
-  function priceListFilename() {
+  function priceListFilename(config) {
+    if (config && config.priceListFilename) return String(config.priceListFilename);
     return 'Vish-Price-List-' + new Date().toISOString().slice(0, 10) + '.pdf';
   }
 
   function downloadPriceListPdf(productsData, config) {
     var doc = buildPriceListDoc(productsData, config);
-    savePdf(doc, priceListFilename());
+    savePdf(doc, priceListFilename(config));
   }
 
   function createPriceListPreview(productsData, config) {
     var doc = buildPriceListDoc(productsData, config);
-    var filename = priceListFilename();
+    var filename = priceListFilename(config);
     return {
       doc: doc,
       filename: filename,
       url: pdfObjectUrl(doc),
       arrayBuffer: doc.output('arraybuffer')
     };
+  }
+
+  function loadJpegDataUrl_(src) {
+    return new Promise(function (resolve) {
+      if (!src) {
+        resolve('');
+        return;
+      }
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var canvas = document.createElement('canvas');
+          var w = img.naturalWidth || img.width || 1;
+          var h = img.naturalHeight || img.height || 1;
+          var max = 180;
+          var scale = Math.min(1, max / Math.max(w, h));
+          canvas.width = Math.max(1, Math.round(w * scale));
+          canvas.height = Math.max(1, Math.round(h * scale));
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        } catch (err) {
+          resolve('');
+        }
+      };
+      img.onerror = function () {
+        resolve('');
+      };
+      img.src = src;
+    });
+  }
+
+  function loadComboImages_(combos) {
+    var paths = {};
+    (combos || []).forEach(function (combo) {
+      (combo.items || []).forEach(function (item) {
+        var src = String(item.image || '').trim();
+        if (src) paths[src] = true;
+      });
+    });
+    var keys = Object.keys(paths);
+    var map = {};
+    return Promise.all(
+      keys.map(function (src) {
+        return loadJpegDataUrl_(src).then(function (data) {
+          if (data) map[src] = data;
+        });
+      })
+    ).then(function () {
+      return map;
+    });
+  }
+
+  function buildComboListDoc(combos, config, imageMap) {
+    var jsPDF = getJsPdf();
+    var doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var margin = 32;
+    var contentW = pageWidth - margin * 2;
+    var y = 0;
+    var imgSize = 28;
+    var col = {
+      no: margin + 6,
+      img: margin + 26,
+      product: margin + 60,
+      unit: margin + 318,
+      mrp: margin + 408,
+      price: pageWidth - margin - 6
+    };
+    imageMap = imageMap || {};
+
+    doc.setFillColor(COLORS.night[0], COLORS.night[1], COLORS.night[2]);
+    doc.rect(0, 0, pageWidth, 110, 'F');
+    paintStripe(doc, 110, pageWidth);
+    doc.setTextColor(COLORS.gold[0], COLORS.gold[1], COLORS.gold[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('Vish Cracker Combos', margin, 34);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(COLORS.goldSoft[0], COLORS.goldSoft[1], COLORS.goldSoft[2]);
+    var intro = doc.splitTextToSize(
+      'Every combo is completely customizable. Add, remove or swap items to suit your celebration. WhatsApp or call for details and a custom list.',
+      contentW - 8
+    );
+    doc.text(intro, margin, 52);
+    doc.setFontSize(9);
+    doc.text(
+      safeText(
+        'WhatsApp / Call: ' +
+          (config.ownerName || '') +
+          '  ' +
+          (config.phone || '') +
+          '  |  Sivakasi'
+      ),
+      margin,
+      86
+    );
+    y = 132;
+
+    doc.setFillColor(255, 248, 242);
+    doc.roundedRect(margin, y, contentW, 36, 6, 6, 'F');
+    doc.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    doc.setFontSize(8);
+    var legal = doc.splitTextToSize(
+      'Online sale of firecrackers is not permitted. Prices are for enquiry reference only. Delivery is to your preferred parcel / courier office (not doorstep).',
+      contentW - 20
+    );
+    doc.text(legal, margin + 10, y + 14);
+    y += 50;
+
+    function drawColHeader() {
+      doc.setFillColor(COLORS.night[0], COLORS.night[1], COLORS.night[2]);
+      doc.roundedRect(margin, y, contentW, 20, 3, 3, 'F');
+      doc.setTextColor(COLORS.gold[0], COLORS.gold[1], COLORS.gold[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.text('#', col.no, y + 13);
+      doc.text('Product', col.product, y + 13);
+      doc.text('Qty', col.unit, y + 13);
+      doc.text('MRP', col.mrp, y + 13);
+      doc.text('Our Price', col.price, y + 13, { align: 'right' });
+      y += 26;
+      doc.setTextColor(COLORS.ink[0], COLORS.ink[1], COLORS.ink[2]);
+    }
+
+    drawColHeader();
+
+    function ensureSpace(need) {
+      if (y + need < 760) return;
+      doc.addPage();
+      y = 48;
+      drawColHeader();
+    }
+
+    (combos || []).forEach(function (combo) {
+      var tag = safeText(combo.tagline || '');
+      var headH = tag ? 36 : 22;
+      ensureSpace(headH + 40);
+      doc.setFillColor(255, 237, 180);
+      doc.roundedRect(margin, y, contentW, headH, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(COLORS.night2[0], COLORS.night2[1], COLORS.night2[2]);
+      doc.text(safeText(String(combo.name || 'Combo').toUpperCase()), margin + 10, y + 15);
+      if (tag) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+        doc.text(doc.splitTextToSize(tag, contentW - 24)[0], margin + 10, y + 28);
+      }
+      y += headH + 8;
+
+      var serial = 1;
+      (combo.items || []).forEach(function (item, idx) {
+        var name = safeText(item.name);
+        var nameLines = doc.splitTextToSize(name, 240);
+        var rowH = Math.max(34, nameLines.length * 11 + 10);
+        ensureSpace(rowH);
+        if (idx % 2 === 1) {
+          doc.setFillColor(COLORS.rowAlt[0], COLORS.rowAlt[1], COLORS.rowAlt[2]);
+          doc.rect(margin, y - 3, contentW, rowH, 'F');
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+        doc.text(String(serial++), col.no, y + 16);
+        var data = imageMap[item.image];
+        if (data) {
+          try {
+            doc.addImage(data, 'JPEG', col.img, y, imgSize, imgSize);
+          } catch (err) {}
+        }
+        doc.setTextColor(COLORS.ink[0], COLORS.ink[1], COLORS.ink[2]);
+        doc.text(nameLines, col.product, y + 12);
+        doc.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+        doc.text(safeText(item.unit), col.unit, y + 16);
+        doc.text(money(item.originalPrice), col.mrp, y + 16);
+        doc.setTextColor(COLORS.good[0], COLORS.good[1], COLORS.good[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text(money(item.price), col.price, y + 16, { align: 'right' });
+        y += rowH;
+      });
+
+      ensureSpace(28);
+      doc.setFillColor(COLORS.night[0], COLORS.night[1], COLORS.night[2]);
+      doc.roundedRect(margin, y, contentW, 22, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(COLORS.gold[0], COLORS.gold[1], COLORS.gold[2]);
+      doc.text('Combo total', margin + 10, y + 15);
+      if (combo.saved > 0) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text('You save ' + money(combo.saved), margin + 120, y + 15);
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(COLORS.goldSoft[0], COLORS.goldSoft[1], COLORS.goldSoft[2]);
+      doc.text(money(combo.mrp), col.mrp, y + 15);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(COLORS.gold[0], COLORS.gold[1], COLORS.gold[2]);
+      doc.text(money(combo.price), col.price, y + 15, { align: 'right' });
+      y += 34;
+    });
+
+    finalizePages(doc, config);
+    return doc;
+  }
+
+  function createComboListPreview(combos, config) {
+    config = config || {};
+    return loadComboImages_(combos).then(function (imageMap) {
+      var doc = buildComboListDoc(combos, config, imageMap);
+      var filename =
+        config.priceListFilename ||
+        'Vish-Cracker-Combos-' + new Date().toISOString().slice(0, 10) + '.pdf';
+      return {
+        doc: doc,
+        filename: filename,
+        url: pdfObjectUrl(doc),
+        arrayBuffer: doc.output('arraybuffer')
+      };
+    });
   }
 
   return {
@@ -801,6 +1025,7 @@ window.VishPdf = (function () {
     makeBillNo: makeBillNo,
     downloadPriceListPdf: downloadPriceListPdf,
     createPriceListPreview: createPriceListPreview,
+    createComboListPreview: createComboListPreview,
     money: money
   };
 })();

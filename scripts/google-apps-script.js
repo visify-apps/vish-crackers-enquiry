@@ -206,6 +206,20 @@ function headerCol_(map, names) {
   return 0;
 }
 
+/** 0-based column index from a header row (Google Table / mixed casing). */
+function sheetHeaderIndex_(headers, names) {
+  var idx = {};
+  for (var h = 0; h < headers.length; h++) {
+    var k = normalizeHeader_(headers[h]);
+    if (k && idx[k] == null) idx[k] = h;
+  }
+  for (var i = 0; i < names.length; i++) {
+    var key = normalizeHeader_(names[i]);
+    if (idx[key] != null) return idx[key];
+  }
+  return -1;
+}
+
 function rowFromHeaderMap_(map, colCount, fields) {
   var valuesByCol = {};
   function put(names, value) {
@@ -1257,13 +1271,13 @@ function loadProductPriceMap() {
     var v2values = v2.getDataRange().getValues();
     if (v2values.length >= 2) {
       var h2 = v2values[0];
-      var iId = h2.indexOf('id');
-      var iSell = h2.indexOf('sellingPrice');
-      var iPrice = h2.indexOf('price');
-      var iMrp = h2.indexOf('originalPrice');
-      var iName = h2.indexOf('name');
-      var iActive = h2.indexOf('active');
-      var iCat = h2.indexOf('category');
+      var iId = sheetHeaderIndex_(h2, ['id', 'product id', 'sno']);
+      var iSell = sheetHeaderIndex_(h2, ['sellingPrice', 'selling price', 'sell price']);
+      var iPrice = sheetHeaderIndex_(h2, ['price']);
+      var iMrp = sheetHeaderIndex_(h2, ['mrp', 'originalPrice', 'original price']);
+      var iName = sheetHeaderIndex_(h2, ['name', 'product', 'item']);
+      var iActive = sheetHeaderIndex_(h2, ['active']);
+      var iCat = sheetHeaderIndex_(h2, ['category']);
       if (iId >= 0 && (iSell >= 0 || iPrice >= 0)) {
         v2values.slice(1).forEach(function (row) {
           var sourceId = Number(row[iId]);
@@ -1404,7 +1418,8 @@ function ensureProductsV2ImageColumn_() {
 
 /**
  * Ignite catalogue for the website — same shape as readProducts().
- * Site ids = 10000 + Products_v2 id. Sell from sellingPrice. Image from image column.
+ * Products_v2 columns: mrp → originalPrice (PDF MRP), sellingPrice → price (Our Price).
+ * buyingPrice is cost only (profit sheet). Site ids = 10000 + sheet id.
  */
 function readProductsV2() {
   ensureProductsV2ImageColumn_();
@@ -1412,26 +1427,20 @@ function readProductsV2() {
   if (!sheet || sheet.getLastRow() < 2) return [];
   var values = sheet.getDataRange().getValues();
   var headers = values[0];
-  var idx = {};
-  for (var h = 0; h < headers.length; h++) {
-    idx[normalizeHeader_(headers[h])] = h;
-  }
-  function col_(names) {
-    for (var i = 0; i < names.length; i++) {
-      var k = normalizeHeader_(names[i]);
-      if (idx[k] != null) return idx[k];
-    }
-    return -1;
-  }
-  var idCol = col_(['id', 'product id', 'sno']);
-  var catCol = col_(['category']);
-  var nameCol = col_(['name', 'product', 'item']);
-  var mrpCol = col_(['mrp', 'originalprice', 'original price']);
-  var sellCol = col_(['sellingprice', 'selling price', 'price']);
-  var imageCol = col_(['image', 'photo']);
-  var activeCol = col_(['active']);
-  var limitedCol = col_(['limited']);
-  var unitCol = col_(['unit']);
+  var idCol = sheetHeaderIndex_(headers, ['id', 'product id', 'sno']);
+  var catCol = sheetHeaderIndex_(headers, ['category']);
+  var nameCol = sheetHeaderIndex_(headers, ['name', 'product', 'item']);
+  var mrpCol = sheetHeaderIndex_(headers, ['mrp', 'originalPrice', 'original price']);
+  var sellCol = sheetHeaderIndex_(headers, [
+    'sellingPrice',
+    'selling price',
+    'sell price',
+    'price'
+  ]);
+  var imageCol = sheetHeaderIndex_(headers, ['image', 'photo']);
+  var activeCol = sheetHeaderIndex_(headers, ['active']);
+  var limitedCol = sheetHeaderIndex_(headers, ['limited']);
+  var unitCol = sheetHeaderIndex_(headers, ['unit']);
   if (idCol < 0 || nameCol < 0) return [];
 
   var byCategory = {};

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>Vish Cracker Combos — editorial poster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #120a08;
+      --gold: #f0c75e;
+      --cream: #fffaf7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: #000;
+      min-height: 100%;
+    }
+
+    .poster {
+      width: 1080px;
+      height: 1350px;
+      background: var(--black);
+      color: var(--cream);
+      position: relative;
+      overflow: hidden;
+      font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .rule {
+      position: absolute;
+      top: 56px;
+      left: 72px;
+      right: 72px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .masthead {
+      position: absolute;
+      top: 72px;
+      left: 72px;
+      right: 72px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .masthead span {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      font-variant: small-caps;
+      text-transform: lowercase;
+      color: var(--cream);
+    }
+
+    .still {
+      position: absolute;
+      top: 148px;
+      left: 90px;
+      right: 90px;
+      height: 620px;
+      object-fit: contain;
+      object-position: center 42%;
+    }
+
+    .copy {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      top: 790px;
+      text-align: center;
+    }
+
+    .headline {
+      font-family: "Cormorant Garamond", "Times New Roman", serif;
+      font-weight: 500;
+      font-size: 92px;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--gold);
+    }
+
+    .subline {
+      margin-top: 28px;
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--cream);
+      line-height: 1.35;
+    }
+
+    .note {
+      margin-top: 22px;
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: none;
+      color: rgba(255, 250, 247, 0.78);
+    }
+
+    .bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 78px;
+      height: 88px;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      padding: 0 140px 0 72px;
+    }
+
+    .bar-text {
+      color: var(--black);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: none;
+    }
+
+    .qr {
+      position: absolute;
+      right: 40px;
+      bottom: 86px;
+      width: 72px;
+      height: 72px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .qr span {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: #000;
+    }
+
+    .legal {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      bottom: 32px;
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: rgba(255, 250, 247, 0.72);
+    }
+  </style>
+</head>
+<body>
+  <article class="poster" aria-label="Vish Cracker Combos editorial poster">
+    <div class="rule"></div>
+    <div class="masthead">
+      <span>Vish Crackers</span>
+      <span>Sivakasi</span>
+    </div>
+    <img class="still" src="vish-combos-products-still.jpg" alt="Unlit sparkler pack and small fountain pack" />
+    <div class="copy">
+      <h1 class="headline">Vish Cracker Combos</h1>
+      <p class="subline">Ready nights. Custom lists.</p>
+      <p class="note">Every combo is completely customisable.</p>
+    </div>
+    <div class="bar">
+      <p class="bar-text">WhatsApp Vishnu P&nbsp;&nbsp;99943 76845</p>
+    </div>
+    <div class="qr" aria-label="QR placeholder"><span>QR</span></div>
+    <p class="legal">Enquiry only. Not an online sale. Delivery to parcel office.</p>
+  </article>
+</body>
+</html>

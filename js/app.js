@@ -766,59 +766,66 @@ window.VishApp = (function () {
     if (pages) pages.hidden = true;
   }
 
-  function openPriceListViewerForCatalog(catalog, subtitle) {
+  function showPriceListPreview(preview, viewerTitle) {
+    closePdfViewer();
+    priceListPreviewUrl = preview.url;
+    priceListPreviewFilename = preview.filename;
+    const frame = $('pdf-viewer-frame');
+    const viewer = $('pdf-viewer');
+    const title = $('pdf-viewer-title');
+    if (title && viewerTitle) title.textContent = viewerTitle;
+    const useCanvas = pdfPreviewLikelyUnsupported();
+    if (viewer) viewer.hidden = false;
+    document.body.classList.add('pdf-viewer-open');
+    injectIcons(viewer);
+
+    if (useCanvas) {
+      if (frame) frame.src = 'about:blank';
+      renderPdfCanvasPreview(preview.arrayBuffer).catch(function (err) {
+        console.warn('Canvas PDF preview failed:', err);
+        setPdfPreviewMode('download');
+      });
+      return;
+    }
+
+    if (frame) frame.src = preview.url;
+    setPdfPreviewMode('iframe');
+    if (frame) {
+      pdfPreviewTimer = setTimeout(function () {
+        pdfPreviewTimer = null;
+        try {
+          const blank =
+            !frame.contentDocument ||
+            !frame.contentDocument.body ||
+            frame.contentDocument.body.childElementCount === 0;
+          if (blank && preview.arrayBuffer) {
+            renderPdfCanvasPreview(preview.arrayBuffer).catch(function () {
+              setPdfPreviewMode('download');
+            });
+          }
+        } catch (e) {
+          if (preview.arrayBuffer) {
+            renderPdfCanvasPreview(preview.arrayBuffer).catch(function () {
+              setPdfPreviewMode('download');
+            });
+          }
+        }
+      }, 1600);
+    }
+  }
+
+  function openPriceListViewerForCatalog(catalog, subtitle, filename) {
     if (!catalog || !catalog.length) {
       notify('Catalogue is still loading. Please try again in a moment.');
       return;
     }
     try {
-      closePdfViewer();
       const preview = VishPdf.createPriceListPreview(catalog, {
         ...cfg(),
-        priceListSubtitle: subtitle || 'Price list  |  Sivakasi  |  Enquiry only'
+        priceListSubtitle: subtitle || 'Price list  |  Sivakasi  |  Enquiry only',
+        priceListFilename: filename || ''
       });
-      priceListPreviewUrl = preview.url;
-      priceListPreviewFilename = preview.filename;
-      const frame = $('pdf-viewer-frame');
-      const viewer = $('pdf-viewer');
-      const useCanvas = pdfPreviewLikelyUnsupported();
-      if (viewer) viewer.hidden = false;
-      document.body.classList.add('pdf-viewer-open');
-      injectIcons(viewer);
-
-      if (useCanvas) {
-        if (frame) frame.src = 'about:blank';
-        renderPdfCanvasPreview(preview.arrayBuffer).catch(function (err) {
-          console.warn('Canvas PDF preview failed:', err);
-          setPdfPreviewMode('download');
-        });
-        return;
-      }
-
-      if (frame) frame.src = preview.url;
-      setPdfPreviewMode('iframe');
-      if (frame) {
-        pdfPreviewTimer = setTimeout(function () {
-          pdfPreviewTimer = null;
-          try {
-            const blank =
-              !frame.contentDocument ||
-              !frame.contentDocument.body ||
-              frame.contentDocument.body.childElementCount === 0;
-            if (blank && preview.arrayBuffer) {
-              renderPdfCanvasPreview(preview.arrayBuffer).catch(function () {
-                setPdfPreviewMode('download');
-              });
-            }
-          } catch (e) {
-            if (preview.arrayBuffer) {
-              renderPdfCanvasPreview(preview.arrayBuffer).catch(function () {
-                setPdfPreviewMode('download');
-              });
-            }
-          }
-        }, 1600);
-      }
+      showPriceListPreview(preview, 'Price list');
     } catch (err) {
       console.error(err);
       notify(err.message || 'Could not create PDF. Please refresh and try again.');
@@ -971,6 +978,56 @@ window.VishApp = (function () {
       lines.push({ product, qty });
     });
     return { total, mrp, saved: Math.max(0, mrp - total), lines };
+  }
+
+  function comboCustomerList() {
+    const packs = Array.isArray(window.PACKS_DATA) ? window.PACKS_DATA : [];
+    return packs
+      .map(function (pack) {
+        const { total, mrp, saved, lines } = packTotals(pack);
+        if (!lines.length) return null;
+        return {
+          name: pack.name || 'Combo',
+          tagline: String(pack.tagline || '')
+            .replace(/\s*after adding\.?/gi, '')
+            .replace(/\s*after you add the combo\.?/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim(),
+          mrp: mrp,
+          price: total,
+          saved: saved,
+          items: lines.map(function (line) {
+            const product = line.product;
+            const qty = line.qty || 1;
+            return {
+              name: product.name,
+              unit: qty + ' x ' + (product.unit || '1 Pack'),
+              originalPrice: (product.originalPrice || product.price) * qty,
+              price: product.price * qty,
+              image: product.image || 'assets/optimized/placeholder.jpg'
+            };
+          })
+        };
+      })
+      .filter(Boolean);
+  }
+
+  async function openStaffComboPdf() {
+    const combos = comboCustomerList();
+    if (!combos.length) {
+      notify('No combos found.');
+      return;
+    }
+    try {
+      const preview = await VishPdf.createComboListPreview(combos, {
+        ...cfg(),
+        priceListFilename: 'Vish-Cracker-Combos-' + new Date().toISOString().slice(0, 10) + '.pdf'
+      });
+      showPriceListPreview(preview, 'Vish Cracker Combos');
+    } catch (err) {
+      console.error(err);
+      notify(err.message || 'Could not create combo PDF.');
+    }
   }
 
   function addPack(pack) {
@@ -2032,9 +2089,10 @@ window.VishApp = (function () {
       });
     }
 
-    function runPriceListDownload(btn) {
+    async function runPriceListDownload(btn) {
       try {
         if (btn) btn.disabled = true;
+        await refreshProductsFromSheet({ paint: false, timeoutMs: 10000 });
         openPriceListViewer();
       } finally {
         if (btn) btn.disabled = false;
@@ -2262,6 +2320,12 @@ window.VishApp = (function () {
     // Local catalogue first (instant). Sheet refresh in background; silent re-paint only if changed.
     paintCatalog();
     refreshProductsFromSheet({ paint: true, timeoutMs: 25000 }).catch(function () {});
+
+    try {
+      if (new URLSearchParams(location.search).get('staffpdf') === 'combos') {
+        openStaffComboPdf();
+      }
+    } catch (err) {}
   }
 
   return { init };
