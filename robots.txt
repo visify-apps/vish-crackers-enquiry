@@ -1,6 +1,12 @@
 User-agent: *
 Allow: /
 Disallow: /bill.html
+Disallow: /bill
 Disallow: /ignite-images.html
+Disallow: /ignite-images
+Disallow: /packs.html
+Disallow: /packs
+Disallow: /print/
+Disallow: /scripts/
 
 Sitemap: https://vishcrackers.online/sitemap.xml
