@@ -113,6 +113,11 @@ window.VishNightUI = (function () {
   function paintBanner(options) {
     options = options || {};
     const el = ensureBanner();
+    if (window.VishVendorMode && !window.VishVendorMode.isDualVendor()) {
+      bannerFlashKey = '';
+      clearBannerDom();
+      return;
+    }
     const lane = VishLane.getLane();
     const meta = VishLane.getMeta(lane);
     const cartCount = window.VishCart ? VishCart.cartCount() : 0;
@@ -501,6 +506,10 @@ window.VishNightUI = (function () {
 
   function openMatcher(options) {
     options = options || {};
+    if (window.VishVendorMode && !window.VishVendorMode.isDualVendor()) {
+      hideMatcher();
+      return;
+    }
     ensureRoot();
     bindRootClicks();
     step = 'place';
@@ -527,6 +536,12 @@ window.VishNightUI = (function () {
   }
 
   function ensureGate() {
+    // Single-vendor modes skip the night matcher — open catalogue immediately.
+    if (window.VishVendorMode && !window.VishVendorMode.isDualVendor()) {
+      hideMatcher();
+      if (bannerEl) bannerEl.hidden = true;
+      return false;
+    }
     paintBanner();
     if (VishLane.getLane()) {
       hideMatcher();

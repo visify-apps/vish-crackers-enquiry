@@ -4827,3 +4827,9 @@ body.packs-show-photos .pack-item-photo {
 .pack-items li {
   align-items: center;
 }
+
+/* vendorMode: hide dual-only / single-only blocks (JS also toggles [hidden]) */
+body.vendor-mode-single [data-dual-only],
+body.vendor-mode-dual [data-single-only] {
+  display: none !important;
+}

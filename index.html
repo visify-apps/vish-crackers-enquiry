@@ -28,12 +28,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=lane30" />
+  <link rel="stylesheet" href="css/styles.css?v=vendor1" />
   <script>
     (function () {
       var h = String(location.hash || '').replace(/^#\/?/, '').toLowerCase();
       if (h === 'bill') location.replace('/bill');
       if (h === 'ignite-images' || h === 'igniteimages') location.replace('/ignite-images');
+      if (h === 'quote-desk' || h === 'quotedesk' || h === 'quote') location.replace('/quote-desk');
     })();
   </script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4581906102127739" crossorigin="anonymous"></script>
@@ -63,9 +64,16 @@
 
   <section class="hero shell hero-combined" id="urgency-banner" aria-live="polite">
     <p class="legal-chip">Enquiry only · From ₹2,000</p>
-    <p class="eyebrow">Match your Diwali celebration</p>
-    <h2 class="hero-title">Tell us your setup. We’ll pick the packs.</h2>
-    <p class="hero-sub">A few quick taps — place, crowd, budget, style. Then start with a recommended combo.</p>
+    <div data-dual-only>
+      <p class="eyebrow">Match your Diwali celebration</p>
+      <h2 class="hero-title">Tell us your setup. We’ll pick the packs.</h2>
+      <p class="hero-sub">A few quick taps — place, crowd, budget, style. Then start with a recommended combo.</p>
+    </div>
+    <div data-single-only hidden>
+      <p class="eyebrow">Sivakasi fireworks enquiry</p>
+      <h2 class="hero-title">Browse the list. Build your enquiry.</h2>
+      <p class="hero-sub">Add crackers or start from a ready combo, change quantities anytime, then send your list.</p>
+    </div>
     <p class="hero-delivery-note">Delivery to your parcel / courier office — not doorstep.</p>
 
     <div class="hero-combo-panel">
@@ -73,10 +81,12 @@
         <span data-icon="package"></span>
         <span class="featured-copy">
           <strong>Open ready combos</strong>
-          <small>Matched to your answers</small>
+          <small data-dual-only>Matched to your answers</small>
+          <small data-single-only hidden>Fully editable after add</small>
         </span>
       </a>
-      <p class="hero-combo-note">Customisable after adding · Edit preferences anytime</p>
+      <p class="hero-combo-note" data-dual-only>Customisable after adding · Edit preferences anytime</p>
+      <p class="hero-combo-note" data-single-only hidden>Customisable after adding · Browse catalogue anytime</p>
     </div>
 
     <div class="hero-more-links">
@@ -123,7 +133,7 @@
           <span data-icon="chevron"></span>
         </button>
       </div>
-      <p class="prefs-dock-link" id="prefs-dock-link" hidden>
+      <p class="prefs-dock-link" id="prefs-dock-link" data-dual-only hidden>
         <button type="button" class="link-action prefs-quiet" data-edit-prefs="1">Edit preferences</button>
       </p>
     </div>
@@ -367,17 +377,18 @@
   </div>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=lane1"></script>
+  <script src="js/config.js?v=vendor2"></script>
+  <script src="js/vendor-mode.js?v=vendor2"></script>
   <script src="data/products.js?v=sync1"></script>
   <script src="data/products-ignite.js?v=ignite-mrp2"></script>
   <script src="data/packs.js?v=lane1"></script>
   <script src="js/icons.js?v=lane1"></script>
-  <script src="js/cart.js?v=lane1"></script>
+  <script src="js/cart.js?v=vendor1"></script>
   <script src="js/lane.js?v=lane26"></script>
   <script src="js/dialog.js?v=lane26"></script>
-  <script src="js/night-ui.js?v=lane31"></script>
+  <script src="js/night-ui.js?v=vendor1"></script>
   <script src="js/pdf.js?v=combo2"></script>
-  <script src="js/app.js?v=combo2" defer></script>
+  <script src="js/app.js?v=vendor1" defer></script>
   <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

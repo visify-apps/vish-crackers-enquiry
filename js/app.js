@@ -100,6 +100,14 @@ window.VishApp = (function () {
     );
   }
 
+  function isDualVendor() {
+    return !(window.VishVendorMode && !window.VishVendorMode.isDualVendor());
+  }
+
+  function fixedVendor() {
+    return window.VishVendorMode ? window.VishVendorMode.fixedVendor() : null;
+  }
+
   function catalogForVendor(vendor) {
     if (vendor === 'ignite') return igniteProductsData;
     return sriProductsData;
@@ -112,6 +120,8 @@ window.VishApp = (function () {
   }
 
   function activeVendor() {
+    const fixed = fixedVendor();
+    if (fixed) return fixed;
     const fromCart = VishCart.getVendor();
     if (fromCart) return fromCart;
     if (window.VishLane) {
@@ -123,11 +133,14 @@ window.VishApp = (function () {
 
   /** Prefer cart/lane lock; else infer from first cart id (Ignite = 10000+). */
   function resolveFulfillVendor() {
+    const fixed = fixedVendor();
+    if (fixed) return fixed;
     const locked = activeVendor();
     if (locked === 'ignite' || locked === 'sri') return locked;
     const cart = VishCart.getCart();
     const first = Object.values(cart)[0];
     if (!first) return 'sri';
+    if (window.VishVendorMode) return window.VishVendorMode.inferVendorFromItem(first);
     const tagged = String(first.vendor || '').toLowerCase();
     if (tagged === 'ignite' || tagged === 'sri') return tagged;
     const n = Number(first.id);
@@ -136,6 +149,7 @@ window.VishApp = (function () {
   }
 
   function activeLaneId() {
+    if (!isDualVendor()) return '';
     if (window.VishLane) {
       const lane = VishLane.getLane();
       if (lane) return lane;
@@ -144,6 +158,7 @@ window.VishApp = (function () {
   }
 
   function hasNightMatch() {
+    if (!isDualVendor()) return true;
     return !!(window.VishLane && VishLane.getLane());
   }
 
@@ -154,10 +169,62 @@ window.VishApp = (function () {
   }
 
   function vendorLockMessage() {
+    if (!isDualVendor()) {
+      return 'Your enquiry stays with this product list. Clear the list to start over.';
+    }
     return (
       'Your enquiry stays with this curated selection. ' +
       'Clear the list and tap Edit preferences to change.'
     );
+  }
+
+  function applyVendorModeUi() {
+    const dual = isDualVendor();
+    const mode = window.VishVendorMode ? window.VishVendorMode.vendorMode() : 'dual';
+    document.body.classList.toggle('vendor-mode-dual', dual);
+    document.body.classList.toggle('vendor-mode-single', !dual);
+    document.body.dataset.vendorMode = mode;
+    document.querySelectorAll('[data-dual-only]').forEach(function (el) {
+      el.hidden = !dual;
+    });
+    document.querySelectorAll('[data-single-only]').forEach(function (el) {
+      el.hidden = dual;
+    });
+  }
+
+  /** Drop cart lines from the other vendor when storefront is locked to one. */
+  function pruneWrongVendorCartItems() {
+    const fixed = fixedVendor();
+    if (!fixed) return 0;
+    const cart = VishCart.getCart();
+    let removed = 0;
+    Object.keys(cart).forEach(function (id) {
+      const item = cart[id];
+      const itemVendor = window.VishVendorMode
+        ? window.VishVendorMode.inferVendorFromItem(item)
+        : 'sri';
+      const inCatalog = !!productByIdInCatalog(catalogForVendor(fixed), id);
+      if (itemVendor !== fixed || !inCatalog) {
+        VishCart.removeItem(id);
+        removed += 1;
+      }
+    });
+    VishCart.setVendor(fixed);
+    if (removed > 0) {
+      showToast(
+        removed === 1
+          ? '1 item from another list was removed'
+          : removed + ' items from another list were removed'
+      );
+    }
+    return removed;
+  }
+
+  function clearStaleLaneForSingleVendor() {
+    if (isDualVendor()) return;
+    if (window.VishLane && typeof VishLane.clearLane === 'function') {
+      VishLane.clearLane();
+    }
   }
 
   function allProducts() {
@@ -165,6 +232,10 @@ window.VishApp = (function () {
   }
 
   function productById(id) {
+    const fixed = fixedVendor();
+    if (fixed) {
+      return productByIdInCatalog(catalogForVendor(fixed), id);
+    }
     const all = flattenCatalog(sriProductsData).concat(flattenCatalog(igniteProductsData));
     return all.find((p) => String(p.id) === String(id)) || null;
   }
@@ -547,8 +618,17 @@ window.VishApp = (function () {
   }
 
   function updateCatalogVendorNote() {
-    const matched = hasNightMatch();
     const dock = $('prefs-dock-link');
+    if (!isDualVendor()) {
+      if (dock) dock.hidden = true;
+      const noteSingle = $('catalog-vendor-note');
+      if (noteSingle) {
+        noteSingle.hidden = true;
+        noteSingle.innerHTML = '';
+      }
+      return;
+    }
+    const matched = hasNightMatch();
     if (dock) dock.hidden = !matched;
 
     const note = $('catalog-vendor-note');
@@ -837,8 +917,7 @@ window.VishApp = (function () {
       requireNightMatch();
       return;
     }
-    const laneId = activeLaneId();
-    const vendor = window.VishLane ? VishLane.laneToVendor(laneId) : activeVendor();
+    const vendor = activeVendor();
     openPriceListViewerForCatalog(catalogForVendor(vendor), 'Price list  |  Sivakasi  |  Enquiry only');
   }
 
@@ -1059,7 +1138,7 @@ window.VishApp = (function () {
         openSheet();
       };
 
-      if (window.VishLane) {
+      if (isDualVendor() && window.VishLane) {
         const laneVendor = VishLane.laneToVendor(VishLane.getLane());
         if (laneVendor && laneVendor !== vendor) {
           const p = VishNightUI.requestClearAndSwitch(VishLane.vendorToLane(vendor));
@@ -1185,6 +1264,11 @@ window.VishApp = (function () {
   function updatePacksLaneNote() {
     const note = $('packs-lane-note');
     if (!note) return;
+    if (!isDualVendor()) {
+      note.innerHTML =
+        '<strong>Ready combos — add one, then customise quantities anytime.</strong>';
+      return;
+    }
     const answers = window.VishLane ? VishLane.getAnswers() : null;
     const budgetLabel =
       answers && answers.budget && VishLane.BUDGETS[answers.budget]
@@ -1331,8 +1415,9 @@ window.VishApp = (function () {
       return;
     }
     if (!packs.length) {
-      root.innerHTML =
-        '<p class="empty-state">No combos for this match yet. <button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>.</p>';
+      root.innerHTML = isDualVendor()
+        ? '<p class="empty-state">No combos for this match yet. <button type="button" class="link-action" data-edit-prefs="1">Edit preferences</button>.</p>'
+        : '<p class="empty-state">No combos available right now. Browse the catalogue to build your own list.</p>';
       return;
     }
 
@@ -2137,6 +2222,7 @@ window.VishApp = (function () {
       const editPrefs = e.target.closest('[data-edit-prefs], [data-plan-again]');
       if (editPrefs) {
         e.preventDefault();
+        if (!isDualVendor()) return;
         if (window.VishNightUI) {
           if (hasNightMatch()) VishNightUI.requestEditPreferences();
           else VishNightUI.openMatcher({ force: true });
@@ -2145,6 +2231,7 @@ window.VishApp = (function () {
       }
       if (e.target.closest('[data-match-help]') || e.target.closest('[data-why-two-lists]')) {
         e.preventDefault();
+        if (!isDualVendor()) return;
         if (window.VishDialog) {
           VishDialog.notice({
             kicker: 'Quick match',
@@ -2201,9 +2288,20 @@ window.VishApp = (function () {
   function useLocalProducts() {
     const sri = Array.isArray(window.PRODUCTS_DATA) ? window.PRODUCTS_DATA : [];
     const ignite = Array.isArray(window.PRODUCTS_IGNITE_DATA) ? window.PRODUCTS_IGNITE_DATA : [];
-    if (!sri.length) return false;
-    sriProductsData = tagVendor(sri, 'sri');
-    igniteProductsData = tagVendor(ignite, 'ignite');
+    const fixed = fixedVendor();
+    if (fixed === 'ignite') {
+      if (!ignite.length) return false;
+      sriProductsData = [];
+      igniteProductsData = tagVendor(ignite, 'ignite');
+    } else if (fixed === 'sri') {
+      if (!sri.length) return false;
+      sriProductsData = tagVendor(sri, 'sri');
+      igniteProductsData = [];
+    } else {
+      if (!sri.length) return false;
+      sriProductsData = tagVendor(sri, 'sri');
+      igniteProductsData = tagVendor(ignite, 'ignite');
+    }
     syncActiveCatalog();
     return true;
   }
@@ -2254,11 +2352,17 @@ window.VishApp = (function () {
       });
       const data = await res.json();
       if (data && Array.isArray(data.products) && data.products.length) {
-        const nextSri = tagVendor(data.products, 'sri');
-        const nextIgnite =
+        const fixed = fixedVendor();
+        let nextSri = tagVendor(data.products, 'sri');
+        let nextIgnite =
           Array.isArray(data.productsIgnite) && data.productsIgnite.length
             ? tagVendor(data.productsIgnite, 'ignite')
             : igniteProductsData;
+        if (fixed === 'sri') nextIgnite = [];
+        if (fixed === 'ignite') {
+          if (!nextIgnite.length) return false;
+          nextSri = [];
+        }
         const after = catalogFingerprint(nextSri, nextIgnite);
         if (after && after === before) return true;
         sriProductsData = nextSri;
@@ -2278,6 +2382,7 @@ window.VishApp = (function () {
   async function init() {
     injectIcons(document);
     hydrateHeader();
+    applyVendorModeUi();
     bindUi();
     updateUrgency();
     setInterval(updateUrgency, 30000);
@@ -2290,24 +2395,34 @@ window.VishApp = (function () {
       throw new Error('Product data missing');
     }
 
+    clearStaleLaneForSingleVendor();
+    pruneWrongVendorCartItems();
+
     if (window.VishNightUI) {
       VishNightUI.setCallbacks({
         onLaneChanged: function () {
           paintCatalog();
         }
       });
-      // Legacy cart without prefs: infer match from cart vendor once
-      if (!VishLane.getLane() && VishCart.cartCount() > 0) {
-        let v = VishCart.getVendor();
-        if (!v) {
-          const first = Object.values(VishCart.getCart())[0];
-          const n = Number(first && first.id);
-          v = Number.isFinite(n) && n >= 10000 ? 'ignite' : 'sri';
-          VishCart.setVendor(v);
+      if (isDualVendor()) {
+        // Legacy cart without prefs: infer match from cart vendor once
+        if (window.VishLane && !VishLane.getLane() && VishCart.cartCount() > 0) {
+          let v = VishCart.getVendor();
+          if (!v) {
+            const first = Object.values(VishCart.getCart())[0];
+            v = window.VishVendorMode
+              ? window.VishVendorMode.inferVendorFromItem(first)
+              : 'sri';
+            VishCart.setVendor(v);
+          }
+          VishLane.setLane(VishLane.vendorToLane(v));
         }
-        VishLane.setLane(VishLane.vendorToLane(v));
+      } else if (fixedVendor()) {
+        VishCart.setVendor(fixedVendor());
       }
       VishNightUI.ensureGate();
+    } else if (fixedVendor()) {
+      VishCart.setVendor(fixedVendor());
     }
 
     // Share-cart links removed for dual-lane model — ignore legacy ?cart=

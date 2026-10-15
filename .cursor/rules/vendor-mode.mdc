@@ -1,0 +1,23 @@
+---
+description: Customer storefront vendor mode switch (dual / sri / ignite)
+globs: js/config.js,js/vendor-mode.js,js/app.js,js/cart.js,js/night-ui.js
+alwaysApply: false
+---
+
+# Vendor mode
+
+Customer storefront mode is controlled by **one field** in `js/config.js`:
+
+```js
+vendorMode: 'dual'   // 'dual' or 'sri' or 'ignite'
+```
+
+| Value | Behaviour |
+|-------|-----------|
+| `dual` | Night matcher + both catalogues (live default) |
+| `sri` | Open catalogue, Sri only — no matcher |
+| `ignite` | Open catalogue, Ignite only — no matcher |
+
+Helpers live in `js/vendor-mode.js` (`VishVendorMode`). Staff tools (`/bill`, `/ignite-images`, `/quote-desk`) are **not** gated by this flag.
+
+After changing the value: deploy (commit/push). Returning visitors with an old dual cart get wrong-vendor lines pruned automatically in single modes.

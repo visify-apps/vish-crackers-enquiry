@@ -5,10 +5,29 @@ window.VishCart = (function () {
   const VENDOR_KEY = 'vish_cart_vendor_v1';
   const LEGACY_KEYS = ['vish_cart_v2'];
   const MAX_QTY = 999;
-  const VENDORS = { sri: true, ignite: true };
   let memoryFallback = null;
   let combosFallback = null;
   let vendorFallback = null;
+
+  function allowedVendorMap() {
+    const mode = window.VishVendorMode;
+    if (mode && typeof mode.allowedVendors === 'function') {
+      const map = {};
+      mode.allowedVendors().forEach(function (v) {
+        map[v] = true;
+      });
+      return map;
+    }
+    return { sri: true, ignite: true };
+  }
+
+  function defaultVendor() {
+    const mode = window.VishVendorMode;
+    if (mode && typeof mode.fixedVendor === 'function') {
+      return mode.fixedVendor() || 'sri';
+    }
+    return 'sri';
+  }
 
   function clampQty(n) {
     const q = parseInt(n, 10);
@@ -87,11 +106,13 @@ window.VishCart = (function () {
 
   function normalizeVendor(v) {
     const s = String(v || '').toLowerCase();
-    return VENDORS[s] ? s : '';
+    return allowedVendorMap()[s] ? s : '';
   }
 
   function getVendor() {
-    if (vendorFallback === 'sri' || vendorFallback === 'ignite') return vendorFallback;
+    if (vendorFallback === 'sri' || vendorFallback === 'ignite') {
+      return normalizeVendor(vendorFallback);
+    }
     try {
       if (!window.localStorage) return '';
       return normalizeVendor(localStorage.getItem(VENDOR_KEY));
@@ -243,7 +264,15 @@ window.VishCart = (function () {
 
   function addItem(product, qty) {
     if (!product || product.id == null) return getCart();
-    const productVendor = normalizeVendor(product.vendor) || 'sri';
+    const tagged = String(product.vendor || '').toLowerCase();
+    let productVendor = normalizeVendor(product.vendor);
+    if (!productVendor) {
+      // Explicit other-vendor tag must not silently fall back to the fixed vendor.
+      if (tagged === 'sri' || tagged === 'ignite') {
+        return { cart: getCart(), ok: false, reason: 'invalid-vendor', vendor: getVendor() };
+      }
+      productVendor = defaultVendor();
+    }
     const lock = ensureVendor(productVendor);
     if (!lock.ok) {
       return { cart: getCart(), ok: false, reason: lock.reason, vendor: lock.vendor };

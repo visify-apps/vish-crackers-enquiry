@@ -4,9 +4,12 @@ Disallow: /bill.html
 Disallow: /bill
 Disallow: /ignite-images.html
 Disallow: /ignite-images
+Disallow: /quote-desk.html
+Disallow: /quote-desk
 Disallow: /packs.html
 Disallow: /packs
 Disallow: /print/
 Disallow: /scripts/
+Disallow: /tmp/
 
 Sitemap: https://vishcrackers.online/sitemap.xml

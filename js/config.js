@@ -6,6 +6,14 @@ window.SITE_CONFIG = {
   phone: '9994376845',
   whatsapp: '919994376845',
   address: 'Near Hayagrivas School, Vembakottai Road, Sivakasi – 626189',
+  /*
+   * Vendor mode (customer storefront):
+   *   'dual'   — night matcher + both Sri & Ignite catalogues (live default)
+   *   'sri'    — open catalogue, Sri only (no matcher)
+   *   'ignite' — open catalogue, Ignite only (no matcher)
+   * Change this one line, then deploy. Staff tools (/bill, /ignite-images, /quote-desk) ignore this.
+   */
+  vendorMode: 'sri',  // 'dual' or 'sri' or 'ignite'
   deliveryNote:
     'Pan India delivery. Charges usually ₹250–₹1,500 based on location, order size and how close we are to festival week — earlier enquiries usually get better transport rates.',
   orderDeadline: '25 October 2026',
