@@ -392,22 +392,31 @@ window.VishApp = (function () {
     document.body.classList.remove('picker-open');
   }
 
+  function isGiftBoxItem(item) {
+    const cat = String((item && item.category) || '').toLowerCase();
+    const name = String((item && item.name) || '').toLowerCase();
+    return cat === 'gift boxes' || /gift\s*box/i.test(name);
+  }
+
   function productCard(item) {
     const cart = VishCart.getCart();
     const inCart = cart[item.id];
     const off = percentOff(item);
     const unavailable = item.active === false;
+    const bulkOnly = isGiftBoxItem(item);
     const el = document.createElement('article');
     el.className =
       'product-row' +
       (inCart ? ' is-in-cart' : '') +
       (item.limited ? ' is-limited' : '') +
+      (bulkOnly ? ' is-bulk-only' : '') +
       (unavailable ? ' is-unavailable' : '');
     el.dataset.id = item.id;
 
     const badges =
       (off > 0 && !unavailable ? '<span class="badge-off">' + off + '% off</span>' : '') +
-      (item.limited ? '<span class="badge-limited">Limited</span>' : '');
+      (item.limited ? '<span class="badge-limited">Limited</span>' : '') +
+      (bulkOnly ? '<span class="badge-bulk">Bulk only</span>' : '');
 
     el.innerHTML =
       '<button type="button" class="thumb-btn" data-lightbox="1" aria-label="View larger image of ' +
@@ -429,6 +438,9 @@ window.VishApp = (function () {
       '</span>' +
       badges +
       '</div>' +
+      (bulkOnly
+        ? '<p class="product-note">Gift boxes are only for bulk orders.</p>'
+        : '') +
       '</div>' +
       '<div class="product-side">' +
       '<div class="product-actions"></div>' +
@@ -497,6 +509,13 @@ window.VishApp = (function () {
 
   function fillCategoryPanel(panel, items) {
     panel.innerHTML = '';
+    const cat = items[0] && items[0].category;
+    if (String(cat || '').toLowerCase() === 'gift boxes') {
+      const note = document.createElement('p');
+      note.className = 'category-bulk-note';
+      note.textContent = 'Gift boxes are only for bulk orders.';
+      panel.appendChild(note);
+    }
     const list = document.createElement('div');
     list.className = 'product-list';
     items.forEach((item) => list.appendChild(productCard(item)));
@@ -533,6 +552,12 @@ window.VishApp = (function () {
 
     // Specific category: flat list, no accordion / chevron
     if (activeCategory !== 'all') {
+      if (String(activeCategory).toLowerCase() === 'gift boxes') {
+        const note = document.createElement('p');
+        note.className = 'category-bulk-note';
+        note.textContent = 'Gift boxes are only for bulk orders.';
+        root.appendChild(note);
+      }
       const list = document.createElement('div');
       list.className = 'product-list';
       grouped.forEach((items) => {

@@ -19,5 +19,7 @@ _v1_archive/
 css/styles.light-backup.css
 
 .venv-pdf/
+.tmp-py/
+.tmp-qr-b64.txt
 scripts/sri-price-extract.txt
 scripts/profit-preview.json

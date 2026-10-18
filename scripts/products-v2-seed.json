@@ -1325,7 +1325,7 @@
     "name": "17 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 299,
+    "sellingPrice": 399,
     "active": true,
     "limited": false
   },
@@ -1335,7 +1335,7 @@
     "name": "20 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 345,
+    "sellingPrice": 429,
     "active": true,
     "limited": false
   },
@@ -1345,7 +1345,7 @@
     "name": "25 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 420,
+    "sellingPrice": 499,
     "active": true,
     "limited": false
   },
@@ -1355,7 +1355,7 @@
     "name": "30 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 480,
+    "sellingPrice": 549,
     "active": true,
     "limited": false
   },
@@ -1365,7 +1365,7 @@
     "name": "35 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 575,
+    "sellingPrice": 700,
     "active": true,
     "limited": false
   },
@@ -1375,7 +1375,7 @@
     "name": "40 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 799,
+    "sellingPrice": 899,
     "active": true,
     "limited": false
   },
@@ -1385,7 +1385,7 @@
     "name": "50 ITEMS GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 899,
+    "sellingPrice": 999,
     "active": true,
     "limited": false
   },
@@ -1395,7 +1395,7 @@
     "name": "VIP GIFT BOX",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 1149,
+    "sellingPrice": 1250,
     "active": true,
     "limited": false
   },
@@ -1405,7 +1405,7 @@
     "name": "Kids Combo",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 3999,
+    "sellingPrice": 4499,
     "active": true,
     "limited": false
   },
@@ -1415,7 +1415,7 @@
     "name": "Special Combo",
     "originalPrice": "",
     "price": "",
-    "sellingPrice": 4999,
+    "sellingPrice": 5699,
     "active": true,
     "limited": false
   }

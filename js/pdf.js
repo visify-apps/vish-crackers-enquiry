@@ -729,7 +729,10 @@ window.VishPdf = (function () {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
       doc.setTextColor(COLORS.night2[0], COLORS.night2[1], COLORS.night2[2]);
-      doc.text(safeText(String(cat.category).toUpperCase()), margin + 10, y + 14);
+      var catTitle = safeText(String(cat.category).toUpperCase());
+      var isGiftCat = String(cat.category || '').toLowerCase() === 'gift boxes';
+      if (isGiftCat) catTitle += '  —  BULK ORDERS ONLY';
+      doc.text(catTitle, margin + 10, y + 14);
       y += 26;
 
       (cat.items || [])
@@ -738,6 +741,9 @@ window.VishPdf = (function () {
         })
         .forEach(function (item, idx) {
           var name = safeText(item.name);
+          if (isGiftCat || /gift\s*box/i.test(String(item.name || ''))) {
+            name += ' (bulk only)';
+          }
           var nameLines = doc.splitTextToSize(name, 270);
           var rowH = Math.max(16, nameLines.length * 11 + 4);
           if (y + rowH > 760) {

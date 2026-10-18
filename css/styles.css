@@ -2637,6 +2637,35 @@ a {
   border: 1px solid rgba(240, 199, 94, 0.45);
 }
 
+.badge-bulk {
+  flex: 0 0 auto;
+  background: rgba(14, 9, 8, 0.85);
+  color: #f3c9a0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 201, 160, 0.4);
+}
+
+.product-note {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #e8b98a;
+}
+
+.category-bulk-note {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #f3d2ad;
+  background: rgba(240, 199, 94, 0.08);
+  border: 1px solid rgba(240, 199, 94, 0.22);
+  border-radius: 10px;
+}
+
 .product-row.is-limited {
   border-color: rgba(231, 197, 106, 0.55);
 }

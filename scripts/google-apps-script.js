@@ -2379,16 +2379,16 @@ var PRODUCTS_V2_SEED = [
   [130, 'Colour Matches', 'ROLL CAP ITEMS', '', '', 68, true, false],
   [131, 'Colour Matches', 'SNAKE SERPHANT SMALL', '', '', 17, true, false],
   [132, 'Colour Matches', 'SNAKE SERPHANT BIG', '', '', 28, true, false],
-  [133, 'Gift Boxes', '17 ITEMS GIFT BOX', '', '', 299, true, false],
-  [134, 'Gift Boxes', '20 ITEMS GIFT BOX', '', '', 345, true, false],
-  [135, 'Gift Boxes', '25 ITEMS GIFT BOX', '', '', 420, true, false],
-  [136, 'Gift Boxes', '30 ITEMS GIFT BOX', '', '', 480, true, false],
-  [137, 'Gift Boxes', '35 ITEMS GIFT BOX', '', '', 575, true, false],
-  [138, 'Gift Boxes', '40 ITEMS GIFT BOX', '', '', 799, true, false],
-  [139, 'Gift Boxes', '50 ITEMS GIFT BOX', '', '', 899, true, false],
-  [140, 'Gift Boxes', 'VIP GIFT BOX', '', '', 1149, true, false],
-  [141, 'Best Combo', 'Kids Combo', '', '', 3999, true, false],
-  [142, 'Best Combo', 'Special Combo', '', '', 4999, true, false]
+  [133, 'Gift Boxes', '17 ITEMS GIFT BOX', '', '', 399, true, false],
+  [134, 'Gift Boxes', '20 ITEMS GIFT BOX', '', '', 429, true, false],
+  [135, 'Gift Boxes', '25 ITEMS GIFT BOX', '', '', 499, true, false],
+  [136, 'Gift Boxes', '30 ITEMS GIFT BOX', '', '', 549, true, false],
+  [137, 'Gift Boxes', '35 ITEMS GIFT BOX', '', '', 700, true, false],
+  [138, 'Gift Boxes', '40 ITEMS GIFT BOX', '', '', 899, true, false],
+  [139, 'Gift Boxes', '50 ITEMS GIFT BOX', '', '', 999, true, false],
+  [140, 'Gift Boxes', 'VIP GIFT BOX', '', '', 1250, true, false],
+  [141, 'Best Combo', 'Kids Combo', '', '', 4499, true, false],
+  [142, 'Best Combo', 'Special Combo', '', '', 5699, true, false]
 ];
 
 function onOpen() {

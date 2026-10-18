@@ -1677,11 +1677,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 133,
         "name": "17 ITEMS GIFT BOX",
         "originalPrice": 700,
-        "price": 349,
+        "price": 399,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1689,11 +1690,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 134,
         "name": "20 ITEMS GIFT BOX",
         "originalPrice": 770,
-        "price": 379,
+        "price": 429,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1701,11 +1703,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 135,
         "name": "25 ITEMS GIFT BOX",
         "originalPrice": 900,
-        "price": 449,
+        "price": 499,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1713,11 +1716,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 136,
         "name": "30 ITEMS GIFT BOX",
         "originalPrice": 1000,
-        "price": 499,
+        "price": 549,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1725,11 +1729,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 137,
         "name": "35 ITEMS GIFT BOX",
         "originalPrice": 1350,
-        "price": 650,
+        "price": 700,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1737,11 +1742,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 138,
         "name": "40 ITEMS GIFT BOX",
         "originalPrice": 1700,
-        "price": 849,
+        "price": 899,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1749,11 +1755,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 139,
         "name": "50 ITEMS GIFT BOX",
         "originalPrice": 1900,
-        "price": 949,
+        "price": 999,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       },
       {
@@ -1761,11 +1768,12 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 140,
         "name": "VIP GIFT BOX",
         "originalPrice": 2500,
-        "price": 1200,
+        "price": 1250,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
         "limited": false,
+        "note": "Bulk orders only",
         "vendor": "ignite"
       }
     ]
@@ -1779,7 +1787,7 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 141,
         "name": "Kids Combo",
         "originalPrice": 8300,
-        "price": 4100,
+        "price": 4499,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
@@ -1791,7 +1799,7 @@ window.PRODUCTS_IGNITE_DATA = [
         "sourceId": 142,
         "name": "Special Combo",
         "originalPrice": 10250,
-        "price": 5100,
+        "price": 5699,
         "unit": "1 Pack",
         "image": "assets/optimized/placeholder.jpg",
         "active": true,
