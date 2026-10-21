@@ -2625,6 +2625,11 @@ a {
   border-color: rgba(120, 200, 140, 0.45);
 }
 
+.pack-card-below-min .pack-badge {
+  color: #f3c9a0;
+  border-color: rgba(243, 201, 160, 0.45);
+}
+
 /* Limited / unavailable */
 .badge-limited {
   flex: 0 0 auto;

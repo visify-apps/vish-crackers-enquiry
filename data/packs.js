@@ -9,8 +9,8 @@ window.PACKS_DATA = [
     "section": "Soft colour nights",
     "job": "soft",
     "name": "Soft Colour Combo",
-    "tagline": "Sparklers, smoke & soft fountain only — no bombs. Edit with matching soft items after adding.",
-    "badge": "Kids safe · best value",
+    "tagline": "Sparklers, flower pots, peacock, chakkar & soft fountains — no bombs. From ₹3,500.",
+    "badge": "Kids safe · from ₹3,500",
     "items": [
       {
         "id": 10105,
@@ -86,6 +86,34 @@ window.PACKS_DATA = [
       },
       {
         "id": 10086,
+        "qty": 1
+      },
+      {
+        "id": 10118,
+        "qty": 2
+      },
+      {
+        "id": 10119,
+        "qty": 2
+      },
+      {
+        "id": 10001,
+        "qty": 2
+      },
+      {
+        "id": 10009,
+        "qty": 2
+      },
+      {
+        "id": 10062,
+        "qty": 1
+      },
+      {
+        "id": 10060,
+        "qty": 1
+      },
+      {
+        "id": 10078,
         "qty": 1
       }
     ]
@@ -365,7 +393,7 @@ window.PACKS_DATA = [
     "section": "Family Diwali nights",
     "job": "family",
     "name": "Starter Combo",
-    "tagline": "From ₹2,000 — sound, bijili, sparkler, ground, night & mini sky. Customise after add.",
+    "tagline": "From ₹3,500 — sound, bijili, sparkler, ground, night & mini sky. Customise after add.",
     "badge": "From min · best value",
     "items": [
       {
@@ -466,6 +494,26 @@ window.PACKS_DATA = [
       },
       {
         "id": 10126,
+        "qty": 1
+      },
+      {
+        "id": 10117,
+        "qty": 2
+      },
+      {
+        "id": 10012,
+        "qty": 1
+      },
+      {
+        "id": 10006,
+        "qty": 1
+      },
+      {
+        "id": 10080,
+        "qty": 1
+      },
+      {
+        "id": 10058,
         "qty": 1
       }
     ]

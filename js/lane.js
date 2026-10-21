@@ -29,7 +29,7 @@ window.VishLane = (function () {
   };
 
   const BUDGETS = {
-    under5: { id: 'under5', label: 'Under ₹5,000', min: 2000, max: 5000, mid: 3500 },
+    under5: { id: 'under5', label: 'Under ₹5,000', min: 3500, max: 5000, mid: 4000 },
     mid: { id: 'mid', label: '₹5,000 – ₹10,000', min: 5000, max: 10000, mid: 7500 },
     high: { id: 'high', label: '₹10,000 – ₹20,000', min: 10000, max: 20000, mid: 15000 },
     any: { id: 'any', label: 'Decide while browsing', min: 0, max: Infinity, mid: 8000 }

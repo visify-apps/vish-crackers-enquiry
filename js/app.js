@@ -709,15 +709,22 @@ window.VishApp = (function () {
     return zones[p.slice(0, 2)] || zones[p.slice(0, 3)] || zones.default || null;
   }
 
+  function minOrderAmount() {
+    return Number(cfg().minOrder || cfg().softMinOrder) || 0;
+  }
+
   function minOrderStatus(total) {
-    const min = Number(cfg().softMinOrder) || 0;
+    const min = minOrderAmount();
     if (!min || total <= 0 || total >= min) return null;
     const need = Math.max(0, Math.ceil(min - total));
     return {
       min: min,
       need: need,
       pct: Math.max(4, Math.min(100, Math.round((total / min) * 100))),
-      short: 'Add ' + money(need) + ' more to reach ' + money(min)
+      short: 'Minimum ' + money(min) + ' — add ' + money(need) + ' more',
+      block:
+        cfg().minOrderNote ||
+        'Minimum enquiry is ' + money(min) + '. Add ' + money(need) + ' more to submit.'
     };
   }
 
@@ -1217,7 +1224,7 @@ window.VishApp = (function () {
       return 'True open-yard finales (setout-class sky). Open yards only — not for flats.';
     }
     if (/family diwali/i.test(sectionName)) {
-      return 'Complete Diwali packs from ₹2,000. Add one, then customise from this list.';
+      return 'Complete Diwali packs from ₹3,500. Add one, then customise from this list.';
     }
     return 'Add one combo, then customise freely within this list.';
   }
@@ -1338,14 +1345,20 @@ window.VishApp = (function () {
     const already = pack.id != null && VishCart.hasCombo(pack.id);
     const packVendor = pack.vendor === 'ignite' ? 'ignite' : 'sri';
     const tone = opts.tone || sectionTone(pack.section || '');
-    const badge = opts.budgetFit ? 'Fits your budget' : pack.badge || 'Combo';
+    const belowMin = !!minOrderStatus(total);
+    const badge = belowMin
+      ? 'Add more to reach ' + money(minOrderAmount())
+      : opts.budgetFit
+        ? 'Fits your budget'
+        : pack.badge || 'Combo';
     const card = document.createElement('article');
     card.className =
       'pack-card pack-theme-' +
       theme +
       (tone === 'kids' ? ' pack-card-kids' : '') +
       (already ? ' pack-card-added' : '') +
-      (opts.budgetFit ? ' pack-card-budget' : '');
+      (opts.budgetFit ? ' pack-card-budget' : '') +
+      (belowMin ? ' pack-card-below-min' : '');
     card.dataset.theme = theme;
     card.dataset.vendor = packVendor;
     card.innerHTML =
@@ -1402,7 +1415,13 @@ window.VishApp = (function () {
       '<ul class="pack-items">' +
       packItemLinesHtml(lines) +
       '</ul>' +
-      '<p class="pack-customize-hint">After adding, change quantities or add more items anytime.</p>' +
+      '<p class="pack-customize-hint">' +
+      (belowMin
+        ? 'Starter pack — add more items after this to reach the ' +
+          money(minOrderAmount()) +
+          ' minimum.'
+        : 'After adding, change quantities or add more items anytime.') +
+      '</p>' +
       '</div>' +
       '</div>' +
       '</div>';
@@ -1912,6 +1931,14 @@ window.VishApp = (function () {
       return;
     }
 
+    const totals = liveCartTotals(cart);
+    const minStatus = minOrderStatus(totals.total);
+    if (minStatus) {
+      if ($('form-msg')) $('form-msg').textContent = minStatus.block;
+      showToast(minStatus.block);
+      return;
+    }
+
     const contact = validateContact();
     if (!contact) return;
 
@@ -1974,6 +2001,13 @@ window.VishApp = (function () {
 
     const cart = VishCart.getCart();
     if (VishCart.cartCount(cart) === 0) return;
+    const minStatus = minOrderStatus(liveCartTotals(cart).total);
+    if (minStatus) {
+      hideEnquiryConfirm();
+      if ($('form-msg')) $('form-msg').textContent = minStatus.block;
+      showToast(minStatus.block);
+      return;
+    }
     const contact = validateContact();
     if (!contact) {
       hideEnquiryConfirm();
@@ -2308,6 +2342,22 @@ window.VishApp = (function () {
         '. We close early so festival transport demand does not push delivery charges too high.';
     }
     if ($('biz-delivery')) $('biz-delivery').textContent = cfg().deliveryNote;
+    const min = minOrderAmount();
+    const minLabel = min ? money(min) : '';
+    document.querySelectorAll('[data-min-order-chip]').forEach(function (el) {
+      if (el.dataset.minOrderChip === 'combos') {
+        el.textContent = 'From ' + minLabel + ' · Fully editable after add';
+      } else {
+        el.textContent = 'Enquiry only · Minimum ' + minLabel;
+      }
+    });
+    if ($('combos-brand-tag') && min) {
+      $('combos-brand-tag').textContent = minLabel + '–₹20,000 · customisable';
+    }
+    if ($('biz-min-order') && min) {
+      $('biz-min-order').textContent =
+        'Minimum enquiry is ' + minLabel + '. Lists below this cannot be submitted.';
+    }
   }
 
   function useLocalProducts() {

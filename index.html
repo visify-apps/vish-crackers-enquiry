@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=gift1" />
+  <link rel="stylesheet" href="css/styles.css?v=min35" />
   <script>
     (function () {
       var h = String(location.hash || '').replace(/^#\/?/, '').toLowerCase();
@@ -63,7 +63,7 @@
   </header>
 
   <section class="hero shell hero-combined" id="urgency-banner" aria-live="polite">
-    <p class="legal-chip">Enquiry only · From ₹2,000</p>
+    <p class="legal-chip" data-min-order-chip>Enquiry only · Minimum ₹3,500</p>
     <div data-dual-only>
       <p class="eyebrow">Match your Diwali celebration</p>
       <h2 class="hero-title">Tell us your setup. We’ll pick the packs.</h2>
@@ -170,6 +170,10 @@
         <article class="fact">
           <strong><span data-icon="truck"></span> Delivery</strong>
           <p id="biz-delivery">Pan India delivery. Charges usually ₹250–₹1,500 based on location, order size and how close we are to festival week.</p>
+        </article>
+        <article class="fact">
+          <strong><span data-icon="package"></span> Minimum enquiry</strong>
+          <p id="biz-min-order">Minimum enquiry is ₹3,500. Lists below this cannot be submitted.</p>
         </article>
         <article class="fact">
           <strong><span data-icon="file"></span> Full price list</strong>
@@ -377,18 +381,18 @@
   </div>
 
   <script src="js/vendor/jspdf.umd.min.js" defer></script>
-  <script src="js/config.js?v=vendor2"></script>
+  <script src="js/config.js?v=min35"></script>
   <script src="js/vendor-mode.js?v=vendor2"></script>
   <script src="data/products.js?v=sync1"></script>
   <script src="data/products-ignite.js?v=gift1"></script>
-  <script src="data/packs.js?v=lane1"></script>
+  <script src="data/packs.js?v=min35b"></script>
   <script src="js/icons.js?v=lane1"></script>
   <script src="js/cart.js?v=vendor1"></script>
-  <script src="js/lane.js?v=lane26"></script>
+  <script src="js/lane.js?v=min35"></script>
   <script src="js/dialog.js?v=lane26"></script>
   <script src="js/night-ui.js?v=vendor1"></script>
   <script src="js/pdf.js?v=gift1"></script>
-  <script src="js/app.js?v=gift1" defer></script>
+  <script src="js/app.js?v=min35" defer></script>
   <script src="js/a2hs.js?v=a2hs3" defer></script>
 </body>
 </html>

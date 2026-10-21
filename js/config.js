@@ -19,10 +19,12 @@ window.SITE_CONFIG = {
   orderDeadline: '25 October 2026',
   /* Used for countdown (local midnight end of this day) */
   orderDeadlineISO: '2026-10-25',
-  /* Suggested enquiry total — does not block submit */
-  softMinOrder: 2000,
-  softMinOrderNote:
-    'Lists under ₹2,000 are confirmed on WhatsApp after we review them with you.',
+  /* Hard minimum — enquiry cannot be submitted below this */
+  minOrder: 3500,
+  minOrderNote: 'Minimum enquiry is ₹3,500. Add more items to submit.',
+  /* Alias kept for older code paths */
+  softMinOrder: 3500,
+  softMinOrderNote: 'Minimum enquiry is ₹3,500. Lists below this cannot be submitted.',
   /* First 2–3 digits of pincode → zone hint after lookup */
   deliveryZones: {
     '62': {
