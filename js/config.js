@@ -13,7 +13,7 @@ window.SITE_CONFIG = {
    *   'ignite' — open catalogue, Ignite only (no matcher)
    * Change this one line, then deploy. Staff tools (/bill, /ignite-images, /quote-desk) ignore this.
    */
-  vendorMode: 'ignite',  // 'dual' or 'sri' or 'ignite'
+  vendorMode: 'sri',  // 'dual' or 'sri' or 'ignite'
   deliveryNote:
     'Pan India delivery. Charges usually ₹250–₹1,500 based on location, order size and how close we are to festival week — earlier enquiries usually get better transport rates.',
   orderDeadline: '25 October 2026',
