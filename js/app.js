@@ -1562,87 +1562,20 @@ window.VishApp = (function () {
     });
   }
 
-  function deadlineDate() {
-    const iso = cfg().orderDeadlineISO || '2026-10-25';
-    return new Date(iso + 'T23:59:59');
-  }
-
-  function urgencyCopy(daysLeft) {
-    if (daysLeft < 0) {
-      return {
-        level: 'closed',
-        kicker: 'Booking closed',
-        title: 'Online enquiry window is closed',
-        text:
-          'New lists are paused after ' +
-          (cfg().orderDeadline || 'the deadline') +
-          '. WhatsApp us for leftovers or special requests.'
-      };
-    }
-    if (daysLeft <= 2) {
-      return {
-        level: 'critical',
-        kicker: 'Peak rates ahead',
-        title: 'Last chance before festival transport spikes',
-        text: 'Near Diwali, Sivakasi often cannot find enough parcel vehicles — transporters charge much more. Send your list now to lock a better dispatch cost.'
-      };
-    }
-    if (daysLeft <= 7) {
-      return {
-        level: 'hot',
-        kicker: 'Rates climbing',
-        title: 'Later orders usually cost more to dispatch',
-        text: 'Festival demand makes parcel vehicles scarce from Sivakasi. Lists locked this week still have a stronger chance of lower delivery charges.'
-      };
-    }
-    if (daysLeft <= 14) {
-      return {
-        level: 'warn',
-        kicker: 'Transport rush building',
-        title: 'Two weeks to avoid peak delivery charges',
-        text: 'As Diwali nears, parcel services ask higher amounts because vehicles are limited. Earlier enquiries help us book transport at more reasonable rates.'
-      };
-    }
-    return {
-      level: 'open',
-      kicker: 'Dispatch clock · 25 Oct',
-      title: 'Earlier lists = lower delivery charges',
-      text: 'Near Diwali, Sivakasi parcel vehicles get scarce and transport rates climb. Lock your enquiry early for a smoother, more affordable dispatch.'
-    };
-  }
-
   function updateUrgency() {
     const banner = $('urgency-banner');
     if (!banner || isPacksPage()) return;
-    const end = deadlineDate();
-    const now = new Date();
-    const diff = end - now;
-    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    const copy = urgencyCopy(daysLeft);
-    banner.dataset.level = copy.level;
-    if ($('urgency-kicker')) $('urgency-kicker').textContent = copy.kicker;
-    if ($('urgency-title')) $('urgency-title').textContent = copy.title;
-    if ($('urgency-text')) $('urgency-text').textContent = copy.text;
-
-    if (diff <= 0) {
-      if ($('cd-days')) $('cd-days').textContent = '00';
-      if ($('cd-hours')) $('cd-hours').textContent = '00';
-      if ($('cd-mins')) $('cd-mins').textContent = '00';
-      if ($('urgency-progress')) $('urgency-progress').style.width = '100%';
-      return;
+    banner.dataset.level = 'hot';
+    if ($('urgency-kicker')) $('urgency-kicker').textContent = 'Diwali courier rush';
+    if ($('urgency-title')) $('urgency-title').textContent = 'Late orders may cost more and take longer';
+    if ($('urgency-text')) {
+      $('urgency-text').textContent =
+        'Courier services are in high demand during Diwali. Late lists from Sivakasi often face higher delivery charges and delays. Confirm soon if you still need dispatch this season.';
     }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const mins = Math.floor((diff / (1000 * 60)) % 60);
-    if ($('cd-days')) $('cd-days').textContent = String(days).padStart(2, '0');
-    if ($('cd-hours')) $('cd-hours').textContent = String(hours).padStart(2, '0');
-    if ($('cd-mins')) $('cd-mins').textContent = String(mins).padStart(2, '0');
-
-    const seasonStart = new Date('2026-09-01T00:00:00');
-    const total = Math.max(1, end - seasonStart);
-    const done = Math.min(1, Math.max(0, (now - seasonStart) / total));
-    if ($('urgency-progress')) $('urgency-progress').style.width = Math.round(done * 100) + '%';
+    const timer = $('urgency-timer');
+    if (timer) timer.hidden = true;
+    const bar = document.querySelector('.urgency-bar');
+    if (bar) bar.hidden = true;
   }
 
   function renderSheet() {
@@ -2337,9 +2270,7 @@ window.VishApp = (function () {
     if ($('biz-phone')) $('biz-phone').textContent = cfg().ownerName + ' – ' + cfg().phone;
     if ($('biz-deadline')) {
       $('biz-deadline').textContent =
-        'No new enquiries after ' +
-        cfg().orderDeadline +
-        '. We close early so festival transport demand does not push delivery charges too high.';
+        'Late orders may face higher courier charges and delays due to Diwali demand on parcel services from Sivakasi.';
     }
     if ($('biz-delivery')) $('biz-delivery').textContent = cfg().deliveryNote;
     const min = minOrderAmount();
@@ -2460,7 +2391,6 @@ window.VishApp = (function () {
     applyVendorModeUi();
     bindUi();
     updateUrgency();
-    setInterval(updateUrgency, 30000);
 
     if (!useLocalProducts()) {
       if ($('product-list') && !isPacksPage()) {
