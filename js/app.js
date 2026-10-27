@@ -668,6 +668,62 @@ window.VishApp = (function () {
     note.innerHTML = 'Products shown in a curated order for your celebration.';
   }
 
+  function cartShareUrl() {
+    const encoded = VishCart.encodeShare();
+    const url = new URL(location.href);
+    if (/\/combos(\.html)?$/i.test(url.pathname)) {
+      url.pathname = url.pathname.replace(/combos(\.html)?$/i, '') || '/';
+      if (!url.pathname) url.pathname = '/';
+    }
+    url.hash = '';
+    url.search = '';
+    url.searchParams.set('cart', encoded);
+    return url.toString();
+  }
+
+  async function shareCartLink() {
+    if (VishCart.cartCount() === 0) {
+      showToast('Add items before sharing a link');
+      return;
+    }
+    const url = cartShareUrl();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        showToast('List link copied — paste anywhere to share');
+        return;
+      }
+    } catch (err) {}
+    try {
+      window.prompt('Copy this list link', url);
+    } catch (err2) {
+      showToast('Could not copy the list link');
+    }
+  }
+
+  function loadSharedCartFromUrl() {
+    try {
+      const share = new URLSearchParams(location.search).get('cart');
+      if (!share) return;
+      history.replaceState({}, '', location.pathname + location.hash);
+      const result = VishCart.applyShare(share, productById, { replace: true });
+      if (result.blocked) {
+        showToast(vendorLockMessage());
+        return;
+      }
+      if (result.added) {
+        showToast(
+          result.skipped
+            ? 'List loaded from link. ' + result.skipped + ' item(s) unavailable.'
+            : 'List loaded from link'
+        );
+        setTimeout(openSheet, 120);
+      } else {
+        showToast('This list link had no available items.');
+      }
+    } catch (err) {}
+  }
+
   function showToast(message) {
     let el = $('site-toast');
     if (!el) {
@@ -2084,6 +2140,10 @@ window.VishApp = (function () {
       });
     }
 
+    if ($('share-cart-btn')) {
+      $('share-cart-btn').addEventListener('click', shareCartLink);
+    }
+
     if ($('clear-cart-btn')) {
       $('clear-cart-btn').addEventListener('click', () => {
         if (VishCart.cartCount() === 0) return;
@@ -2430,12 +2490,7 @@ window.VishApp = (function () {
       VishCart.setVendor(fixedVendor());
     }
 
-    // Share-cart links removed for dual-lane model — ignore legacy ?cart=
-    try {
-      if (new URLSearchParams(location.search).has('cart')) {
-        history.replaceState({}, '', location.pathname + location.hash);
-      }
-    } catch (err) {}
+    loadSharedCartFromUrl();
 
     // Local catalogue first (instant). Sheet refresh in background; silent re-paint only if changed.
     paintCatalog();
